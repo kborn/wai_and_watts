@@ -24,3 +24,19 @@ real New Zealand environmental data processing, and disciplined, agentic use of 
 - Builder GPT operates inside the IDE
 - Human-in-the-loop for all commits
 
+
+## Repository Layout
+
+The repository is a multi-directory project:
+
+- backend/ — Spring Boot application (ONLY place Java code lives)
+    - backend/src/main/java/nz/waiwatts/...
+    - backend/src/test/java/...
+- frontend/ — thin web client (added later)
+- specs/ — product specifications
+- design/ — architecture and contracts
+- docs/ai-dev/ — AI workflow documentation
+
+IMPORTANT:
+- All backend Java code MUST live under backend/src/main/java
+- No Java code should be created at the repo root
