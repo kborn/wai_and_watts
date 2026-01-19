@@ -27,7 +27,7 @@ public class DatasetRelease {
     @JoinColumn(name = "dataset_source_id", nullable = false)
     private DatasetSource datasetSource;
 
-    @Column(name = "published_date", nullable = false)
+    @Column(name = "published_date")
     private LocalDate publishedDate;
 
     @Column(name = "release_label")
