@@ -49,6 +49,9 @@ public class DatasetRelease {
     @Column
     private String notes;
 
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     public UUID getId() {
         return id;
     }
@@ -119,5 +122,13 @@ public class DatasetRelease {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

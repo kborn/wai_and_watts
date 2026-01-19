@@ -11,6 +11,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +43,9 @@ public class DatasetSource {
 
     @OneToMany(mappedBy = "datasetSource", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DatasetRelease> releases = new ArrayList<>();
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     public UUID getId() {
         return id;
@@ -103,5 +107,13 @@ public class DatasetSource {
     public void removeRelease(DatasetRelease release) {
         releases.remove(release);
         release.setDatasetSource(null);
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
