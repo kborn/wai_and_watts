@@ -25,7 +25,9 @@ replay_pid*
 
 
 # IDEA
+*.iml
 .idea/
+**/.idea/
 
 # Maven
 /backend/target/
