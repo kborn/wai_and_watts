@@ -72,6 +72,10 @@ Links (add upon merge):
 - Tests: [link]
 - Decisions added: [link]
 
+Notes:
+- The internal ingestion endpoint is a plumbing trigger, not a mock of external providers. It simulates “a new release arrived” to exercise lifecycle, timestamps, and idempotency without fetching/parsing.
+- For tests, the controller is enabled under the `test` profile (H2) to avoid hitting the dev Postgres.
+
 ---
 
 ### Phase 5 — First Dataset Ingestion
