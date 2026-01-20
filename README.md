@@ -47,14 +47,14 @@ Before pushing, run the test suite locally:
 mvn -f backend clean verify
 ```
 
-Optional: install a Git pre-push hook to prevent pushing broken builds:
+Optional: install a Git pre-push hook to prevent pushing broken builds (build only, tests run in CI):
 
 ```
 cp scripts/git-hooks/pre-push.sample .git/hooks/pre-push
 chmod +x .git/hooks/pre-push
 ```
 
-This hook will run `mvn -f backend clean verify` and abort the push if the build/tests fail.
+This hook will run `mvn -f backend -DskipTests clean package` and abort the push if the build fails.
 
 ---
 

@@ -9,12 +9,12 @@
 #
 set -euo pipefail
 
-echo "[pre-push] Running backend build & tests..."
-mvn -f backend -B clean verify
+echo "[pre-push] Running backend build (no tests)..."
+mvn -f backend -B -DskipTests clean package
 status=$?
 
 if [ $status -ne 0 ]; then
-  echo "[pre-push] Build/tests failed. Push aborted." >&2
+  echo "[pre-push] Build failed. Push aborted." >&2
   exit $status
 fi
 
