@@ -58,19 +58,17 @@ Definition of Done:
 
 ---
 
-### Phase 4 — Ingestion Lifecycle Skeleton 🟡
+### Phase 4 — Ingestion Lifecycle Skeleton ✅
 Goal: Track ingestion attempts without parsing data.
 
 Definition of Done:
-- [ ] Dev-only ingestion trigger available: `POST /api/v1/internal/ingest` (profile=dev, token-guarded)
-- [ ] Lifecycle state transitions recorded: PENDING → IMPORTED (stub success)
-- [ ] Idempotency enforced for `(dataset_source_id, content_hash)` (no duplicate rows)
-- [ ] One integration test verifies lifecycle + idempotency
+- [x] Dev-only ingestion trigger available: `POST /api/v1/internal/ingest` (profiles: dev,test; token from `waiwatts.internalToken`)
+- [x] Lifecycle state transitions recorded: PENDING → IMPORTED (stub success)
+- [x] Idempotency enforced for `(dataset_source_id, content_hash)` (no duplicate rows)
+- [x] One integration test verifies lifecycle + idempotency (H2, test profile)
 
-Links (add upon merge):
-- Implementation PR: [link]
-- Tests: [link]
-- Decisions added: [link]
+Links:
+- Commit: https://github.com/kborn/wai_and_watts/commit/2112393c481f6ad2113f32d4ffcb0fceb4447358
 
 Notes:
 - The internal ingestion endpoint is a plumbing trigger, not a mock of external providers. It simulates “a new release arrived” to exercise lifecycle, timestamps, and idempotency without fetching/parsing.
