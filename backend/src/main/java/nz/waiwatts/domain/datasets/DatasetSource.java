@@ -27,6 +27,9 @@ public class DatasetSource {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "code", unique = true)
+    private String code; // stable identifier for lookup (distinct from URL)
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Publisher publisher; // LAWA | MBIE
@@ -61,6 +64,14 @@ public class DatasetSource {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Publisher getPublisher() {

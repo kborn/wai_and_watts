@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface DatasetSourceRepository extends JpaRepository<DatasetSource, UUID> {
     Optional<DatasetSource> findBySourceUrl(String sourceUrl);
+    Optional<DatasetSource> findByCode(String code);
 }

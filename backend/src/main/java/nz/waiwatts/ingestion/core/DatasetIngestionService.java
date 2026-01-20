@@ -26,8 +26,8 @@ public class DatasetIngestionService {
 
     @Transactional
     public UUID ingest(DatasetIngestionRequest req) {
-        // Lookup source by its code (mapped to sourceUrl for now)
-        DatasetSource source = sourceRepository.findBySourceUrl(req.getDatasetSourceCode())
+        // Lookup source by stable code; URL is metadata
+        DatasetSource source = sourceRepository.findByCode(req.getDatasetSourceCode())
                 .orElseThrow(() -> new NoSuchElementException("DatasetSource not found for code: " + req.getDatasetSourceCode()));
 
         // Idempotency check: if release with same (source, content_hash) exists, return it

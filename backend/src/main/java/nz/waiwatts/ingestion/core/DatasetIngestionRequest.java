@@ -5,10 +5,10 @@ import java.time.LocalDate;
 
 public class DatasetIngestionRequest {
     @NotBlank
-    private String datasetSourceCode; // maps to DatasetSource.sourceUrl
+    private String datasetSourceCode; // looked up via DatasetSource.code
     private String releaseLabel; // optional in Phase 4
     private LocalDate publishedDate; // nullable
-    private String sourceUri; // optional metadata
+    private String sourceUri; // optional metadata (URL)
     @NotBlank
     private String contentHash;
 

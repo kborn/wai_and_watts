@@ -44,6 +44,7 @@ class DatasetIngestionIntegrationTest {
         src.setId(UUID.randomUUID());
         src.setName("LAWA water quality");
         src.setPublisher(Publisher.LAWA);
+        src.setCode("lawa");
         // Use a unique URL per test run to avoid clashes with any existing data
         String uniqueUrl = "https://example.com/lawa-" + UUID.randomUUID() + ".csv";
         src.setSourceUrl(uniqueUrl);
@@ -56,7 +57,7 @@ class DatasetIngestionIntegrationTest {
                 "  \"publishedDate\": \"2024-01-01\",\n" +
                 "  \"sourceUri\": \"%s\",\n" +
                 "  \"contentHash\": \"abc123\"\n" +
-                "}", uniqueUrl, uniqueUrl);
+                "}", "lawa", uniqueUrl);
 
         // First call creates the release
         mockMvc.perform(post("/api/v1/internal/ingest")
