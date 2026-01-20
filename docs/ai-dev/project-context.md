@@ -1,42 +1,61 @@
 # Wai & Watts — Project Context
 
 ## Purpose
-Wai & Watts is a portfolio project demonstrating senior Java/Spring Boot backend engineering,
-real New Zealand environmental data processing, and disciplined, agentic use of LLMs.
+Wai & Watts is a portfolio project demonstrating:
+- senior Java / Spring Boot backend engineering
+- real New Zealand environmental data processing
+- disciplined, intentional, agentic use of LLMs
+
+The project emphasizes **sequencing, provenance, and correctness** over feature breadth.
+
+---
 
 ## Problem Domain
-- River water quality "state & trend" data (LAWA)
+- River water quality “state & trend” data (LAWA)
 - Electricity generation and renewables data (MBIE)
 
+The system models **published interpretations**, not raw measurements.
+
+---
+
 ## Non-Goals
-- Raw time-series ingestion for water monitoring (out of scope for MVP)
+- Raw time-series ingestion for water monitoring
 - Autonomous AI committing code
-- ML-based predictions
+- ML-based predictions or forecasting
+- Frontend-heavy business logic
+
+---
 
 ## Architecture Summary
 - Spring Boot backend
 - Postgres database
-- REST APIs
-- LLM used only for grounded explanations (fact-pack-first)
+- REST APIs (versioned)
+- Dataset lineage modeled explicitly
+- LLMs used only for grounded explanations
 
-## AI Workflow
-- PM / Staff / Data roles operate outside the IDE
-- Builder GPT operates inside the IDE
-- Human-in-the-loop for all commits
+---
 
+## Canonical Documents (Read Order)
 
-## Repository Layout
+1. **project-context.md** — orientation and authority map
+2. **roles.md** — who is allowed to do what
+3. **progress.md** — phases, current position, and definition of done
+4. **DECISIONS.md** — non-negotiable architectural and workflow decisions
+5. **AI_USAGE.md** — how AI tools are used and constrained
 
-The repository is a multi-directory project:
+If documents conflict, authority flows top to bottom.
 
-- backend/ — Spring Boot application (ONLY place Java code lives)
-    - backend/src/main/java/nz/waiwatts/...
-    - backend/src/test/java/...
-- frontend/ — thin web client (added later)
-- specs/ — product specifications
-- design/ — architecture and contracts
-- docs/ai-dev/ — AI workflow documentation
+---
 
-IMPORTANT:
-- All backend Java code MUST live under backend/src/main/java
-- No Java code should be created at the repo root
+## Repository Guardrails
+
+- All backend Java code lives under `backend/src/main/java`
+- No Java code at repo root
+- Controllers never expose entities directly
+- Lineage models precede domain models
+
+---
+
+## Final Note
+This document is intentionally stable.
+If it changes often, something else is missing.
