@@ -45,6 +45,10 @@ The system models **published interpretations**, not raw measurements.
 
 If documents conflict, authority flows top to bottom.
 
+### Session recovery quickstart
+- If session context is lost or unclear, follow the procedure in the section above: “Canonical Documents (Read Order)”.
+- Follow the stated authority flow (top → bottom). If conflicts remain or scope is ambiguous, pause and escalate per the Builder GPT escalation policy in `roles.md`.
+
 ---
 
 ## Repository Guardrails
@@ -53,6 +57,8 @@ If documents conflict, authority flows top to bottom.
 - No Java code at repo root
 - Controllers never expose entities directly
 - Lineage models precede domain models
+
+If a guardrail is at risk due to a required change, stop and escalate per `roles.md`.
 
 ---
 
