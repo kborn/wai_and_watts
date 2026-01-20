@@ -76,7 +76,23 @@ Notes:
 
 ---
 
-### Phase 5 — First Dataset Ingestion
+
+### Phase 5 — Build & Test Guardrails
+Goal: Prevent broken builds from being committed or merged; establish baseline CI discipline.
+
+Definition of Done:
+- [ ] GitHub Actions workflow runs on push and pull_request
+- [ ] Workflow builds the backend successfully
+- [ ] Workflow runs the full test suite
+- [ ] Failing tests fail the workflow
+- [ ] Build status is visible in GitHub (Actions tab)
+- [ ] Local developer guidance for running checks is documented
+
+Notes:
+- CI uses in-memory DB (H2) initially
+- Postgres/Testcontainers may be added later if dialect fidelity is required
+
+### Phase 6 — First Dataset Ingestion
 Goal: Persist first real interpreted dataset.
 
 Definition of Done:
