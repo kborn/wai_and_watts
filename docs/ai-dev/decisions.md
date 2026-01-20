@@ -164,6 +164,40 @@ Implications:
 
 ---
 
+### Stable Source Code Identifier
+Date: 2026-01-19
+Decision: Introduce `dataset_source.code` (unique) as the stable identifier for source lookups; URLs remain metadata.
+Rationale:
+- Decouples identity from transport/location; avoids URL churn breaking lookups
+Implications:
+- Services use `findByCode(...)` for lookups
+- Migrations add `code` column with a unique index
+
+---
+
+### CI Guardrails via GitHub Actions
+Date: 2026-01-19
+Decision: Build and test the backend on every `push` and `pull_request` using GitHub Actions.
+Rationale:
+- Ensure broken builds/tests are caught automatically
+Implications:
+- Workflow `.github/workflows/ci.yml` runs `mvn -f backend -B clean verify` on JDK 21 with Maven cache
+- Tests run with current H2 configuration; no Postgres/Testcontainers in CI for this phase
+- Branch protections may require this check before merging (when enabled)
+
+---
+
+### Local Pre-Push Guardrail (Opt-in)
+Date: 2026-01-19
+Decision: Provide a sample Git pre-push hook that runs the backend build/tests locally; document usage in README.
+Rationale:
+- Lightweight, repo-local safety net without external tooling
+Implications:
+- Script at `scripts/git-hooks/pre-push.sample`; developers can opt-in by copying to `.git/hooks/pre-push`
+- Central enforcement remains CI; hook is recommended but not mandatory
+
+---
+
 ### Published Date Nullable for Releases
 Date: 2026-01-19
 Decision: `dataset_release.published_date` is nullable.

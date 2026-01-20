@@ -20,8 +20,8 @@ Notes (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 5 — Build & Test Guardrails
-- **Status:** In progress
+- **Active Phase:** Phase 6 — First Dataset Ingestion
+- **Status:** Not started
 
 ---
 
@@ -77,7 +77,7 @@ Notes:
 ---
 
 
-### Phase 5 — Build & Test Guardrails
+### Phase 5 — Build & Test Guardrails ✅
 Goal: Prevent broken builds from being committed or merged; establish baseline CI discipline.
 
 Definition of Done:
@@ -85,9 +85,11 @@ Definition of Done:
 - [x] Workflow builds the backend successfully
 - [x] Workflow runs the full test suite
 - [x] Failing tests fail the workflow
-- [ ] Build status is visible in GitHub (Actions tab)
+- [x] Build status is visible in GitHub (Actions tab)
 - [x] Local developer guidance for running checks is documented
 
+Links:
+- PR: https://github.com/kborn/wai_and_watts/pull/1
 Notes:
 - CI uses in-memory DB (H2) initially
 - Postgres/Testcontainers may be added later if dialect fidelity is required
