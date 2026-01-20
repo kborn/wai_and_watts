@@ -20,7 +20,7 @@ Notes (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 4 — Ingestion Lifecycle Skeleton
+- **Active Phase:** Phase 5 — Build & Test Guardrails
 - **Status:** In progress
 
 ---
@@ -81,16 +81,17 @@ Notes:
 Goal: Prevent broken builds from being committed or merged; establish baseline CI discipline.
 
 Definition of Done:
-- [ ] GitHub Actions workflow runs on push and pull_request
-- [ ] Workflow builds the backend successfully
-- [ ] Workflow runs the full test suite
-- [ ] Failing tests fail the workflow
+- [x] GitHub Actions workflow runs on push and pull_request
+- [x] Workflow builds the backend successfully
+- [x] Workflow runs the full test suite
+- [x] Failing tests fail the workflow
 - [ ] Build status is visible in GitHub (Actions tab)
-- [ ] Local developer guidance for running checks is documented
+- [x] Local developer guidance for running checks is documented
 
 Notes:
 - CI uses in-memory DB (H2) initially
 - Postgres/Testcontainers may be added later if dialect fidelity is required
+ - Workflow file: `.github/workflows/ci.yml`
 
 ### Phase 6 — First Dataset Ingestion
 Goal: Persist first real interpreted dataset.

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Wai & Watts — pre-push guardrail (sample)
+#
+# Purpose:
+#   Prevent pushing when the backend build/tests fail.
+# Usage (opt-in per repo):
+#   cp scripts/git-hooks/pre-push.sample .git/hooks/pre-push
+#   chmod +x .git/hooks/pre-push
+#
+set -euo pipefail
+
+echo "[pre-push] Running backend build & tests..."
+mvn -f backend -B clean verify
+status=$?
+
+if [ $status -ne 0 ]; then
+  echo "[pre-push] Build/tests failed. Push aborted." >&2
+  exit $status
+fi
+
+echo "[pre-push] OK — build/tests passed. Proceeding with push."
+exit 0
