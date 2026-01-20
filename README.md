@@ -60,7 +60,7 @@ This hook will run `mvn -f backend -DskipTests clean package` and abort the push
 
 ## Continuous Integration (GitHub Actions)
 
-CI runs on every push and pull request. It builds the backend and runs all tests.
+CI runs on every pull request and on pushes to `main`. It builds the backend and runs all tests.
 
 Badge:
 
