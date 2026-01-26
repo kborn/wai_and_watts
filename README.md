@@ -1,5 +1,5 @@
 # wai_and_watts
-Wai and Watts - Explore the impact of energy consumption on water quality in New Zealand
+Wai & Watts — Explore New Zealand environmental state & trends with a Spring Boot data platform
 
 ## Repository layout
 
@@ -70,3 +70,13 @@ Workflow:
 - Location: `.github/workflows/ci.yml`
 - Java: Temurin JDK 21
 - Build: `mvn -f backend -B clean verify`
+
+## Key Documentation
+
+This project uses structured documentation to support AI-assisted development and future contributors:
+
+- `project-context.md` — project purpose, repo layout, and session recovery guide
+- `progress.md` — current phase, tasks, and Definition of Done
+- `decisions.md` — append-only architectural and sequencing decisions
+- `specs/phase-6-mbie-ingestion.md` — MBIE dataset selection and ingestion rationale
+- `design/mbie-schema.md` — Phase 6 database schema and fixture contract  

@@ -60,6 +60,27 @@ If documents conflict, authority flows top to bottom.
 
 If a guardrail is at risk due to a required change, stop and escalate per `roles.md`.
 
+
+## Documentation Taxonomy (Authoritative)
+
+Wai & Watts documentation is organized by intent. New AI sessions must follow this taxonomy.
+
+- **project-context.md** — High-level project purpose, architecture, repo layout, and how to resume context.
+- **progress.md** — Execution state, phases, current phase, and Definition of Done. This is the operational source of truth.
+- **decisions.md** — Append-only architectural and sequencing decisions with rationale and implications. Do not duplicate specs here.
+- **specs/** — Product and data domain specifications (what to ingest, why, acceptance criteria). Phase-specific.
+- **design/** — Technical contracts (schemas, mappings, constraints, ingestion contracts). How the system is structured.
+- **ai_usage.md / roles.md** — AI workflow rules and role boundaries.
+
+If a document does not fit one of these categories, it should not be added.
+
+## Repository Layout
+- backend/ — Spring Boot app (ONLY Java code lives here)
+- frontend/ — future thin client
+- specs/ — domain/product specs
+- design/ — technical contracts
+- docs/ai-dev/ — AI workflow docs
+
 ---
 
 ## Final Note

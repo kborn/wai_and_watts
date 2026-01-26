@@ -295,6 +295,8 @@ Explicit selection criteria for Sheet 6:
 - Avoids mixed dashboard metrics (consumption, ICP counts, derived KPIs) present in quarterly reporting tables
 - Minimizes ingestion and modeling churn for Phase 6
 
+Implications: Annual-only modeling in Phase 6; quarterly modeled later via forward migration.
+
 #### Phase 6 Period Modeling Scope
 
 Decision:
@@ -372,3 +374,13 @@ Out of Scope (Phase 6)
 - No capacity modeling
 - No primary energy accounting (PJ)
 - No live HTTP fetch (fixtures only)
+
+### Contract Location
+
+Date: 2026-01-26  
+
+Decision: Store dataset contracts in design/, rationale in specs/.
+
+Rationale: Keep decisions.md readable and stable.
+
+Implications: Phase 6 contract lives in design/mbie-schema.md.
