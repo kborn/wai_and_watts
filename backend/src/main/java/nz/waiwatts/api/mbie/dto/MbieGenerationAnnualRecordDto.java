@@ -3,16 +3,16 @@ package nz.waiwatts.api.mbie.dto;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class MbieGenerationRecordDto {
+public class MbieGenerationAnnualRecordDto {
     private int periodYear;
     private String source; // normalized fuel type
     private String sourceRaw;
     private BigDecimal generationGwh;
     private UUID releaseId;
 
-    public MbieGenerationRecordDto() {}
+    public MbieGenerationAnnualRecordDto() {}
 
-    public MbieGenerationRecordDto(int periodYear, String source, String sourceRaw, BigDecimal generationGwh, UUID releaseId) {
+    public MbieGenerationAnnualRecordDto(int periodYear, String source, String sourceRaw, BigDecimal generationGwh, UUID releaseId) {
         this.periodYear = periodYear;
         this.source = source;
         this.sourceRaw = sourceRaw;

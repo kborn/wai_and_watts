@@ -6,8 +6,8 @@ import nz.waiwatts.ingestion.core.DatasetIngestionRequest;
 import nz.waiwatts.ingestion.core.DatasetIngestionService;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
-import nz.waiwatts.persistence.repositories.MbieGenerationRecordRepository;
-import nz.waiwatts.domain.mbie.MbieGenerationRecord;
+import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
+import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,19 +24,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class MbieIngestion {
+public class MbieAnnualIngestion {
 
     private final DatasetSourceRepository datasetSourceRepository;
     private final DatasetReleaseRepository datasetReleaseRepository;
     private final DatasetIngestionService datasetIngestionService;
-    private final MbieGenerationParser parser;
-    private final MbieGenerationRecordRepository recordRepository;
+    private final MbieGenerationAnnualParser parser;
+    private final MbieGenerationAnnualRecordRepository recordRepository;
 
-    public MbieIngestion(DatasetSourceRepository datasetSourceRepository,
-                         DatasetReleaseRepository datasetReleaseRepository,
-                         DatasetIngestionService datasetIngestionService,
-                         MbieGenerationParser parser,
-                         MbieGenerationRecordRepository recordRepository) {
+    public MbieAnnualIngestion(DatasetSourceRepository datasetSourceRepository,
+                               DatasetReleaseRepository datasetReleaseRepository,
+                               DatasetIngestionService datasetIngestionService,
+                               MbieGenerationAnnualParser parser,
+                               MbieGenerationAnnualRecordRepository recordRepository) {
         this.datasetSourceRepository = datasetSourceRepository;
         this.datasetReleaseRepository = datasetReleaseRepository;
         this.datasetIngestionService = datasetIngestionService;
@@ -82,11 +82,11 @@ public class MbieIngestion {
         UUID releaseId = datasetIngestionService.ingest(req);
 
         // Parse and persist rows linked to the new release
-        List<MbieGenerationParsedRecord> rows = parse(bytes);
+        List<MbieGenerationAnnualParsedRecord> rows = parse(bytes);
         DatasetRelease release = datasetReleaseRepository.findById(releaseId)
                 .orElseThrow();
-        for (MbieGenerationParsedRecord r : rows) {
-            MbieGenerationRecord e = new MbieGenerationRecord();
+        for (MbieGenerationAnnualParsedRecord r : rows) {
+            MbieGenerationAnnualRecord e = new MbieGenerationAnnualRecord();
             e.setDatasetRelease(release);
             e.setPeriodYear(r.getPeriodYear());
             e.setFuelTypeRaw(r.getFuelTypeRaw());
@@ -98,7 +98,7 @@ public class MbieIngestion {
         return releaseId;
     }
 
-    private List<MbieGenerationParsedRecord> parse(byte[] bytes) {
+    private List<MbieGenerationAnnualParsedRecord> parse(byte[] bytes) {
         try (InputStream is = new java.io.ByteArrayInputStream(bytes)) {
             return parser.parse(is);
         } catch (IOException e) {

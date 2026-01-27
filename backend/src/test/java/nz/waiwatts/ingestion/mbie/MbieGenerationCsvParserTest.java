@@ -14,18 +14,18 @@ class MbieGenerationCsvParserTest {
     @Test
     void parse_fixture_success_and_basic_assertions() throws Exception {
         InputStream is = this.getClass().getClassLoader()
-                .getResourceAsStream("fixtures/mbie/generation/mbie_generation_fixture_phase6.csv");
+                .getResourceAsStream("fixtures/mbie/generation/annual/mbie_generation_annual_fixture_phase6.csv");
         assertThat(is).as("fixture should be on classpath").isNotNull();
 
-        MbieGenerationParser parser = new MbieGenerationCsvParser();
-        List<MbieGenerationParsedRecord> records = parser.parse(is);
+        MbieGenerationAnnualParser parser = new MbieGenerationAnnualCsvParser();
+        List<MbieGenerationAnnualParsedRecord> records = parser.parse(is);
 
         // exact count: years 2003-2024 inclusive (22) * 8 fuel types = 176
         assertThat(records).hasSize(176);
 
         // basic field checks
         Set<String> allowed = Set.of("HYDRO", "GEOTHERMAL", "WIND", "SOLAR", "GAS", "COAL", "OTHER");
-        for (MbieGenerationParsedRecord r : records) {
+        for (MbieGenerationAnnualParsedRecord r : records) {
             assertThat(r.getFuelTypeRaw()).isNotNull();
             assertThat(r.getFuelTypeNorm()).isNotNull();
             assertThat(allowed).contains(r.getFuelTypeNorm());

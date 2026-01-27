@@ -13,13 +13,13 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MbieGenerationCsvParser implements MbieGenerationParser {
+public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser {
 
     private static final Set<String> KNOWN = Set.of("HYDRO", "GEOTHERMAL", "WIND", "SOLAR", "GAS", "COAL", "OTHER");
 
     @Override
-    public List<MbieGenerationParsedRecord> parse(InputStream input) throws IOException {
-        List<MbieGenerationParsedRecord> result = new ArrayList<>();
+    public List<MbieGenerationAnnualParsedRecord> parse(InputStream input) throws IOException {
+        List<MbieGenerationAnnualParsedRecord> result = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line = reader.readLine(); // header
             if (line == null) return result;
@@ -40,7 +40,7 @@ public class MbieGenerationCsvParser implements MbieGenerationParser {
                 }
                 norm = mapToKnown(norm);
                 BigDecimal gwh = new BigDecimal(parts[3].trim());
-                result.add(new MbieGenerationParsedRecord(year, raw, norm, gwh));
+                result.add(new MbieGenerationAnnualParsedRecord(year, raw, norm, gwh));
             }
         }
         return result;

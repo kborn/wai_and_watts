@@ -1,7 +1,7 @@
 package nz.waiwatts.api.mbie;
 
-import nz.waiwatts.api.mbie.dto.MbieGenerationRecordDto;
-import nz.waiwatts.service.mbie.MbieGenerationReadService;
+import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
+import nz.waiwatts.service.mbie.MbieGenerationAnnualReadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,11 +12,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/mbie")
-public class MbieGenerationController {
+public class MbieGenerationAnnualController {
 
-    private final MbieGenerationReadService readService;
+    private final MbieGenerationAnnualReadService readService;
 
-    public MbieGenerationController(MbieGenerationReadService readService) {
+    public MbieGenerationAnnualController(MbieGenerationAnnualReadService readService) {
         this.readService = readService;
     }
 
@@ -30,7 +30,7 @@ public class MbieGenerationController {
         if (fromYear != null && toYear != null && fromYear > toYear) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "fromYear must be <= toYear"));
         }
-        List<MbieGenerationRecordDto> out = readService.find(fromYear, toYear, source);
+        List<MbieGenerationAnnualRecordDto> out = readService.find(fromYear, toYear, source);
         return ResponseEntity.ok(out);
     }
 
