@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 6 — First Real Dataset Ingestion (Fixture-first) 🟡
-- **Status:** In progress
+- **Active Phase:** Phase 6 — First Real Dataset Ingestion (Fixture-first) ✅
+- **Status:** Completed
 
 ---
 
@@ -151,7 +151,7 @@ Definition of Done:
 - [x] One integration test proves:
     - ingest fixture → rows written → status IMPORTED
     - repeat ingest (same content) → no duplicate rows/releases
-- [ ] Read-only API endpoint(s) expose the ingested domain data
+- [x] Read-only API endpoint(s) expose the ingested domain data
 
 Work Items:
 - [x] Choose first dataset: MBIE electricity generation
@@ -164,7 +164,7 @@ Work Items:
     - calls lifecycle/orchestrator
     - persists domain data
 - [x] Add integration test using fixture(s)
-- [ ] Add read-only controller/service for domain data
+- [x] Add read-only controller/service for domain data
 
 Notes:
 - **Fixtures are required in Phase 6.** Do not add HTTP fetch/download yet.
@@ -183,6 +183,7 @@ Links:
 - PR: [feat(ingestion): add MBIE CSV parser with normalization and unit test](https://github.com/kborn/wai_and_watts/pull/3)
 - PR: [feat(ingestion): wire MBIE fixture ingestion with persistence and idempotency](https://github.com/kborn/wai_and_watts/pull/4)
 - PR: [feat(service/mbie): add MBIE generation read service and DTO with unit tests](https://github.com/kborn/wai_and_watts/pull/5)
+- PR: [feat(api/mbie): add public read endpoint GET /api/v1/mbie/generation with validation and tests](https://github.com/kborn/wai_and_watts/pull/6)
 
 ---
 
