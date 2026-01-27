@@ -453,24 +453,13 @@ Rationale: Demonstrates Flyway discipline and avoids polymorphic complexity.
 
 Implications: Phase 8+ may unify via new schema or views.
 
-## Phase 7 Dataset Selection
+
+## Documentation as Architecture Contract
 
 Date: 2026-01-27
-Decision: Phase 7 ingests MBIE quarterly electricity generation data from sheet “1 - Fuel type (GWh)”.  
-Rationale: Demonstrates schema evolution and temporal complexity within the same domain before cross-domain ingestion.  
-Implications: Annual and quarterly datasets coexist; unification deferred.
 
-## Phase 7 Extensibility Definition
+Decision: Specs, design contracts, and decisions files are authoritative over code structure during development.  
 
-Date: 2026-01-27
-Decision: Extensibility is proven when a second dataset reuses lifecycle/orchestration unchanged and only dataset-specific schema/parser/fixture/API are added.  
-Rationale: Shows scalable architecture without premature ingestion frameworks.  
-Implications: Shared ingestion code remains stable; Phase 6 tests must pass unchanged.
+Rationale: Ensures AI and humans converge on intended architecture rather than reverse-engineering from implementation.  
 
-
-## Phase 7 Schema Evolution Strategy
-
-Date: 2026-01-27
-Decision: Quarterly data uses a new domain table via forward Flyway migrations.  
-Rationale: Demonstrates disciplined schema evolution and avoids polymorphic temporal modeling.  
-Implications: Phase 8+ may unify annual and quarterly via views or derived tables.
+Implications: New phases require spec + design + decision entries before coding.
