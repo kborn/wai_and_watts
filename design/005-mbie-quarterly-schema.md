@@ -12,31 +12,28 @@ Units: GWh (net electricity generation delivered to grid)
 
 Temporal Model: (year, quarter)
 
+## Semantics Guarantees
+
+- generation_gwh represents net generation delivered to the grid
+- Values are reported by MBIE as finalized quarterly aggregates
+- No conversion from PJ or MWh occurs in Phase 7
+
+
 ## Domain Table
 
 Table Name: `mbie_generation_quarterly_record`
 
 ### Columns
 
-  ------------------------------------------------------------------------
-  Column                Type            Description
-  --------------------- --------------- ----------------------------------
-  id                    bigint PK       Surrogate key
-
-  year                  int             Calendar year
-
-  quarter               int             1--4
-
-  fuel_type_raw         text            Raw MBIE fuel label
-
-  fuel_type_norm        text/enum       Normalized fuel category (HYDRO,
-                                        WIND, SOLAR, GEOTHERMAL, GAS,
-                                        COAL, OTHER)
-
-  generation_gwh        decimal         Generation in GWh
-
-  dataset_release_id    bigint FK       Lineage reference
-  ------------------------------------------------------------------------
+| Column              | Type    | Description                                                                 |
+|---------------------|---------|-----------------------------------------------------------------------------|
+| `id`                | BIGINT  | Surrogate primary key                                                       |
+| `dataset_release_id`| UUID FK | Lineage reference → `dataset_release(id)`                                   |
+| `year`              | INT     | Calendar year (e.g., 2024)                                                  |
+| `quarter`           | INT     | Quarter number `1..4`                                                       |
+| `fuel_type_raw`     | TEXT    | Raw MBIE fuel label (preserved as-is)                                       |
+| `fuel_type_norm`    | TEXT    | Normalized fuel category: HYDRO, GEOTHERMAL, WIND, SOLAR, GAS, COAL, OTHER |
+| `generation_gwh`    | DECIMAL | Net electricity generation in GWh                                           |
 
 ### Constraints
 
