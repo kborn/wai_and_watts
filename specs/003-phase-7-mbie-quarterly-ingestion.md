@@ -40,7 +40,7 @@ in GWh.
 -   Parser reads fixture and normalizes fuel types
 -   New quarterly domain table populated via ingestion pipeline
 -   Lineage idempotency enforced (dataset_source_id + content_hash)
--   Domain uniqueness enforced (no duplicate year/quarter/fuel per
+-   Domain uniqueness enforced (no duplicate period_year/period_quarter/fuel per
     release)
 -   Phase 6 annual ingestion remains unchanged and tests pass
 -   Read-only API endpoint returns quarterly data
