@@ -385,7 +385,6 @@ Rationale: Keep decisions.md readable and stable.
 
 Implications: Phase 6 contract lives in design/mbie-schema.md.
 
----
 
 ## Dataset Source Taxonomy Convention
 
@@ -398,8 +397,8 @@ Rationale:
 
 Implications:
 - All new datasets must follow this convention; existing sources are migrated forward via Flyway when renamed.
+- Applied in Phase 6: canonical code set to `mbie.generation.annual` via Flyway V8.
 
----
 
 ## Phase 6 Dataset Source Code Backport
 
@@ -412,3 +411,66 @@ Rationale:
 
 Implications:
 - Flyway migration updates existing row; APIs/specs use the canonical code.
+
+
+## Phase 7 Dataset Selection
+
+Date: 2026-01-27  
+
+Decision: Phase 7 will ingest MBIE quarterly electricity generation data.  
+
+Rationale: Demonstrates schema evolution and harder parsing within the same domain before cross-domain ingestion.  
+
+Implications: Annual and quarterly tables coexist; future migrations unify temporal modeling.
+
+## Phase 7 Extensibility Definition
+
+Date: 2026-01-27
+
+Decision: Extensibility is proven when a second dataset reuses lifecycle/orchestration unchanged and only dataset-specific parsers and schemas are added.  
+
+Rationale: Avoids framework overengineering while demonstrating scalable architecture.  
+
+Implications: Shared ingestion code is stable; dataset logic is pluggable.
+
+## Phase 7 Ingestion Abstraction Boundary
+
+Date: 2026-01-27
+
+Decision: Use light abstraction (shared orchestrator + dataset-specific ingesters).  
+
+Rationale: Portfolio clarity and avoidance of premature ingestion frameworks.  
+
+Implications: Metadata-driven pipelines deferred to Phase 9+.
+
+## Phase 7 Schema Evolution Strategy
+
+Date: 2026-01-27
+
+Decision: Use forward migrations and new tables for quarterly data.  
+
+Rationale: Demonstrates Flyway discipline and avoids polymorphic complexity.  
+
+Implications: Phase 8+ may unify via new schema or views.
+
+## Phase 7 Dataset Selection
+
+Date: 2026-01-27
+Decision: Phase 7 ingests MBIE quarterly electricity generation data from sheet “1 - Fuel type (GWh)”.  
+Rationale: Demonstrates schema evolution and temporal complexity within the same domain before cross-domain ingestion.  
+Implications: Annual and quarterly datasets coexist; unification deferred.
+
+## Phase 7 Extensibility Definition
+
+Date: 2026-01-27
+Decision: Extensibility is proven when a second dataset reuses lifecycle/orchestration unchanged and only dataset-specific schema/parser/fixture/API are added.  
+Rationale: Shows scalable architecture without premature ingestion frameworks.  
+Implications: Shared ingestion code remains stable; Phase 6 tests must pass unchanged.
+
+
+## Phase 7 Schema Evolution Strategy
+
+Date: 2026-01-27
+Decision: Quarterly data uses a new domain table via forward Flyway migrations.  
+Rationale: Demonstrates disciplined schema evolution and avoids polymorphic temporal modeling.  
+Implications: Phase 8+ may unify annual and quarterly via views or derived tables.

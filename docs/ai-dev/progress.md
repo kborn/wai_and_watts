@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 6 — First Real Dataset Ingestion (Fixture-first) ✅
-- **Status:** Completed
+- **Active Phase:** Phase 7 — Second Dataset Ingestion (Prove Extensibility) 🟡 
+- **Status:** In Progress
 
 ---
 
@@ -192,24 +192,42 @@ Links:
 Goal: Add a second dataset ingestion that reuses the same lifecycle and patterns, proving the architecture scales across sources.
 
 Definition of Done:
-- [ ] Second dataset domain schema exists
-- [ ] Fixture(s) committed for second dataset
-- [ ] Parser + ingester implemented for second dataset
-- [ ] Integration test proves idempotency + persistence for second dataset
+- [ ] `specs/phase-7-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
+- [ ] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
+- [ ] `decisions.md` includes Phase 7 decision entries (dataset selection + any modeling decisions)
+- [ ] Second dataset domain schema exists (Flyway migration)
+- [ ] Fixture(s) committed for second dataset (test resources)
+- [ ] Parser + ingester implemented for second dataset (reuses lifecycle)
+- [ ] Integration test proves:
+  - lineage idempotency (dataset_source_id + content_hash), and
+  - domain persistence with no duplicate rows per release
 - [ ] Read-only API endpoint(s) expose second dataset data
 - [ ] Shared ingestion abstractions remain clean (no copy/paste drift)
 
 Work Items:
+- [x] Record Phase 7 decision brief in decisions.md
+- [ ] Create specs/phase-7-mbie-quarterly-ingestion.md
+- [ ] Create design/mbie-quarterly-schema.md
+- [ ] Select second dataset + exact source URL + table/sheet name(s) + unit semantics
 - [ ] Define second dataset schema + migration
+- [ ] Create fixture(s) matching the canonical contract for this dataset
 - [ ] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
-- [ ] Refactor common ingestion utilities if needed
+- [ ] Refactor common ingestion utilities only if needed (Phase 6 tests must pass unchanged)
+
+Extensibility proof criteria:
+- Shared ingestion lifecycle reused without modification
+- Dataset-specific parser implements a common ingestion interface
+- Domain schema remains separate from lineage schema
+- Integration test proves idempotency for dataset #2
+- Read-only API exposes dataset #2 without touching dataset #1 code paths
  - [ ] Remove legacy alias `GET /api/v1/mbie/generation` after quarterly lands; keep `/api/v1/mbie/generation/annual` as canonical
  - [ ] Introduce MBIE Quarterly with variant-explicit naming (`mbie.generation.quarterly`), parallel table and API (`/api/v1/mbie/generation/quarterly`)
  - [ ] Ensure fixtures follow variant-aware paths: `fixtures/mbie/generation/{annual|quarterly}/...`
 
 Notes:
 - Still fixture-first. Consider live download only after Phase 7 is stable.
+- Avoid “Phase 7 refactors Phase 6”: keep Phase 6 passing unchanged; record any exceptions in decisions.md.
 
 ---
 
