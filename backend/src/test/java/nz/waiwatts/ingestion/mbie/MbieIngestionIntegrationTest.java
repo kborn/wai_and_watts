@@ -7,7 +7,7 @@ import nz.waiwatts.domain.datasets.Publisher;
 import nz.waiwatts.domain.datasets.ReleaseStatus;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
-import nz.waiwatts.persistence.repositories.MbieGenerationRecordRepository;
+import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class MbieIngestionIntegrationTest {
 
     private static final String SOURCE_CODE = "mbie.generation.annual";
-    private static final String FIXTURE_PATH = "fixtures/mbie/generation/mbie_generation_fixture_phase6.csv";
+    private static final String FIXTURE_PATH = "fixtures/mbie/generation/annual/mbie_generation_annual_fixture_phase6.csv";
 
     @Autowired
     private DatasetSourceRepository sourceRepository;
@@ -34,10 +34,10 @@ class MbieIngestionIntegrationTest {
     private DatasetReleaseRepository releaseRepository;
 
     @Autowired
-    private MbieIngestion mbieIngestion;
+    private MbieAnnualIngestion mbieIngestion;
 
     @Autowired
-    private MbieGenerationRecordRepository recordRepository;
+    private MbieGenerationAnnualRecordRepository recordRepository;
 
     @BeforeEach
     void setup() {

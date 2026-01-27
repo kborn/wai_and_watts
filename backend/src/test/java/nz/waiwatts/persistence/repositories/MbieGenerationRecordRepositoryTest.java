@@ -1,7 +1,7 @@
 package nz.waiwatts.persistence.repositories;
 
 import nz.waiwatts.domain.datasets.*;
-import nz.waiwatts.domain.mbie.MbieGenerationRecord;
+import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -22,7 +22,7 @@ class MbieGenerationRecordRepositoryTest {
     private DatasetReleaseRepository releaseRepo;
 
     @Autowired
-    private MbieGenerationRecordRepository genRepo;
+    private MbieGenerationAnnualRecordRepository genRepo;
 
     @Test
     void saveAndReadGenerationRecord() {
@@ -45,7 +45,7 @@ class MbieGenerationRecordRepositoryTest {
         rel = releaseRepo.save(rel);
 
         // Act: persist a generation record
-        MbieGenerationRecord rec = new MbieGenerationRecord();
+        MbieGenerationAnnualRecord rec = new MbieGenerationAnnualRecord();
         rec.setDatasetRelease(rel);
         rec.setPeriodYear(2022);
         rec.setFuelTypeRaw("Hydro");
@@ -55,7 +55,7 @@ class MbieGenerationRecordRepositoryTest {
 
         // Assert
         assertThat(genRepo.count()).isEqualTo(1);
-        MbieGenerationRecord saved = genRepo.findAll().getFirst();
+        MbieGenerationAnnualRecord saved = genRepo.findAll().getFirst();
         assertThat(saved.getDatasetRelease().getId()).isEqualTo(rel.getId());
         assertThat(saved.getPeriodYear()).isEqualTo(2022);
         assertThat(saved.getFuelTypeNorm()).isEqualTo("HYDRO");

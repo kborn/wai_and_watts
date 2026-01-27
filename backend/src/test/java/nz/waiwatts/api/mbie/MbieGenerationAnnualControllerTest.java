@@ -1,7 +1,7 @@
 package nz.waiwatts.api.mbie;
 
-import nz.waiwatts.api.mbie.dto.MbieGenerationRecordDto;
-import nz.waiwatts.service.mbie.MbieGenerationReadService;
+import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
+import nz.waiwatts.service.mbie.MbieGenerationAnnualReadService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,20 +20,20 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(MbieGenerationController.class)
-class MbieGenerationControllerTest {
+@WebMvcTest(MbieGenerationAnnualController.class)
+class MbieGenerationAnnualControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private MbieGenerationReadService readService;
+    private MbieGenerationAnnualReadService readService;
 
     @Test
     void getGeneration_returnsOk_withPayload() throws Exception {
         UUID relId = UUID.randomUUID();
-        List<MbieGenerationRecordDto> payload = List.of(
-                new MbieGenerationRecordDto(2024, "WIND", "Wind", new BigDecimal("3918.6"), relId)
+        List<MbieGenerationAnnualRecordDto> payload = List.of(
+                new MbieGenerationAnnualRecordDto(2024, "WIND", "Wind", new BigDecimal("3918.6"), relId)
         );
         when(readService.find(any(), any(), any())).thenReturn(payload);
 
