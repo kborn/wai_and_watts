@@ -7,8 +7,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "mbie_generation_record")
-public class MbieGenerationRecord {
+@Table(name = "mbie_generation_annual_record")
+public class MbieGenerationAnnualRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

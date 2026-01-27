@@ -1,7 +1,7 @@
 package nz.waiwatts.api.mbie;
 
-import nz.waiwatts.api.mbie.dto.MbieGenerationRecordDto;
-import nz.waiwatts.service.mbie.MbieGenerationReadService;
+import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
+import nz.waiwatts.service.mbie.MbieGenerationAnnualReadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,11 +12,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/mbie")
-public class MbieGenerationController {
+public class MbieGenerationAnnualController {
 
-    private final MbieGenerationReadService readService;
+    private final MbieGenerationAnnualReadService readService;
 
-    public MbieGenerationController(MbieGenerationReadService readService) {
+    public MbieGenerationAnnualController(MbieGenerationAnnualReadService readService) {
         this.readService = readService;
     }
 
@@ -30,17 +30,8 @@ public class MbieGenerationController {
         if (fromYear != null && toYear != null && fromYear > toYear) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "fromYear must be <= toYear"));
         }
-        List<MbieGenerationRecordDto> out = readService.find(fromYear, toYear, source);
+        List<MbieGenerationAnnualRecordDto> out = readService.find(fromYear, toYear, source);
         return ResponseEntity.ok(out);
     }
 
-    // Temporary alias to avoid breaking existing references; will be removed after Phase 7
-    @GetMapping("/generation")
-    public ResponseEntity<?> getGenerationAlias(
-            @RequestParam(value = "fromYear", required = false) Integer fromYear,
-            @RequestParam(value = "toYear", required = false) Integer toYear,
-            @RequestParam(value = "source", required = false) String source
-    ) {
-        return getGenerationAnnual(fromYear, toYear, source);
-    }
 }

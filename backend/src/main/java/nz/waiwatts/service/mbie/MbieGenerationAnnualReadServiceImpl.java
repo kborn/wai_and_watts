@@ -1,8 +1,8 @@
 package nz.waiwatts.service.mbie;
 
-import nz.waiwatts.api.mbie.dto.MbieGenerationRecordDto;
-import nz.waiwatts.domain.mbie.MbieGenerationRecord;
-import nz.waiwatts.persistence.repositories.MbieGenerationRecordRepository;
+import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
+import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
+import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,18 +11,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class MbieGenerationReadServiceImpl implements MbieGenerationReadService {
+public class MbieGenerationAnnualReadServiceImpl implements MbieGenerationAnnualReadService {
 
-    private final MbieGenerationRecordRepository repository;
+    private final MbieGenerationAnnualRecordRepository repository;
 
-    public MbieGenerationReadServiceImpl(MbieGenerationRecordRepository repository) {
+    public MbieGenerationAnnualReadServiceImpl(MbieGenerationAnnualRecordRepository repository) {
         this.repository = repository;
     }
 
     @Override
-    public List<MbieGenerationRecordDto> find(Integer fromYear,
-                                              Integer toYear,
-                                              String source) {
+    public List<MbieGenerationAnnualRecordDto> find(Integer fromYear,
+                                                    Integer toYear,
+                                                    String source) {
         int from = fromYear != null ? fromYear : Integer.MIN_VALUE;
         int to = toYear != null ? toYear : Integer.MAX_VALUE;
         String sourceNorm = source != null ? source.trim().toUpperCase(Locale.ROOT) : null;
@@ -30,7 +30,7 @@ public class MbieGenerationReadServiceImpl implements MbieGenerationReadService 
         return repository.findAll().stream()
                 .filter(r -> r.getPeriodYear() >= from && r.getPeriodYear() <= to)
                 .filter(r -> sourceNorm == null || sourceNorm.equalsIgnoreCase(nullToEmpty(r.getFuelTypeNorm())))
-                .map(MbieGenerationReadServiceImpl::toDto)
+                .map(MbieGenerationAnnualReadServiceImpl::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -38,9 +38,9 @@ public class MbieGenerationReadServiceImpl implements MbieGenerationReadService 
         return s == null ? "" : s;
     }
 
-    private static MbieGenerationRecordDto toDto(MbieGenerationRecord e) {
+    private static MbieGenerationAnnualRecordDto toDto(MbieGenerationAnnualRecord e) {
         UUID releaseId = e.getDatasetRelease() != null ? e.getDatasetRelease().getId() : null;
-        return new MbieGenerationRecordDto(
+        return new MbieGenerationAnnualRecordDto(
                 e.getPeriodYear(),
                 e.getFuelTypeNorm(),
                 e.getFuelTypeRaw(),

@@ -1,9 +1,9 @@
 package nz.waiwatts.service.mbie;
 
-import nz.waiwatts.api.mbie.dto.MbieGenerationRecordDto;
+import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
 import nz.waiwatts.domain.datasets.DatasetRelease;
-import nz.waiwatts.domain.mbie.MbieGenerationRecord;
-import nz.waiwatts.persistence.repositories.MbieGenerationRecordRepository;
+import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
+import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,26 +17,26 @@ import static org.mockito.Mockito.when;
 
 class MbieGenerationReadServiceImplTest {
 
-    private MbieGenerationRecordRepository repo;
-    private MbieGenerationReadServiceImpl service;
+    private MbieGenerationAnnualRecordRepository repo;
+    private MbieGenerationAnnualReadServiceImpl service;
 
     @BeforeEach
     void setup() {
-        repo = Mockito.mock(MbieGenerationRecordRepository.class);
-        service = new MbieGenerationReadServiceImpl(repo);
+        repo = Mockito.mock(MbieGenerationAnnualRecordRepository.class);
+        service = new MbieGenerationAnnualReadServiceImpl(repo);
 
         // Seed mocked repository with a small set of entities
         DatasetRelease rel = new DatasetRelease();
         rel.setId(UUID.randomUUID());
 
-        MbieGenerationRecord r1 = new MbieGenerationRecord();
+        MbieGenerationAnnualRecord r1 = new MbieGenerationAnnualRecord();
         r1.setDatasetRelease(rel);
         r1.setPeriodYear(2022);
         r1.setFuelTypeRaw("Hydro");
         r1.setFuelTypeNorm("HYDRO");
         r1.setGenerationGwh(new BigDecimal("26071.5"));
 
-        MbieGenerationRecord r2 = new MbieGenerationRecord();
+        MbieGenerationAnnualRecord r2 = new MbieGenerationAnnualRecord();
         r2.setDatasetRelease(rel);
         r2.setPeriodYear(2024);
         r2.setFuelTypeRaw("Wind");
@@ -48,7 +48,7 @@ class MbieGenerationReadServiceImplTest {
 
     @Test
     void find_noFilters_returnsAllMapped() {
-        List<MbieGenerationRecordDto> out = service.find(null, null, null);
+        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, null);
         assertThat(out).hasSize(2);
         assertThat(out.get(0).getSource()).isEqualTo("HYDRO");
         assertThat(out.get(0).getSourceRaw()).isEqualTo("Hydro");
@@ -60,14 +60,14 @@ class MbieGenerationReadServiceImplTest {
 
     @Test
     void find_withFromYear_filtersLowerBound() {
-        List<MbieGenerationRecordDto> out = service.find(2023, null, null);
+        List<MbieGenerationAnnualRecordDto> out = service.find(2023, null, null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getPeriodYear()).isEqualTo(2024);
     }
 
     @Test
     void find_withSource_caseInsensitiveMatch() {
-        List<MbieGenerationRecordDto> out = service.find(null, null, "hydro");
+        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, "hydro");
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getSource()).isEqualTo("HYDRO");
     }
