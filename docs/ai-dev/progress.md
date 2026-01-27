@@ -183,6 +183,7 @@ Links:
 - PR: [feat(ingestion): add MBIE CSV parser with normalization and unit test](https://github.com/kborn/wai_and_watts/pull/3)
 - PR: [feat(ingestion): wire MBIE fixture ingestion with persistence and idempotency](https://github.com/kborn/wai_and_watts/pull/4)
 - PR: [feat(service/mbie): add MBIE generation read service and DTO with unit tests](https://github.com/kborn/wai_and_watts/pull/5)
+- PR: [feat(api/mbie): add public read endpoint GET /api/v1/mbie/generation with validation and tests](https://github.com/kborn/wai_and_watts/pull/6)
 
 ---
 
