@@ -204,6 +204,9 @@ Work Items:
 - [ ] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
 - [ ] Refactor common ingestion utilities if needed
+ - [ ] Remove legacy alias `GET /api/v1/mbie/generation` after quarterly lands; keep `/api/v1/mbie/generation/annual` as canonical
+ - [ ] Introduce MBIE Quarterly with variant-explicit naming (`mbie.generation.quarterly`), parallel table and API (`/api/v1/mbie/generation/quarterly`)
+ - [ ] Ensure fixtures follow variant-aware paths: `fixtures/mbie/generation/{annual|quarterly}/...`
 
 Notes:
 - Still fixture-first. Consider live download only after Phase 7 is stable.
