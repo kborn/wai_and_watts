@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MbieGenerationCsvParser implements MbieGenerationParser {
 
     private static final Set<String> KNOWN = Set.of("HYDRO", "GEOTHERMAL", "WIND", "SOLAR", "GAS", "COAL", "OTHER");
