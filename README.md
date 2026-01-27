@@ -1,6 +1,16 @@
 # wai_and_watts
 Wai & Watts — Explore New Zealand environmental state & trends with a Spring Boot data platform
 
+## Project Scope & Narrative
+
+Wai & Watts is designed as a hybrid environmental storytelling platform and data platform engineering artifact.
+
+The project intentionally sequences datasets and system capabilities to mirror how production data platforms evolve. Phase 6 ingests annual MBIE electricity generation data to establish ingestion lifecycle, lineage tracking, and domain persistence. Phase 7 introduces quarterly MBIE data to demonstrate schema evolution, heterogeneous ingestion, and extensibility. Later phases integrate additional environmental datasets and grounded LLM-based explanations.
+
+Annual electricity data provides long-term structural decarbonization trends, while quarterly data exposes operational grid variability and fossil backup dynamics. Together, they enable honest environmental narratives while exercising realistic data engineering patterns such as forward-only migrations, idempotent ingestion, dataset-specific parsers, and reusable orchestration layers.
+
+Wai & Watts is not intended to be a real-time energy dashboard or forecasting system. Instead, it serves as a portfolio-grade demonstration of how a senior backend/data platform engineer designs systems that grow safely and explain complex environmental data in a grounded way.
+
 ## Engineering Philosophy
 Wai & Watts is built as a deliberately sequenced data platform rather than a feature-driven demo. The project prioritizes correctness, provenance, and evolvability over breadth.
 
