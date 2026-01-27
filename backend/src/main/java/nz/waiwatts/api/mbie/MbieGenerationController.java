@@ -20,8 +20,9 @@ public class MbieGenerationController {
         this.readService = readService;
     }
 
-    @GetMapping("/generation")
-    public ResponseEntity<?> getGeneration(
+    // Canonical variant-specific endpoint
+    @GetMapping("/generation/annual")
+    public ResponseEntity<?> getGenerationAnnual(
             @RequestParam(value = "fromYear", required = false) Integer fromYear,
             @RequestParam(value = "toYear", required = false) Integer toYear,
             @RequestParam(value = "source", required = false) String source
@@ -31,5 +32,15 @@ public class MbieGenerationController {
         }
         List<MbieGenerationRecordDto> out = readService.find(fromYear, toYear, source);
         return ResponseEntity.ok(out);
+    }
+
+    // Temporary alias to avoid breaking existing references; will be removed after Phase 7
+    @GetMapping("/generation")
+    public ResponseEntity<?> getGenerationAlias(
+            @RequestParam(value = "fromYear", required = false) Integer fromYear,
+            @RequestParam(value = "toYear", required = false) Integer toYear,
+            @RequestParam(value = "source", required = false) String source
+    ) {
+        return getGenerationAnnual(fromYear, toYear, source);
     }
 }
