@@ -140,30 +140,30 @@ Notes:
 Goal: Ingest and persist the first *real* interpreted dataset end-to-end, using fixtures (not live downloads) to prove the pipeline.
 
 Definition of Done:
-- [ ] A first domain schema (tables) exists for the chosen dataset (LAWA or MBIE)
-- [ ] A fixture file (or set of fixtures) is committed under `backend/src/test/resources/fixtures/<dataset>/...`
-- [ ] A dataset-specific parser ingests the fixture into domain objects
-- [ ] Domain rows are persisted and linked to `dataset_release_id`
-- [ ] Ingestion uses the existing lifecycle plumbing:
+- [x] A first domain schema (tables) exists for the chosen dataset (LAWA or MBIE)
+- [x] A fixture file (or set of fixtures) is committed under `backend/src/test/resources/fixtures/<dataset>/...`
+- [x] A dataset-specific parser ingests the fixture into domain objects
+- [x] Domain rows are persisted and linked to `dataset_release_id`
+- [x] Ingestion uses the existing lifecycle plumbing:
     - creates/uses DatasetRelease (PENDING)
     - dedupes via (dataset_source_id, content_hash)
     - marks IMPORTED on success / FAILED on error
-- [ ] One integration test proves:
+- [x] One integration test proves:
     - ingest fixture → rows written → status IMPORTED
     - repeat ingest (same content) → no duplicate rows/releases
 - [ ] Read-only API endpoint(s) expose the ingested domain data
 
 Work Items:
-- [ ] Choose first dataset: MBIE electricity generation
-- [ ] Add domain tables + Flyway migration (Vn+1)
-- [ ] Add JPA entities + repositories for domain tables
-- [ ] Implement parser for fixture format (CSV/XLSX/ZIP as needed)
-- [ ] Implement “dataset ingester” service that:
+- [x] Choose first dataset: MBIE electricity generation
+- [x] Add domain tables + Flyway migration (V6__mbie_generation.sql)
+- [x] Add JPA entities + repositories for domain tables
+- [x] Implement parser for fixture format (CSV)
+- [x] Implement “dataset ingester” service that:
     - loads fixture bytes
     - computes content hash (SHA-256 of raw fixture bytes)
     - calls lifecycle/orchestrator
     - persists domain data
-- [ ] Add integration test using fixture(s)
+- [x] Add integration test using fixture(s)
 - [ ] Add read-only controller/service for domain data
 
 Notes:
@@ -176,10 +176,12 @@ API sketch (non-binding, to reduce micro-decisions later):
 - Endpoint: `GET /api/v1/mbie/generation`
 - DTO: `MbieGenerationRecordDto { period (YYYY-MM), source (normalized), sourceRaw (original), generationMwh }`
 
-Links (fill in):
-- Implementation: <branch/PR>
-- Tests: <path>
-- Decisions: <decision section>
+Links:
+- Commit: [docs(progress, decisions): refine Phase 6 MBIE plan — fixture-first contract, normalization, API sketch](https://github.com/kborn/wai_and_watts/commit/2334bafaf238353a70d866302088e30619ff7fd4)
+- Commit: [chore(docs): lock Phase 6 MBIE contract + clarify doc responsibilities](https://github.com/kborn/wai_and_watts/commit/f05725f7a7a902f03696f3b641480c21192330a5)
+- PR: [feat(db): add MBIE generation schema, entity/repo, and test](https://github.com/kborn/wai_and_watts/pull/2)
+- PR: [feat(ingestion): add MBIE CSV parser with normalization and unit test](https://github.com/kborn/wai_and_watts/pull/3)
+- PR: [eat(ingestion): wire MBIE fixture ingestion with persistence and idempotency](https://github.com/kborn/wai_and_watts/pull/4)
 
 ---
 
