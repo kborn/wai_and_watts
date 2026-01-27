@@ -12,6 +12,13 @@ Units: GWh (net electricity generation delivered to grid)
 
 Temporal Model: (year, quarter)
 
+## Semantics Guarantees
+
+- generation_gwh represents net generation delivered to the grid
+- Values are reported by MBIE as finalized quarterly aggregates
+- No conversion from PJ or MWh occurs in Phase 7
+
+
 ## Domain Table
 
 Table Name: `mbie_generation_quarterly_record`

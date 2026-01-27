@@ -188,7 +188,7 @@ Links:
 
 ---
 
-### Phase 7 — Second Dataset Ingestion (Prove Extensibility)
+### Phase 7 — MBIE Quarterly Generation Ingestion (Prove Extensibility)
 Goal: Add a second dataset ingestion that reuses the same lifecycle and patterns, proving the architecture scales across sources.
 
 Definition of Done:
