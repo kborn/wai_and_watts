@@ -193,10 +193,10 @@ Goal: Add a second dataset ingestion that reuses the same lifecycle and patterns
 
 Definition of Done:
 - [ ] `specs/phase-7-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
-- [ ] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
-- [ ] `decisions.md` includes Phase 7 decision entries (dataset selection + any modeling decisions)
+- [x] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
+- [x] `decisions.md` includes Phase 7 decision entries (dataset selection + any modeling decisions)
 - [ ] Second dataset domain schema exists (Flyway migration)
-- [ ] Fixture(s) committed for second dataset (test resources)
+- [x] Fixture(s) committed for second dataset (test resources)
 - [ ] Parser + ingester implemented for second dataset (reuses lifecycle)
 - [ ] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
@@ -207,10 +207,10 @@ Definition of Done:
 Work Items:
 - [x] Record Phase 7 decision brief in decisions.md
 - [ ] Create specs/phase-7-mbie-quarterly-ingestion.md
-- [ ] Create design/mbie-quarterly-schema.md
+- [x] Create design/mbie-quarterly-schema.md
 - [ ] Select second dataset + exact source URL + table/sheet name(s) + unit semantics
 - [ ] Define second dataset schema + migration
-- [ ] Create fixture(s) matching the canonical contract for this dataset
+- [x] Create fixture(s) matching the canonical contract for this dataset
 - [ ] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
 - [ ] Refactor common ingestion utilities only if needed (Phase 6 tests must pass unchanged)
@@ -228,6 +228,11 @@ Extensibility proof criteria:
 Notes:
 - Still fixture-first. Consider live download only after Phase 7 is stable.
 - Avoid “Phase 7 refactors Phase 6”: keep Phase 6 passing unchanged; record any exceptions in decisions.md.
+ - Fixture review: header and field names match contract (`period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh`). One potential normalization adjustment before implementation: rows labeled `Biogas` currently map to `GAS`; per annual convention they should likely be `OTHER`. If we intend to treat Biogas differently quarterly, document the rationale in decisions.md; otherwise update the fixture to `OTHER` for consistency.
+
+Links:
+- Fixture (quarterly): `backend/src/test/resources/fixtures/mbie/generation/quarterly/mbie_generation_quarterly_fixture_phase7.csv`
+- Design: `design/005-mbie-quarterly-schema.md`
 
 ---
 
