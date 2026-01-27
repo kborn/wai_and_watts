@@ -463,3 +463,13 @@ Decision: Specs, design contracts, and decisions files are authoritative over co
 Rationale: Ensures AI and humans converge on intended architecture rather than reverse-engineering from implementation.  
 
 Implications: New phases require spec + design + decision entries before coding.
+
+## Fuel Type Normalization — Biogas Handling
+
+Date: 2026-01-27
+
+Decision: Normalize Biogas to OTHER for both annual and quarterly MBIE datasets.  
+
+Rationale: Maintain cross-dataset consistency and avoid premature fuel taxonomy expansion. Biogas is policy-heterogeneous and small in volume; dedicated categorization deferred.  
+
+Implications: Biogas is grouped with OTHER until a BIOGAS/BIOENERGY category is introduced across all datasets via forward migration.
