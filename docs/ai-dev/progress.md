@@ -231,8 +231,7 @@ Notes:
  - Fixture review: header and field names match contract (`period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh`). One potential normalization adjustment before implementation: rows labeled `Biogas` currently map to `GAS`; per annual convention they should likely be `OTHER`. If we intend to treat Biogas differently quarterly, document the rationale in decisions.md; otherwise update the fixture to `OTHER` for consistency.
 
 Links:
-- Fixture (quarterly): `backend/src/test/resources/fixtures/mbie/generation/quarterly/mbie_generation_quarterly_fixture_phase7.csv`
-- Design: `design/005-mbie-quarterly-schema.md`
+- PR: [feat(db): add MBIE quarterly schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/12)
 
 ---
 
