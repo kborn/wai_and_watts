@@ -171,6 +171,7 @@ Notes:
 - If the fixture format is XLSX, consider CSV export fixtures to keep parsing lighter early.
  - Fixture path convention for MBIE: `backend/src/test/resources/fixtures/mbie/generation/`
  - Source code handling: use placeholder strings initially with normalization; persist both `source_code_raw` and `source_code_norm`; introduce enums later when vocabulary stabilizes.
+ - Dataset source code: `mbie.generation.annual`
 
 API sketch (non-binding, to reduce micro-decisions later):
 - Endpoint: `GET /api/v1/mbie/generation`

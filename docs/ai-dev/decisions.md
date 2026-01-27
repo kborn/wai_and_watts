@@ -384,3 +384,31 @@ Decision: Store dataset contracts in design/, rationale in specs/.
 Rationale: Keep decisions.md readable and stable.
 
 Implications: Phase 6 contract lives in design/mbie-schema.md.
+
+---
+
+## Dataset Source Taxonomy Convention
+
+Date: 2026-01-27
+
+Decision: Use `<publisher>.<domain>.<variant>` naming for `dataset_source.code` (e.g., `mbie.generation.annual`).
+
+Rationale:
+- Stable identifiers across lineage, APIs, docs, and future LLM fact packs.
+
+Implications:
+- All new datasets must follow this convention; existing sources are migrated forward via Flyway when renamed.
+
+---
+
+## Phase 6 Dataset Source Code Backport
+
+Date: 2026-01-27
+
+Decision: Phase 6 `dataset_source.code` is `mbie.generation.annual`.
+
+Rationale:
+- Align Phase 6 with taxonomy before Phase 7 introduces `mbie.generation.quarterly`.
+
+Implications:
+- Flyway migration updates existing row; APIs/specs use the canonical code.

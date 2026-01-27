@@ -1,5 +1,16 @@
 # MBIE — Electricity Generation (Phase 6) — Schema & Fixture Contract
 
+## Dataset Identity
+
+Canonical Dataset Source Code: `mbie.generation.annual`
+
+This identifier is the stable key used in:
+- dataset_source.code (database)
+- ingestion orchestration
+- API routing and documentation
+- fact-pack and LLM grounding layers
+
+
 ## Source
 Workbook: electricity-sept-2025-q3.xlsx  
 URL: https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx  

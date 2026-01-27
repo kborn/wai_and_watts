@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class MbieIngestionIntegrationTest {
 
-    private static final String SOURCE_CODE = "mbie-generation";
+    private static final String SOURCE_CODE = "mbie.generation.annual";
     private static final String FIXTURE_PATH = "fixtures/mbie/generation/mbie_generation_fixture_phase6.csv";
 
     @Autowired
