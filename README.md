@@ -1,6 +1,18 @@
 # wai_and_watts
 Wai & Watts — Explore New Zealand environmental state & trends with a Spring Boot data platform
 
+## Engineering Philosophy
+Wai & Watts is built as a deliberately sequenced data platform rather than a feature-driven demo. The project prioritizes correctness, provenance, and evolvability over breadth.
+
+### Key principles:
+- Sequencing over completeness: ingestion lifecycle, lineage, and idempotency are implemented before parsing complex datasets.
+- Semantic clarity before scale: the system models published interpretations (e.g., MBIE generation statistics) rather than raw telemetry to avoid ambiguous domain semantics.
+- Schema evolution as a first-class concern: migrations are forward-only, and domain models are intentionally minimal until real requirements emerge.
+- Grounded AI integration: LLMs are used only for fact-grounded explanation layers; they never write production code or make autonomous architectural decisions.
+- Portfolio realism: the architecture mirrors production data platform patterns (lineage tables, ingestion orchestration, DTO/service layering, CI guardrails) rather than toy CRUD demos.
+
+The goal is not to maximize features, but to demonstrate how a senior engineer designs systems that can grow safely over time.
+
 ## Repository layout
 
 Top-level modules:
@@ -10,6 +22,17 @@ Top-level modules:
 Backend source tree has moved under `backend/src/...`:
 - `backend/src/main/java/nz/waiwatts/...`
 - `backend/src/main/resources/...`
+
+## Key Documentation
+
+This project uses structured documentation to support AI-assisted development and future contributors:
+
+- `project-context.md` — project purpose, repo layout, and session recovery guide
+- `progress.md` — current phase, tasks, and Definition of Done
+- `decisions.md` — append-only architectural and sequencing decisions
+- `specs/phase-6-mbie-ingestion.md` — MBIE dataset selection and ingestion rationale
+- `design/mbie-schema.md` — Phase 6 database schema and fixture contract
+
 
 ## Build & Test (local)
 
@@ -70,13 +93,3 @@ Workflow:
 - Location: `.github/workflows/ci.yml`
 - Java: Temurin JDK 21
 - Build: `mvn -f backend -B clean verify`
-
-## Key Documentation
-
-This project uses structured documentation to support AI-assisted development and future contributors:
-
-- `project-context.md` — project purpose, repo layout, and session recovery guide
-- `progress.md` — current phase, tasks, and Definition of Done
-- `decisions.md` — append-only architectural and sequencing decisions
-- `specs/phase-6-mbie-ingestion.md` — MBIE dataset selection and ingestion rationale
-- `design/mbie-schema.md` — Phase 6 database schema and fixture contract  
