@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class MbieIngestionIntegrationTest {
+class MbieAnnualIngestionIntegrationTest {
 
     private static final String SOURCE_CODE = "mbie.generation.annual";
     private static final String FIXTURE_PATH = "fixtures/mbie/generation/annual/mbie_generation_annual_fixture_phase6.csv";

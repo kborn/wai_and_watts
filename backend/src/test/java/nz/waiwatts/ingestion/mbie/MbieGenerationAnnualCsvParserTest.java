@@ -9,7 +9,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class MbieGenerationCsvParserTest {
+class MbieGenerationAnnualCsvParserTest {
 
     @Test
     void parse_fixture_success_and_basic_assertions() throws Exception {
