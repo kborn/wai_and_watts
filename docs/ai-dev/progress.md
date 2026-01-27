@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 6 — First Real Dataset Ingestion (Fixture-first) 🟡
-- **Status:** In progress
+- **Active Phase:** Phase 6 — First Real Dataset Ingestion (Fixture-first) ✅
+- **Status:** Completed
 
 ---
 
@@ -151,7 +151,7 @@ Definition of Done:
 - [x] One integration test proves:
     - ingest fixture → rows written → status IMPORTED
     - repeat ingest (same content) → no duplicate rows/releases
-- [ ] Read-only API endpoint(s) expose the ingested domain data
+- [x] Read-only API endpoint(s) expose the ingested domain data
 
 Work Items:
 - [x] Choose first dataset: MBIE electricity generation
@@ -164,7 +164,7 @@ Work Items:
     - calls lifecycle/orchestrator
     - persists domain data
 - [x] Add integration test using fixture(s)
-- [ ] Add read-only controller/service for domain data
+- [x] Add read-only controller/service for domain data
 
 Notes:
 - **Fixtures are required in Phase 6.** Do not add HTTP fetch/download yet.
