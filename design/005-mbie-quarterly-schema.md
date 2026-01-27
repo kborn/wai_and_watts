@@ -10,7 +10,7 @@ Sheet: `1 - Fuel type (GWh)`
 
 Units: GWh (net electricity generation delivered to grid)
 
-Temporal Model: (year, quarter)
+Temporal Model: (`period_year`, `period_quarter`)
 
 ## Semantics Guarantees
 
@@ -29,22 +29,22 @@ Table Name: `mbie_generation_quarterly_record`
 |---------------------|---------|-----------------------------------------------------------------------------|
 | `id`                | BIGINT  | Surrogate primary key                                                       |
 | `dataset_release_id`| UUID FK | Lineage reference → `dataset_release(id)`                                   |
-| `year`              | INT     | Calendar year (e.g., 2024)                                                  |
-| `quarter`           | INT     | Quarter number `1..4`                                                       |
+| `period_year`       | INT     | Calendar year (e.g., 2024)                                                  |
+| `period_quarter`    | INT     | Quarter number `1..4`                                                       |
 | `fuel_type_raw`     | TEXT    | Raw MBIE fuel label (preserved as-is)                                       |
 | `fuel_type_norm`    | TEXT    | Normalized fuel category: HYDRO, GEOTHERMAL, WIND, SOLAR, GAS, COAL, OTHER |
 | `generation_gwh`    | DECIMAL | Net electricity generation in GWh                                           |
 
 ### Constraints
 
--   UNIQUE(dataset_release_id, year, quarter, fuel_type_norm)
+-   UNIQUE(dataset_release_id, period_year, period_quarter, fuel_type_norm)
 -   NOT NULL on all domain columns
 
 ## Fixture Contract
 
 ### CSV Header
 
-year,quarter,fuel_type_raw,fuel_type_norm,generation_gwh
+period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh
 
 ### Example Row
 
