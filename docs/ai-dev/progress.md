@@ -195,7 +195,7 @@ Definition of Done:
 - [ ] `specs/phase-7-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
 - [x] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
 - [x] `decisions.md` includes Phase 7 decision entries (dataset selection + any modeling decisions)
-- [ ] Second dataset domain schema exists (Flyway migration)
+- [x] Second dataset domain schema exists (Flyway migration)
 - [x] Fixture(s) committed for second dataset (test resources)
 - [ ] Parser + ingester implemented for second dataset (reuses lifecycle)
 - [ ] Integration test proves:
@@ -209,7 +209,7 @@ Work Items:
 - [ ] Create specs/phase-7-mbie-quarterly-ingestion.md
 - [x] Create design/mbie-quarterly-schema.md
 - [ ] Select second dataset + exact source URL + table/sheet name(s) + unit semantics
-- [ ] Define second dataset schema + migration
+- [x] Define second dataset schema + migration
 - [x] Create fixture(s) matching the canonical contract for this dataset
 - [ ] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
@@ -228,10 +228,16 @@ Extensibility proof criteria:
 Notes:
 - Still fixture-first. Consider live download only after Phase 7 is stable.
 - Avoid “Phase 7 refactors Phase 6”: keep Phase 6 passing unchanged; record any exceptions in decisions.md.
- - Fixture review: header and field names match contract (`period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh`). One potential normalization adjustment before implementation: rows labeled `Biogas` currently map to `GAS`; per annual convention they should likely be `OTHER`. If we intend to treat Biogas differently quarterly, document the rationale in decisions.md; otherwise update the fixture to `OTHER` for consistency.
+- Fixture review: header and field names match contract (`period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh`). Biogas normalization aligned to `OTHER` for consistency with Phase 6 annual.
 
 Links:
-- PR: [feat(db): add MBIE quarterly schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/12)
+- Migration: `backend/src/main/resources/db/migration/V10__mbie_generation_quarterly.sql`
+- Entity/Repo: `backend/src/main/java/nz/waiwatts/domain/mbie/MbieGenerationQuarterlyRecord.java`, `backend/src/main/java/nz/waiwatts/persistence/repositories/MbieGenerationQuarterlyRecordRepository.java`
+- Test: `backend/src/test/java/nz/waiwatts/persistence/repositories/MbieGenerationQuarterlyRecordRepositoryTest.java`
+- Parser: `backend/src/main/java/nz/waiwatts/ingestion/mbie/MbieGenerationQuarterlyCsvParser.java`
+- Parser Test: `backend/src/test/java/nz/waiwatts/ingestion/mbie/MbieGenerationQuarterlyCsvParserTest.java`
+- Fixture (quarterly): `backend/src/test/resources/fixtures/mbie/generation/quarterly/mbie_generation_quarterly_fixture_phase7.csv`
+- Design: `design/005-mbie-quarterly-schema.md`
 
 ---
 
