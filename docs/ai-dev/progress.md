@@ -201,7 +201,7 @@ Definition of Done:
 - [ ] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
-- [ ] Read-only API endpoint(s) expose second dataset data
+- [x] Read-only API endpoint(s) expose second dataset data
 - [ ] Shared ingestion abstractions remain clean (no copy/paste drift)
 
 Work Items:
@@ -212,7 +212,7 @@ Work Items:
 - [x] Define second dataset schema + migration
 - [x] Create fixture(s) matching the canonical contract for this dataset
 - [x] Implement parser/ingester using fixtures
-- [ ] Add read APIs + integration tests
+- [x] Add read APIs + integration tests
 - [ ] Refactor common ingestion utilities only if needed (Phase 6 tests must pass unchanged)
 
 Extensibility proof criteria:
