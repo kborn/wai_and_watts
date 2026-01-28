@@ -274,3 +274,54 @@ Work Items:
 - [ ] Optional: thin frontend or screenshots
 
 ---
+
+### Final Polish & Deferred Portfolio Tasks
+
+These tasks were intentionally deferred to prioritize core engineering velocity.  
+Complete before marking Wai & Watts “portfolio-ready.”
+
+#### Tier 1 — Must-Have Portfolio Narrative
+- [ ] Add **Project Scope & Narrative** and **Non-Goals & Tradeoffs** to README
+- [ ] Add **Architecture Evolution Narrative** (Phase 6 → Phase 7 → future phases)
+- [ ] Add **Repo Map** (REPO_MAP.md or README section describing key directories)
+
+#### Tier 1 — Demo-First Entry Point
+- [ ] Add DEMO.md or README Demo section:
+  - [ ] Local run instructions
+  - [ ] Example curl/Postman queries (annual + quarterly)
+  - [ ] Example grounded LLM explanation request
+- [ ] Add a **5-minute interview walkthrough script**
+
+#### Tier 2 — Engineering Documentation Polish
+- [ ] Replace PR links in progress.md with canonical repo-relative paths
+- [ ] Add architectural diagram (ingestion lifecycle + domain persistence)
+- [ ] Add dataset taxonomy table (mbie.generation.annual, mbie.generation.quarterly, etc.)
+- [ ] Normalize and backfill decisions.md for early implicit decisions
+- [ ] Add decision format contract section for future contributors/GPTs
+
+#### Tier 2 — Environmental Storytelling Deliverables
+- [ ] Add Insights.md with 3–5 grounded findings (charts/tables allowed):
+  - renewables trend
+  - fossil backup spikes
+  - seasonal hydro variability
+- [ ] Ensure insights link directly to persisted DB queries
+
+#### Tier 3 — AI & System Retrospective
+- [ ] Add AI development retrospective in docs/ai-dev/
+  - roles used (Builder, Staff, PM)
+  - guardrails and human-in-the-loop policy
+  - examples of AI-assisted engineering decisions
+- [ ] Document AI grounding contract (Fact Pack, refusal behavior, citation rules)
+
+#### Tier 3 — Production-Readiness Signals (Doc-Only)
+- [ ] Document intended ingestion error handling and retries
+- [ ] Document reprocessing/backfill strategy
+- [ ] Document data quality validation approach
+- [ ] Document logging/observability strategy
+
+#### Codebase Hygiene
+- [ ] Ensure naming consistency (mbieGenerationAnnual vs mbieGenerationQuarterly)
+- [ ] Add schema migration history summary
+- [ ] Add README pointers to fixtures and test strategy
+
+---
