@@ -197,7 +197,7 @@ Definition of Done:
 - [x] `decisions.md` includes Phase 7 decision entries (dataset selection + any modeling decisions)
 - [x] Second dataset domain schema exists (Flyway migration)
 - [x] Fixture(s) committed for second dataset (test resources)
-- [ ] Parser + ingester implemented for second dataset (reuses lifecycle)
+- [x] Parser + ingester implemented for second dataset (reuses lifecycle)
 - [ ] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
@@ -211,7 +211,7 @@ Work Items:
 - [ ] Select second dataset + exact source URL + table/sheet name(s) + unit semantics
 - [x] Define second dataset schema + migration
 - [x] Create fixture(s) matching the canonical contract for this dataset
-- [ ] Implement parser/ingester using fixtures
+- [x] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
 - [ ] Refactor common ingestion utilities only if needed (Phase 6 tests must pass unchanged)
 
