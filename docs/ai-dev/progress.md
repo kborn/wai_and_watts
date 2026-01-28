@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 8 — Insights & LLM Layer (Grounded Explanations) 🟡
+- **Active Phase:** Phase 8 — LAWA Water Quality “State” Ingestion (Cross-Domain Proof) 🟡
 - **Status:** Not started
 
 ---
@@ -136,7 +136,7 @@ Notes:
 - Local pre-push hooks are optional convenience; CI is authoritative.
 ---
 
-### Phase 6 — First Real Dataset Ingestion (Fixture-first) 🟡
+### Phase 6 — First Real Dataset Ingestion (Fixture-first) ✅
 Goal: Ingest and persist the first *real* interpreted dataset end-to-end, using fixtures (not live downloads) to prove the pipeline.
 
 Definition of Done:
@@ -188,7 +188,7 @@ Links:
 
 ---
 
-### Phase 7 — MBIE Quarterly Generation Ingestion (Prove Extensibility)
+### Phase 7 — MBIE Quarterly Generation Ingestion (Prove Extensibility) ✅
 Goal: Add a second dataset ingestion that reuses the same lifecycle and patterns, proving the architecture scales across sources.
 
 Definition of Done:
@@ -236,30 +236,30 @@ Links:
 - PR: [test(service/mbie-quarterly): add read service unit tests for mapping and filters](https://github.com/kborn/wai_and_watts/pull/16)
 ---
 
-### Phase 8 — LAWA Water Quality “State & Trend” Ingestion (Cross-Domain Proof)
+### Phase 8 — LAWA Water Quality “State” Ingestion (Cross-Domain Proof)
 Goal: Add a third dataset ingestion in a new domain (water quality), proving lifecycle + patterns generalize beyond MBIE electricity.
 
 Definition of Done:
 - [ ] `specs/phase-8-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
 - [ ] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
 - [ ] `decisions.md` includes Phase 8 decision entries (dataset selection + modeling boundary decisions)
-- [ ] LAWA `dataset_source.code` created (e.g., `lawa.water_quality.state_trend`)
+- [ ] LAWA `dataset_source.code` created (e.g., `lawa.water_quality.state.multi_year`)
 - [ ] LAWA domain schema exists (Flyway migration)
 - [ ] Fixture(s) committed for LAWA dataset (test resources)
 - [ ] Parser + ingester implemented for LAWA dataset (reuses lifecycle)
 - [ ] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
-- [ ] Read-only API endpoint(s) expose LAWA state/trend data
+- [ ] Read-only API endpoint(s) expose LAWA state data
 - [ ] Shared ingestion abstractions remain clean (no copy/paste drift)
 
 Work Items:
 - [ ] Record Phase 8 decision brief in decisions.md:
   - dataset selection (exact source URL + sheet/table)
-  - minimal modeling boundary (published state & trend interpretations, not raw telemetry)
+  - minimal modeling boundary (published state interpretations, not raw telemetry)
   - normalization approach for indicators/grades/units (as applicable)
-- [ ] Create `specs/phase-8-lawa-state-trend-ingestion.md` (or numbered equivalent)
-- [ ] Create `design/lawa-state-trend-schema.md`
+- [ ] Create `specs/phase-8-lawa-state-trend-multi-year-ingestion.md` (or numbered equivalent)
+- [ ] Create `design/lawa-state-multi-year-schema`
 - [ ] Select LAWA table/sheet(s) and lock:
   - exact URL(s)
   - table/sheet name(s)
@@ -269,8 +269,8 @@ Work Items:
 - [ ] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
 - [ ] Ensure variant-aware paths:
-  - fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state_trend/...`
-  - APIs: `/api/v1/lawa/water-quality/state-trend/...`
+  - fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state/...`
+  - APIs: `/api/v1/lawa/water-quality/state/...`
 
 Cross-domain proof criteria:
 - [ ] Shared ingestion lifecycle reused without modification
@@ -281,16 +281,19 @@ Cross-domain proof criteria:
 
 Notes:
 - Still fixture-first. Live download deferred until after Phase 8 stabilizes.
-- Keep LAWA modeling intentionally narrow: “state & trend” tables only (no raw monitoring time series).
+- Keep LAWA modeling intentionally narrow: “state” tables only (no raw monitoring time series).
 - Avoid “Phase 8 refactors Phase 6/7”: keep earlier phases passing unchanged; record any exceptions in decisions.md.
 
 ---
 
-### Phase 9 — Live Ingestion
+### Phase 9 — LAWA Trend Ingestion
+Goal: Add a 2nd LAWA dataset ingestion (water quality trend), proving lifecycle + patterns generalize beyond MBIE electricity.
+
+### Phase 10 — Live Ingestion
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
 This should be a manual process. We are not looking to build a schedular platform  
 
-### Phase 10 — Insights & LLM Layer (Grounded Explanations)
+### Phase 11 — Insights & LLM Layer (Grounded Explanations)
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
 
 Definition of Done:
@@ -323,7 +326,7 @@ Notes:
 
 ---
 
-### Phase 11 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
+### Phase 12 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
 Goal: Provide a thin UI for demo and interviews without shifting business logic into the frontend.
 
 Definition of Done:
@@ -344,7 +347,7 @@ Notes:
 - Frontend is for demoability, not product completeness.
 ---
 
-### Phase 12 — Polish & Presentation (Portfolio-Ready)
+### Phase 13 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 
 Definition of Done:
@@ -402,6 +405,10 @@ Complete before marking Wai & Watts “portfolio-ready.”
     - can this friction be reduced in onboarding in future projects?
   - Can we create a template of AI docs to be re-used in future projects to onboard agents?
 - [ ] Document AI grounding contract (Fact Pack, refusal behavior, citation rules)
+- [ ] We noticed in step 8 that the architecture and contracts as well as the README were forgotten about since they were created. 
+  - Who should have been reading and updating these? 
+  - Did it matter in the end? Was it even worthwhile to create them?
+  - Do we go back and retrofit the to the code now? 
 
 #### Tier 3 — Production-Readiness Signals (Doc-Only)
 - [ ] Document intended ingestion error handling and retries
