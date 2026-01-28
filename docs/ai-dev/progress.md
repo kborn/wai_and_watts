@@ -231,13 +231,8 @@ Notes:
 - Fixture review: header and field names match contract (`period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh`). Biogas normalization aligned to `OTHER` for consistency with Phase 6 annual.
 
 Links:
-- Migration: `backend/src/main/resources/db/migration/V10__mbie_generation_quarterly.sql`
-- Entity/Repo: `backend/src/main/java/nz/waiwatts/domain/mbie/MbieGenerationQuarterlyRecord.java`, `backend/src/main/java/nz/waiwatts/persistence/repositories/MbieGenerationQuarterlyRecordRepository.java`
-- Test: `backend/src/test/java/nz/waiwatts/persistence/repositories/MbieGenerationQuarterlyRecordRepositoryTest.java`
-- Parser: `backend/src/main/java/nz/waiwatts/ingestion/mbie/MbieGenerationQuarterlyCsvParser.java`
-- Parser Test: `backend/src/test/java/nz/waiwatts/ingestion/mbie/MbieGenerationQuarterlyCsvParserTest.java`
-- Fixture (quarterly): `backend/src/test/resources/fixtures/mbie/generation/quarterly/mbie_generation_quarterly_fixture_phase7.csv`
-- Design: `design/005-mbie-quarterly-schema.md`
+- PR: [feat(db): add MBIE quarterly schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/12)
+- PR: [feat(ingestion/mbie-quarterly): add CSV parser with normalization and unit test](https://github.com/kborn/wai_and_watts/pull/13)
 
 ---
 
