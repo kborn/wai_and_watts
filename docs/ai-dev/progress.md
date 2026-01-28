@@ -234,6 +234,7 @@ Links:
 - PR: [feat(db): add MBIE quarterly schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/12)
 - PR: [feat(ingestion/mbie-quarterly): add CSV parser with normalization and unit test](https://github.com/kborn/wai_and_watts/pull/13)
 - PR: [feat(ingestion/mbie-quarterly): wire fixture ingestion with lifecycle + idempotency](https://github.com/kborn/wai_and_watts/pull/14)
+- PR: [feat(api/mbie-quarterly): add public read endpoint with filters and tests](https://github.com/kborn/wai_and_watts/pull/15)
 ---
 
 ### Phase 8 — Insights & LLM Layer (Grounded Explanations)
