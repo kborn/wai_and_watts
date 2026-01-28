@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS mbie_generation_quarterly_record (
 );
 
 -- Ensure uniqueness per release / period / source
+-- Per policy: uniqueness at raw fuel level (matches annual table semantics)
 CREATE UNIQUE INDEX IF NOT EXISTS uq_mbie_quarterly_release_period_source
-    ON mbie_generation_quarterly_record (dataset_release_id, period_year, period_quarter, fuel_type_norm);
+    ON mbie_generation_quarterly_record (dataset_release_id, period_year, period_quarter, fuel_type_raw);
 
 -- Read-side helper index
 CREATE INDEX IF NOT EXISTS ix_mbie_quarterly_period_source

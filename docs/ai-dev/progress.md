@@ -197,7 +197,7 @@ Definition of Done:
 - [x] `decisions.md` includes Phase 7 decision entries (dataset selection + any modeling decisions)
 - [x] Second dataset domain schema exists (Flyway migration)
 - [x] Fixture(s) committed for second dataset (test resources)
-- [ ] Parser + ingester implemented for second dataset (reuses lifecycle)
+- [x] Parser + ingester implemented for second dataset (reuses lifecycle)
 - [ ] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
@@ -211,7 +211,7 @@ Work Items:
 - [ ] Select second dataset + exact source URL + table/sheet name(s) + unit semantics
 - [x] Define second dataset schema + migration
 - [x] Create fixture(s) matching the canonical contract for this dataset
-- [ ] Implement parser/ingester using fixtures
+- [x] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
 - [ ] Refactor common ingestion utilities only if needed (Phase 6 tests must pass unchanged)
 
@@ -233,7 +233,7 @@ Notes:
 Links:
 - PR: [feat(db): add MBIE quarterly schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/12)
 - PR: [feat(ingestion/mbie-quarterly): add CSV parser with normalization and unit test](https://github.com/kborn/wai_and_watts/pull/13)
-
+- PR: [feat(ingestion/mbie-quarterly): wire fixture ingestion with lifecycle + idempotency](https://github.com/kborn/wai_and_watts/pull/14)
 ---
 
 ### Phase 8 — Insights & LLM Layer (Grounded Explanations)
