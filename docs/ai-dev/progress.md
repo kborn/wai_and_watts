@@ -236,28 +236,115 @@ Links:
 - PR: [test(service/mbie-quarterly): add read service unit tests for mapping and filters](https://github.com/kborn/wai_and_watts/pull/16)
 ---
 
-### Phase 8 — Insights & LLM Layer (Grounded Explanations)
-Goal: Provide grounded explanations based on persisted facts (no free-form reasoning).
+### Phase 8 — LAWA Water Quality “State & Trend” Ingestion (Cross-Domain Proof)
+Goal: Add a third dataset ingestion in a new domain (water quality), proving lifecycle + patterns generalize beyond MBIE electricity.
 
 Definition of Done:
-- [ ] “Fact Pack” object defined for each dataset type
-- [ ] Endpoint returns explanation grounded strictly in fact pack
-- [ ] Guardrails: citations/attribution strategy, refusal behavior, and input validation
-- [ ] Basic evaluation: canned examples to catch regressions
+- [ ] `specs/phase-8-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
+- [ ] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
+- [ ] `decisions.md` includes Phase 8 decision entries (dataset selection + modeling boundary decisions)
+- [ ] LAWA `dataset_source.code` created (e.g., `lawa.water_quality.state_trend`)
+- [ ] LAWA domain schema exists (Flyway migration)
+- [ ] Fixture(s) committed for LAWA dataset (test resources)
+- [ ] Parser + ingester implemented for LAWA dataset (reuses lifecycle)
+- [ ] Integration test proves:
+  - lineage idempotency (dataset_source_id + content_hash), and
+  - domain persistence with no duplicate rows per release
+- [ ] Read-only API endpoint(s) expose LAWA state/trend data
+- [ ] Shared ingestion abstractions remain clean (no copy/paste drift)
 
 Work Items:
-- [ ] Define FactPack schema(s) for domain data (dataset-specific)
-- [ ] Implement FactPack builder from persisted tables
-- [ ] Implement explanation service that calls an LLM with fact-pack-first prompt
-- [ ] Add tests for grounding constraints (structural checks)
-- [ ] Document AI safety constraints in `ai_usage.md`
+- [ ] Record Phase 8 decision brief in decisions.md:
+  - dataset selection (exact source URL + sheet/table)
+  - minimal modeling boundary (published state & trend interpretations, not raw telemetry)
+  - normalization approach for indicators/grades/units (as applicable)
+- [ ] Create `specs/phase-8-lawa-state-trend-ingestion.md` (or numbered equivalent)
+- [ ] Create `design/lawa-state-trend-schema.md`
+- [ ] Select LAWA table/sheet(s) and lock:
+  - exact URL(s)
+  - table/sheet name(s)
+  - unit semantics + time period semantics
+- [ ] Define LAWA schema + migration (minimal, interview-friendly)
+- [ ] Create fixture(s) matching canonical contract for LAWA
+- [ ] Implement parser/ingester using fixtures
+- [ ] Add read APIs + integration tests
+- [ ] Ensure variant-aware paths:
+  - fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state_trend/...`
+  - APIs: `/api/v1/lawa/water-quality/state-trend/...`
+
+Cross-domain proof criteria:
+- [ ] Shared ingestion lifecycle reused without modification
+- [ ] Dataset-specific parser implements a common ingestion interface
+- [ ] Domain schema remains separate from lineage schema
+- [ ] Integration tests validate Phases 6/7 still pass unchanged
+- [ ] LAWA ingestion adds minimal new shared utilities only if justified (record in decisions.md)
 
 Notes:
-- No forecasting/prediction. Explanations must ground to stored facts.
+- Still fixture-first. Live download deferred until after Phase 8 stabilizes.
+- Keep LAWA modeling intentionally narrow: “state & trend” tables only (no raw monitoring time series).
+- Avoid “Phase 8 refactors Phase 6/7”: keep earlier phases passing unchanged; record any exceptions in decisions.md.
 
 ---
 
-### Phase 9 — Polish & Presentation (Portfolio-Ready)
+### Phase 9 — Live Ingestion
+Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
+This should be a manual process. We are not looking to build a schedular platform  
+
+### Phase 10 — Insights & LLM Layer (Grounded Explanations)
+Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
+
+Definition of Done:
+- [ ] `design/fact-pack-contract.md` exists (fact pack schema + provenance rules)
+- [ ] Grounding rules documented (no guessing, no forecasting, cite fact pack fields)
+- [ ] Explanation endpoint(s) implemented that:
+  - build fact packs from DB queries
+  - call the LLM with fact-pack-first prompting
+  - return explanation + citations to fact pack fields
+- [ ] Refusal behavior documented and tested at least once (e.g., unsupported question)
+- [ ] `Insights.md` exists with 3–5 grounded findings:
+  - at least 2 MBIE (annual/quarterly)
+  - at least 1 LAWA
+  - each insight links to the query/fact pack used
+- [ ] No autonomous agents committing code; human-in-the-loop remains enforced
+
+Work Items:
+- [ ] Record Phase 9 decision brief in decisions.md (fact pack contract + grounding + refusal posture)
+- [ ] Implement fact pack builders per dataset (MBIE annual, MBIE quarterly, LAWA)
+- [ ] Implement explanation service (pluggable LLM provider)
+- [ ] Add minimal tests for:
+  - fact pack correctness (query returns expected fields)
+  - explanation output includes citations/field references
+- [ ] Write `Insights.md` with grounded tables/charts (static ok)
+- [ ] Update `docs/ai-dev/ai_usage.md` with Phase 9 practices and examples
+
+Notes:
+- Explanations must be tied to persisted DB rows and explicit fact pack fields.
+- The LLM explains; the database remains source of truth.
+
+---
+
+### Phase 11 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
+Goal: Provide a thin UI for demo and interviews without shifting business logic into the frontend.
+
+Definition of Done:
+- [ ] Frontend skeleton exists (framework TBD)
+- [ ] Minimal views for:
+  - MBIE generation (annual + quarterly toggle)
+  - LAWA state/trend browse view
+  - “Explain this” call to explanation endpoint
+- [ ] No business logic in frontend (frontend is a client only)
+- [ ] README/DEMO docs updated with how to run frontend + backend together
+
+Work Items:
+- [ ] Choose minimal frontend approach (React/Vite or Next.js; defer decision until Phase 10 starts)
+- [ ] Implement 2–3 simple pages + API wiring
+- [ ] Add screenshots for README (optional)
+
+Notes:
+- Frontend is for demoability, not product completeness.
+---
+
+### Phase 12 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 
 Definition of Done:
@@ -311,6 +398,9 @@ Complete before marking Wai & Watts “portfolio-ready.”
   - roles used (Builder, Staff, PM)
   - guardrails and human-in-the-loop policy
   - examples of AI-assisted engineering decisions
+  - friction and how it was handled i.e. chat gpt sessions become unusably slow over time. Is there enough context in repo docs to start a new agent?
+    - can this friction be reduced in onboarding in future projects?
+  - Can we create a template of AI docs to be re-used in future projects to onboard agents?
 - [ ] Document AI grounding contract (Fact Pack, refusal behavior, citation rules)
 
 #### Tier 3 — Production-Readiness Signals (Doc-Only)
@@ -323,5 +413,19 @@ Complete before marking Wai & Watts “portfolio-ready.”
 - [ ] Ensure naming consistency (mbieGenerationAnnual vs mbieGenerationQuarterly)
 - [ ] Add schema migration history summary
 - [ ] Add README pointers to fixtures and test strategy
+- [ ] Write a 1-paragraph “Roadmap Philosophy” ection that explains why this sequencing mirrors real platform evolution (PM suggestion)
+
+---
+
+#### AI Onboarding & Documentation Validation Tasks
+These tasks validate that repository documentation is sufficient for new AI agents.
+- [x] Add AI Onboarding Runbook (`docs/ai-dev/AI_ONBOARDING_RUNBOOK.md`)
+- [x] Add AI Onboarding Checklist (`docs/ai-dev/AI_ONBOARDING_CHECKLIST.md`)
+- [ ] Validate onboarding with a fresh AI session (no bootstrap)
+- [ ] Record onboarding friction points in decisions.md
+- [ ] Backfill missing documentation based on onboarding failures
+
+---
+
 
 ---

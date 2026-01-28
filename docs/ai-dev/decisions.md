@@ -473,3 +473,18 @@ Decision: Normalize Biogas to OTHER for both annual and quarterly MBIE datasets.
 Rationale: Maintain cross-dataset consistency and avoid premature fuel taxonomy expansion. Biogas is policy-heterogeneous and small in volume; dedicated categorization deferred.  
 
 Implications: Biogas is grouped with OTHER until a BIOGAS/BIOENERGY category is introduced across all datasets via forward migration.
+
+
+## AI Onboarding Runbook and Validation Checklist
+
+Date: 2026-01-28
+
+Decision: Introduce an explicit AI onboarding runbook and onboarding validation checklist as first-class repository documentation to govern how AI agents are onboarded and evaluated before performing engineering tasks.
+
+Rationale: Wai & Watts intentionally treats AI agents as engineering collaborators. As the project grows, implicit context transfer becomes unreliable across sessions and tools. A procedural onboarding runbook and validation checklist formalize the onboarding process, reduce context drift, and treat documentation as an executable system artifact. This mirrors human developer onboarding practices in production platform teams and strengthens the portfolio narrative around AI-assisted engineering discipline.
+
+Implications:
+- New AI sessions should be onboarded using the runbook file list and validation questions.
+- Onboarding failures are treated as documentation defects and must be fixed in project-context.md, progress.md, or decisions.md.
+- The checklist is a human-operated QA tool and is not provided to AI agents as a prompt.
+- This process is documentation-only and does not affect runtime system behavior.
