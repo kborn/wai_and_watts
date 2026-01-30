@@ -280,6 +280,7 @@ Cross-domain proof criteria:
 - [ ] LAWA ingestion adds minimal new shared utilities only if justified (record in decisions.md)
 
 Notes:
+- Builder GPT must implement Phase 8 strictly per specs/004 and design/007; no schema or lifecycle refactors allowed.
 - Still fixture-first. Live download deferred until after Phase 8 stabilizes.
 - Keep LAWA modeling intentionally narrow: “state” tables only (no raw monitoring time series).
 - Avoid “Phase 8 refactors Phase 6/7”: keep earlier phases passing unchanged; record any exceptions in decisions.md.
