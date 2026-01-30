@@ -5,7 +5,7 @@ Dataset Source Code: `mbie.generation.quarterly`
 ## Purpose
 
 Phase 7 extends Wai & Watts ingestion to quarterly MBIE electricity
-generation data.\
+generation data.
 The goal is to prove ingestion extensibility by reusing the existing
 lifecycle, lineage, and orchestration patterns with a new temporal
 granularity.

@@ -488,3 +488,33 @@ Implications:
 - Onboarding failures are treated as documentation defects and must be fixed in project-context.md, progress.md, or decisions.md.
 - The checklist is a human-operated QA tool and is not provided to AI agents as a prompt.
 - This process is documentation-only and does not affect runtime system behavior.
+
+### Dataset Source Taxonomy v2 (Optional Dataset Segment)
+
+Date: 2026-01-28
+
+Decision: Support an optional 4-segment dataset source taxonomy: <publisher>.<domain>.<dataset>.<variant>,  while preserving existing 3-segment codes.
+
+Rationale: LAWA datasets contain multiple dataset families within a single domain (e.g., state_trend, site_measurements). Forcing all into the variant field  would overload semantics and reduce discoverability. Introducing an optional  dataset segment enables structured grouping without breaking existing MBIE identifiers or requiring forward migrations.
+
+Implications:
+- Existing dataset_source.code values remain immutable.
+- New datasets may use 3- or 4-segment taxonomy.
+- Parsers must explicitly support 3- and 4-segment forms only.
+- More than 4 segments requires a Staff architectural decision.
+- Variant segment continues to encode temporal grain only.
+
+### Phase 8 LAWA Dataset Selection (State Attribute Band)
+
+Date: 2026-01-28
+
+Decision: Use LAWA River Water Quality State & Trend Results workbook, sheet State Attribute Band, as the Phase 8 ingestion source with code lawa.water_quality.state.multi_year.
+
+Rationale:
+- Published interpretation (state bands) rather than raw telemetry, matching project principles.
+- Structurally stable, policy-relevant, and cross-domain proof without time-series/geospatial complexity.
+- Multi-year aggregation semantics align with a clear period_start_year/period_end_year model.
+
+Implications:
+- Phase 8 fixture and parser are based on State Attribute Band fields; other LAWA tabs (quartiles, trend-only) are out of scope unless a future decision adds them.
+- Trend is not required for Phase 8 unless explicitly added later as a separate dataset or join.
