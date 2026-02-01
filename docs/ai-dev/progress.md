@@ -389,6 +389,7 @@ Complete before marking Wai & Watts “portfolio-ready.”
 - [ ] Add dataset taxonomy table (mbie.generation.annual, mbie.generation.quarterly, etc.)
 - [ ] Normalize and backfill decisions.md for early implicit decisions
 - [ ] Add decision format contract section for future contributors/GPTs
+- [ ] Cohesion across docs. Where do table schema specs belong? design or or spec? Do we have all tables defined?
 
 #### Tier 2 — Environmental Storytelling Deliverables
 - [ ] Add Insights.md with 3–5 grounded findings (charts/tables allowed):
@@ -423,6 +424,10 @@ Complete before marking Wai & Watts “portfolio-ready.”
 - [ ] Add README pointers to fixtures and test strategy
 - [ ] Write a 1-paragraph “Roadmap Philosophy” ection that explains why this sequencing mirrors real platform evolution (PM suggestion)
 
+
+#### General TODOs
+- [ ] Unique index on MBIE annual
+  - [ ] idx for READ API queries for LAWA state multi year
 ---
 
 #### AI Onboarding & Documentation Validation Tasks
