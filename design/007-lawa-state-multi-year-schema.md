@@ -76,7 +76,7 @@ For each row with `hYear = Y`:
 
 ## Constraints
 
-- **UNIQUE**(`dataset_release_id`, `lawa_site_id`, `indicator_norm`, `period_type`, `period_end_year`)
+- **UNIQUE**(`dataset_release_id`, `lawa_site_id`, `indicator_raw`, `period_type`, `period_end_year`)
 - **NOT NULL** on: `dataset_release_id`, `lawa_site_id`, `site_name`, `region`, `indicator_raw`, `indicator_norm`, `attribute_band`, `state_norm`, `period_type`, `period_start_year`, `period_end_year`
 - All numeric statistics (`median`, `p95`, exceedance % fields) may be NULL.
 - `latitude` / `longitude` may be NULL.
