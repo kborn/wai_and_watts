@@ -427,7 +427,9 @@ Complete before marking Wai & Watts “portfolio-ready.”
 
 #### General TODOs
 - [ ] Unique index on MBIE annual
-  - [ ] idx for READ API queries for LAWA state multi year
+- [ ] idx for READ API queries for LAWA state multi year
+- [ ] normalize meta data columns across all tables
+- [ ] create abstract csv parser
 ---
 
 #### AI Onboarding & Documentation Validation Tasks
