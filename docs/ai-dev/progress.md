@@ -240,14 +240,14 @@ Links:
 Goal: Add a third dataset ingestion in a new domain (water quality), proving lifecycle + patterns generalize beyond MBIE electricity.
 
 Definition of Done:
-- [ ] `specs/phase-8-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
-- [ ] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
+- [x] `specs/phase-8-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
+- [x] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
 - [ ] `decisions.md` includes Phase 8 decision entries (dataset selection + modeling boundary decisions)
-- [ ] LAWA `dataset_source.code` created (e.g., `lawa.water_quality.state.multi_year`)
-- [ ] LAWA domain schema exists (Flyway migration)
-- [ ] Fixture(s) committed for LAWA dataset (test resources)
-- [ ] Parser + ingester implemented for LAWA dataset (reuses lifecycle)
-- [ ] Integration test proves:
+- [x] LAWA `dataset_source.code` created (e.g., `lawa.water_quality.state.multi_year`)
+- [x] LAWA domain schema exists (Flyway migration)
+- [x] Fixture(s) committed for LAWA dataset (test resources)
+- [x] Parser + ingester implemented for LAWA dataset (reuses lifecycle)
+- [x] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
 - [ ] Read-only API endpoint(s) expose LAWA state data
@@ -258,15 +258,15 @@ Work Items:
   - dataset selection (exact source URL + sheet/table)
   - minimal modeling boundary (published state interpretations, not raw telemetry)
   - normalization approach for indicators/grades/units (as applicable)
-- [ ] Create `specs/phase-8-lawa-state-trend-multi-year-ingestion.md` (or numbered equivalent)
-- [ ] Create `design/lawa-state-multi-year-schema`
-- [ ] Select LAWA table/sheet(s) and lock:
+- [x] Create `specs/phase-8-lawa-state-trend-multi-year-ingestion.md` (or numbered equivalent)
+- [x] Create `design/lawa-state-multi-year-schema`
+- [x] Select LAWA table/sheet(s) and lock:
   - exact URL(s)
   - table/sheet name(s)
   - unit semantics + time period semantics
-- [ ] Define LAWA schema + migration (minimal, interview-friendly)
-- [ ] Create fixture(s) matching canonical contract for LAWA
-- [ ] Implement parser/ingester using fixtures
+- [x] Define LAWA schema + migration (minimal, interview-friendly)
+- [x] Create fixture(s) matching canonical contract for LAWA
+- [x] Implement parser/ingester using fixtures
 - [ ] Add read APIs + integration tests
 - [ ] Ensure variant-aware paths:
   - fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state/...`
