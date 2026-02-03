@@ -504,17 +504,31 @@ Implications:
 - More than 4 segments requires a Staff architectural decision.
 - Variant segment continues to encode temporal grain only.
 
-### Phase 8 LAWA Dataset Selection (State Attribute Band)
-
+### Phase 8 — LAWA State (Multi‑Year): Dataset Selection & Modeling Boundaries
 Date: 2026-01-28
 
-Decision: Use LAWA River Water Quality State & Trend Results workbook, sheet State Attribute Band, as the Phase 8 ingestion source with code lawa.water_quality.state.multi_year.
+Decision: Adopt LAWA river water quality “State” (multi‑year) as the third dataset; model published 5‑year hydrological windows, not raw telemetry.
 
 Rationale:
-- Published interpretation (state bands) rather than raw telemetry, matching project principles.
+- Cross‑domain proof beyond MBIE electricity data while reusing the ingestion lifecycle
+- Published interpretations are stable and interview‑friendly; avoid sensor‑level time series complexity in Phase 8
+- LAWA export provides attribute bands (A..E) and indicator metrics suitable for deterministic normalization
 - Structurally stable, policy-relevant, and cross-domain proof without time-series/geospatial complexity.
 - Multi-year aggregation semantics align with a clear period_start_year/period_end_year model.
 
 Implications:
-- Phase 8 fixture and parser are based on State Attribute Band fields; other LAWA tabs (quartiles, trend-only) are out of scope unless a future decision adds them.
-- Trend is not required for Phase 8 unless explicitly added later as a separate dataset or join.
+- Dataset source code (taxonomy v2: <publisher>.<domain>.<dataset>.<variant>): `lawa.water_quality.state.multi_year`
+- Normalization:
+  - `indicator_norm` maps per design/007; unknown → `OTHER`
+  - `state_norm` derived from `attribute_band` (A..E → EXCELLENT..VERY_POOR); unknown → `UNKNOWN`
+- Parser must strictly validate header (BOM‑safe); preserve raw fields alongside normalized
+- Ingestion remains idempotent via `(dataset_source_id, content_hash)`; duplicates are no‑ops
+- Read API is read‑only; controllers return DTOs (no entities)
+
+Notes:
+- Fixture‑first only in Phase 8; live download deferred to Phase 10
+- Paths must follow variant‑aware convention consistently across docs and code:
+  - Fixtures: `backend/src/test/resources/fixtures/lawa/state/multi_year/...`
+  - Public API: `/api/v1/lawa/state/multiyear`
+  - Dataset source code: `lawa.water_quality.state.multi_year`
+***

@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 8 — LAWA Water Quality “State” Ingestion (Cross-Domain Proof) 🟡
+- **Active Phase:** Phase 9 — LAWA Trend Ingestion 🟡
 - **Status:** Not started
 
 ---
@@ -236,13 +236,13 @@ Links:
 - PR: [test(service/mbie-quarterly): add read service unit tests for mapping and filters](https://github.com/kborn/wai_and_watts/pull/16)
 ---
 
-### Phase 8 — LAWA Water Quality “State” Ingestion (Cross-Domain Proof)
+### Phase 8 — LAWA Water Quality “State” Ingestion (Cross-Domain Proof) ✅
 Goal: Add a third dataset ingestion in a new domain (water quality), proving lifecycle + patterns generalize beyond MBIE electricity.
 
 Definition of Done:
 - [x] `specs/phase-8-<dataset>-ingestion.md` exists (dataset rationale + scope + acceptance criteria)
 - [x] `design/<dataset>-schema.md` exists (schema + constraints + fixture contract + normalization rules)
-- [ ] `decisions.md` includes Phase 8 decision entries (dataset selection + modeling boundary decisions)
+- [x] `decisions.md` includes Phase 8 decision entries (dataset selection + modeling boundary decisions)
 - [x] LAWA `dataset_source.code` created (e.g., `lawa.water_quality.state.multi_year`)
 - [x] LAWA domain schema exists (Flyway migration)
 - [x] Fixture(s) committed for LAWA dataset (test resources)
@@ -251,10 +251,10 @@ Definition of Done:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
 - [x] Read-only API endpoint(s) expose LAWA state data
-- [ ] Shared ingestion abstractions remain clean (no copy/paste drift)
+- [x] Shared ingestion abstractions remain clean (no copy/paste drift)
 
 Work Items:
-- [ ] Record Phase 8 decision brief in decisions.md:
+- [x] Record Phase 8 decision brief in decisions.md:
   - dataset selection (exact source URL + sheet/table)
   - minimal modeling boundary (published state interpretations, not raw telemetry)
   - normalization approach for indicators/grades/units (as applicable)
@@ -268,16 +268,16 @@ Work Items:
 - [x] Create fixture(s) matching canonical contract for LAWA
 - [x] Implement parser/ingester using fixtures
 - [x] Add read APIs + integration tests
-- [ ] Ensure variant-aware paths:
-  - fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state/...`
-  - APIs: `/api/v1/lawa/water-quality/state/...`
+- [x] Ensure variant-aware paths:
+  - fixtures: `backend/src/test/resources/fixtures/lawa/state/multi_year/...`
+  - APIs: `/api/v1/lawa/state/multiyear`
 
 Cross-domain proof criteria:
-- [ ] Shared ingestion lifecycle reused without modification
-- [ ] Dataset-specific parser implements a common ingestion interface
-- [ ] Domain schema remains separate from lineage schema
-- [ ] Integration tests validate Phases 6/7 still pass unchanged
-- [ ] LAWA ingestion adds minimal new shared utilities only if justified (record in decisions.md)
+- [x] Shared ingestion lifecycle reused without modification
+- [x] Dataset-specific parser implements a common ingestion interface
+- [x] Domain schema remains separate from lineage schema
+- [x] Integration tests validate Phases 6/7 still pass unchanged
+- [x] LAWA ingestion adds minimal new shared utilities only if justified (record in decisions.md)
 
 Notes:
 - Builder GPT must implement Phase 8 strictly per specs/004 and design/007; no schema or lifecycle refactors allowed.
