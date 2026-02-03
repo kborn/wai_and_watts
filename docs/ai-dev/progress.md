@@ -250,7 +250,7 @@ Definition of Done:
 - [x] Integration test proves:
   - lineage idempotency (dataset_source_id + content_hash), and
   - domain persistence with no duplicate rows per release
-- [ ] Read-only API endpoint(s) expose LAWA state data
+- [x] Read-only API endpoint(s) expose LAWA state data
 - [ ] Shared ingestion abstractions remain clean (no copy/paste drift)
 
 Work Items:
@@ -267,7 +267,7 @@ Work Items:
 - [x] Define LAWA schema + migration (minimal, interview-friendly)
 - [x] Create fixture(s) matching canonical contract for LAWA
 - [x] Implement parser/ingester using fixtures
-- [ ] Add read APIs + integration tests
+- [x] Add read APIs + integration tests
 - [ ] Ensure variant-aware paths:
   - fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state/...`
   - APIs: `/api/v1/lawa/water-quality/state/...`
@@ -289,6 +289,7 @@ Links:
 - PR: [feat(db/lawa): add LAWA state (multi‑year) schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/18)
 - PR: [feat(ingestion/lawa-state-multi-year): add CSV parser normalization and unit test](https://github.com/kborn/wai_and_watts/pull/19)
 - PR: [feat(ingestion/lawa-state): add multi‑year ingestion service + idempotency and integration test](https://github.com/kborn/wai_and_watts/pull/20)
+- PR: [feat(api/lawa-state): add public read endpoint with filters and tests](https://github.com/kborn/wai_and_watts/pull/21)
 
 ---
 

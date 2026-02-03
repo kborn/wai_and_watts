@@ -1,0 +1,76 @@
+package nz.waiwatts.service.lawa;
+
+import nz.waiwatts.api.lawa.dto.LawaStateMultiYearRecordDto;
+import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
+import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+
+@Service
+public class LawaStateMultiYearReadServiceImpl implements LawaStateMultiYearReadService{
+
+    private final LawaStateMultiYearRecordRepository repository;
+
+    public LawaStateMultiYearReadServiceImpl(LawaStateMultiYearRecordRepository repository){
+        this.repository = repository;
+    }
+
+
+    @Override
+    public List<LawaStateMultiYearRecordDto> find(Integer fromYear,
+                                                  Integer toYear,
+                                                  String indicator,
+                                                  String region){
+
+        int from = fromYear != null ? fromYear : Integer.MIN_VALUE;
+        int to = toYear != null ? toYear : Integer.MAX_VALUE;
+
+        String indicatorNorm = indicator != null ? collapseWhitespace(indicator.trim()) : null;
+        String regionNorm = region != null ? collapseWhitespace(region.trim()) : null;
+
+        return repository.findAll().stream()
+                .filter(r -> r.getPeriodEndYear() >= from && r.getPeriodStartYear() <= to)
+                .filter(r -> indicatorNorm == null || indicatorNorm.equalsIgnoreCase(nullToEmpty(r.getIndicatorNorm())))
+                .filter(r -> regionNorm == null || regionNorm.equalsIgnoreCase(nullToEmpty(r.getRegion())))
+                .map(LawaStateMultiYearReadServiceImpl::toDto)
+                .collect(Collectors.toList());
+
+    }
+
+    private static String nullToEmpty(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static String collapseWhitespace(String s) {
+        return s.replaceAll("\\s+", " ");
+    }
+
+    private static LawaStateMultiYearRecordDto toDto(LawaStateMultiYearRecord e) {
+        UUID releaseId = e.getDatasetRelease() != null ? e.getDatasetRelease().getId() : null;
+        return new LawaStateMultiYearRecordDto(
+                e.getLawaSiteId(),
+                e.getSiteName(),
+                e.getRegion(),
+                e.getLatitude(),
+                e.getLongitude(),
+                e.getIndicatorRaw(),
+                e.getIndicatorNorm(),
+                e.getUnits(),
+                e.getAttributeBand(),
+                e.getStateNorm(),
+                e.getMedian(),
+                e.getP95(),
+                e.getRecHealthExceed260Pct(),
+                e.getRecHealthExceed540Pct(),
+                e.getPeriodType(),
+                e.getPeriodStartYear(),
+                e.getPeriodEndYear(),
+                releaseId
+        );
+    }
+
+}
