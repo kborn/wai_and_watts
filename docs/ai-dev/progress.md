@@ -285,6 +285,11 @@ Notes:
 - Keep LAWA modeling intentionally narrow: “state” tables only (no raw monitoring time series).
 - Avoid “Phase 8 refactors Phase 6/7”: keep earlier phases passing unchanged; record any exceptions in decisions.md.
 
+Links:
+- PR: [feat(db/lawa): add LAWA state (multi‑year) schema + entity/repo and repository test](https://github.com/kborn/wai_and_watts/pull/18)
+- PR: [feat(ingestion/lawa-state-multi-year): add CSV parser normalization and unit test](https://github.com/kborn/wai_and_watts/pull/19)
+- PR: [feat(ingestion/lawa-state): add multi‑year ingestion service + idempotency and integration test](https://github.com/kborn/wai_and_watts/pull/20)
+
 ---
 
 ### Phase 9 — LAWA Trend Ingestion
