@@ -14,7 +14,7 @@ class LawaStateMultiYearCsvParserTest {
     @Test
     void parse_fixture_success_and_basic_assertions() throws Exception {
         InputStream is = this.getClass().getClassLoader()
-                .getResourceAsStream("fixtures/lawa/state/multi_year/lawa_state_multi_year_fixture.csv");
+                .getResourceAsStream("fixtures/lawa/water_quality/state/multi_year/lawa_state_multi_year_fixture.csv");
         assertThat(is).as("fixture should be on classpath").isNotNull();
 
         LawaStateMultiYearCsvParser parser = new LawaStateMultiYearCsvParser();

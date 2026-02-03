@@ -528,7 +528,7 @@ Implications:
 Notes:
 - Fixture‑first only in Phase 8; live download deferred to Phase 10
 - Paths must follow variant‑aware convention consistently across docs and code:
-  - Fixtures: `backend/src/test/resources/fixtures/lawa/state/multi_year/...`
-  - Public API: `/api/v1/lawa/state/multiyear`
+  - Fixtures: `backend/src/test/resources/fixtures/lawa/water_quality/state/multi_year/...`
+  - Public API: `/api/v1/lawa/water-quality/state/multiyear`
   - Dataset source code: `lawa.water_quality.state.multi_year`
 ***

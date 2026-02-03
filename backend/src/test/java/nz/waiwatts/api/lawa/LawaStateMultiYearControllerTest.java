@@ -37,7 +37,7 @@ public class LawaStateMultiYearControllerTest {
         );
         when(readService.find(any(), any(), any(), any())).thenReturn(payload);
 
-        mockMvc.perform(get("/api/v1/lawa/state/multiyear")
+        mockMvc.perform(get("/api/v1/lawa/water-quality/state/multiyear")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -65,7 +65,7 @@ public class LawaStateMultiYearControllerTest {
     void getGeneration_validatesFromTo() throws Exception {
         when(readService.find(anyInt(), anyInt(), anyString(), anyString())).thenReturn(List.of());
 
-        mockMvc.perform(get("/api/v1/lawa/state/multiyear")
+        mockMvc.perform(get("/api/v1/lawa/water-quality/state/multiyear")
                         .param("fromYear", "2025")
                         .param("toYear", "2024")
                         .accept(MediaType.APPLICATION_JSON))

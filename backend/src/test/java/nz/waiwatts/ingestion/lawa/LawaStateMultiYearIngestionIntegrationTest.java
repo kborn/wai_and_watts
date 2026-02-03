@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LawaStateMultiYearIngestionIntegrationTest {
 
     private static final String SOURCE_CODE = "lawa.water_quality.state.multi_year";
-    private static final String FIXTURE_PATH = "fixtures/lawa/state/multi_year/lawa_state_multi_year_fixture.csv";
+    private static final String FIXTURE_PATH = "fixtures/lawa/water_quality/state/multi_year/lawa_state_multi_year_fixture.csv";
 
     @Autowired
     private DatasetSourceRepository sourceRepository;

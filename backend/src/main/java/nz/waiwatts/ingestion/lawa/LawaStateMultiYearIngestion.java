@@ -48,7 +48,7 @@ public class LawaStateMultiYearIngestion {
      * Only persists domain rows when a new release is created.
      *
      * @param datasetSourceCode stable code of the DatasetSource (e.g., "lawa.water_quality.state.multi_year")
-     * @param classpathFixture  e.g., "fixtures/lawa/state/multi_year/lawa_state_multi_year_fixture.csv"
+     * @param classpathFixture  e.g., "fixtures/lawa/water_quality/state/multi_year/lawa_state_multi_year_fixture.csv"
      * @param publishedDate     optional publication date
      * @param releaseLabel      optional label (e.g., "2025-Q3 workbook")
      * @return DatasetRelease id
