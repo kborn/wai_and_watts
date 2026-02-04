@@ -297,13 +297,13 @@ Links:
 Goal: Add a second LAWA dataset ingestion (water quality trend), proving lifecycle + patterns generalize beyond MBIE electricity and complement Phase 8 “state” data.
 
 Definition of Done:
-- [ ] `specs/phase-9-lawa-trend-multi-year-ingestion.md` exists
-- [ ] `design/lawa-trend-multi-year-schema.md` exists
+- [x] `specs/phase-9-lawa-trend-multi-year-ingestion.md` exists
+- [x] `design/lawa-trend-multi-year-schema.md` exists
 - [ ] `decisions.md` includes Phase 9 decision entries (dataset + period semantics + normalization + cross-sheet derivation contract)
 - [ ] `dataset_source.code` created:
   - `lawa.water_quality.trend.multi_year`
 - [ ] LAWA trend domain schema exists (Flyway migration)
-- [ ] Fixture committed:
+- [x] Fixture committed:
   - `backend/src/test/resources/fixtures/lawa/water_quality/trend/multi_year/...`
 - [ ] Parser + ingester implemented (reuses lifecycle)
 - [ ] Integration test proves:
@@ -316,10 +316,10 @@ Definition of Done:
 Work Items:
 - [ ] Create dataset source record
 - [ ] Implement schema migration
-- [ ] Implement Trend parser
-- [ ] Implement trend normalization layer
+- [x] Implement Trend parser
+- [x] Implement trend normalization layer
 - [ ] Implement ingestion wiring
-- [ ] Generate deterministic fixture slice aligned to Phase 8
+- [x] Generate deterministic fixture slice aligned to Phase 8
 - [ ] Add integration test coverage
 - [ ] Add API read exposure
 
@@ -337,6 +337,9 @@ Non-Goals:
 - No joining state + trend at ingestion time
 - No live download orchestration yet
 - No taxonomy expansion
+
+Links:
+- PR: [feat(ingestion/lawa-trend): add CSV parser + DTO with normalization and fixture test ](https://github.com/kborn/wai_and_watts/pull/22)
 
 ### Phase 10 — Live Ingestion
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
