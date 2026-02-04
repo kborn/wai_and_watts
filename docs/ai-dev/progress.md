@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 9 — LAWA Trend Ingestion 🟡
-- **Status:** Not started
+- **Active Phase:** Phase 9 — LAWA Trend Ingestion ✅
+- **Status:** Complete
 
 ---
 
@@ -299,8 +299,8 @@ Goal: Add a second LAWA dataset ingestion (water quality trend), proving lifecyc
 Definition of Done:
 - [x] `specs/phase-9-lawa-trend-multi-year-ingestion.md` exists
 - [x] `design/lawa-trend-multi-year-schema.md` exists
-- [ ] `decisions.md` includes Phase 9 decision entries (dataset + period semantics + normalization + cross-sheet derivation contract)
-- [ ] `dataset_source.code` created:
+- [x] `decisions.md` includes Phase 9 decision entries (dataset + period semantics + normalization + cross-sheet derivation contract)
+- [x] `dataset_source.code` created:
   - `lawa.water_quality.trend.multi_year`
 - [x] LAWA trend domain schema exists (Flyway migration)
 - [x] Fixture committed:
@@ -310,18 +310,18 @@ Definition of Done:
   - lineage idempotency
   - domain persistence
   - deterministic period derivation from paired State fixture slice
-- [ ] Read-only API exposes LAWA trend data
-- [ ] Phase 8 LAWA state ingestion remains unchanged
+- [x] Read-only API exposes LAWA trend data
+- [x] Phase 8 LAWA state ingestion remains unchanged
 
 Work Items:
-- [ ] Create dataset source record
-- [ ] Implement schema migration
+- [x] Create dataset source record
+- [x] Implement schema migration
 - [x] Implement Trend parser
 - [x] Implement trend normalization layer
 - [x] Implement ingestion wiring
 - [x] Generate deterministic fixture slice aligned to Phase 8
 - [x] Add integration test coverage
-- [ ] Add API read exposure
+- [x] Add API read exposure
 
 Notes:
 - Fixtures must:
@@ -341,6 +341,7 @@ Non-Goals:
 Links:
 - PR: [feat(ingestion/lawa-trend): add CSV parser + DTO with normalization and fixture test](https://github.com/kborn/wai_and_watts/pull/22)
 - PR: [feat(ingestion/lawa-trend): wire multi‑year ingestion with schema + idempotent test](https://github.com/kborn/wai_and_watts/pull/23)
+- PR: [feat(api/lawa-trend): add read service + controller with filters; tests; update progress](https://github.com/kborn/wai_and_watts/pull/24)
 
 ### Phase 10 — Live Ingestion
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
