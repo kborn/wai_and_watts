@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 9 — LAWA Trend Ingestion ✅
-- **Status:** Complete
+- **Active Phase:** Phase 10 — Live Ingestion 🟡
+- **Status:** In progress
 
 ---
 
@@ -343,9 +343,45 @@ Links:
 - PR: [feat(ingestion/lawa-trend): wire multi‑year ingestion with schema + idempotent test](https://github.com/kborn/wai_and_watts/pull/23)
 - PR: [feat(api/lawa-trend): add read service + controller with filters; tests; update progress](https://github.com/kborn/wai_and_watts/pull/24)
 
-### Phase 10 — Live Ingestion
-Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
-This should be a manual process. We are not looking to build a schedular platform  
+### Phase 10 — Live Ingestion 🟡
+Goal: Fetch and ingest real datasets end-to-end (not just fixtures).  
+This is a **manual operator-triggered process**. Wai & Watts intentionally does **not** include scheduling, orchestration, or automated polling of data publishers.
+
+Definition of Done:
+- [ ] Live download script exists per dataset family (MBIE, LAWA)
+- [ ] Raw source files can be stored locally or in configured storage path
+- [ ] Dataset release creation supports ingestion from real files
+- [ ] Content hashing works for real source files
+- [ ] Ingestion pipeline runs successfully against real files
+- [ ] Re-running ingestion on same file is idempotent
+- [ ] Re-running ingestion on new file creates new dataset release
+- [ ] Parser logic contains no fixture-only assumptions
+- [ ] Failure modes are documented (schema drift, missing columns, corrupt download)
+- [ ] Manual operator runbook exists
+- [ ] Example real ingestion execution documented in repo
+
+Work Items:
+- [ ] Implement MBIE live download script
+- [ ] Implement LAWA live download script
+- [ ] Implement dataset release registration for real files
+- [ ] Validate content hashing + deduplication behavior
+- [ ] Validate parser compatibility with real-world file variation
+- [ ] Add manual ingestion CLI entrypoints or scripts
+- [ ] Document manual ingestion workflow
+- [ ] Add example live ingestion execution documentation
+- [ ] Add integration test using real file snapshot (optional)
+
+Notes:
+- Live ingestion must preserve dataset lineage, dataset immutability per release, and idempotent ingestion behavior.
+- Schema drift must surface as explicit ingestion failure (no silent coercion).
+- Live ingestion is intentionally **manual + reproducible**, not automated infrastructure.
+
+Non-Goals:
+- No scheduler (Airflow, cron, event triggers)
+- No automated publisher polling
+- No incremental ingestion platform
+- No freshness SLAs or monitoring pipelines
+- No data lake / raw zone architecture  
 
 ### Phase 11 — Insights & LLM Layer (Grounded Explanations)
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.

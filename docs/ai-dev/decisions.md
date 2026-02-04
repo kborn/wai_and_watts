@@ -596,3 +596,51 @@ Known normalized values:
 - INSUFFICIENT_DATA
 
 Unknown future values map to OTHER or UNKNOWN until a formal expansion decision is recorded.
+
+### Phase 10 — Live Ingestion Is Manual by Design
+Date: 2026-02-04
+
+Decision:
+Live dataset ingestion is a manual, operator-triggered process. Wai & Watts does not implement scheduling, automated polling, or orchestration infrastructure.
+
+Rationale:
+- Phase 10 demonstrates real-world ingestion realism without introducing data platform complexity.
+- Scheduling, polling, and orchestration are infrastructure concerns and not required to demonstrate lifecycle correctness, lineage discipline, or ingestion idempotency.
+- Manual execution keeps operational surface area small and preserves portfolio clarity.
+
+Implications:
+- No Airflow, cron, or event-driven ingestion infrastructure will be added.
+- No automated publisher polling will be implemented.
+- Ingestion is initiated via CLI, script, or dev-only internal endpoint.
+- Future automation requires a new explicit architectural decision.
+
+### Fixture-First Development Remains Mandatory After Live Ingestion
+Date: 2026-02-04
+
+Decision:
+All new datasets must be introduced using fixture-first development before enabling live ingestion.
+
+Rationale:
+- Preserves deterministic testing and reproducible development.
+- Prevents coupling parser development to external publisher availability.
+- Maintains portfolio narrative of disciplined ingestion engineering.
+
+Implications:
+- New dataset phases must include fixture generation before live ingestion is implemented.
+- Live ingestion is considered an operational extension, not a development dependency.
+
+### Phase 10 — Live Ingestion Input Boundary (Local Filesystem Only)
+Date: 2026-02-04
+
+Decision:
+Phase 10 live ingestion reads source artifacts from the local filesystem only (operator-provided file paths). No remote storage adapters (S3/GCS) or raw-zone architecture is introduced.
+
+Rationale:
+- Demonstrates real ingestion realism while keeping operational surface area minimal.
+- Avoids introducing storage/platform complexity unrelated to core lifecycle + parsing correctness.
+- Keeps Phase 10 manual and reproducible.
+
+Implications:
+- Operator provides a local path to the downloaded workbook/CSV.
+- The system does not implement remote fetchers, storage clients, or background jobs.
+- Any future support for remote storage requires a new explicit architectural decision.
