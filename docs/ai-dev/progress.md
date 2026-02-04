@@ -302,11 +302,11 @@ Definition of Done:
 - [ ] `decisions.md` includes Phase 9 decision entries (dataset + period semantics + normalization + cross-sheet derivation contract)
 - [ ] `dataset_source.code` created:
   - `lawa.water_quality.trend.multi_year`
-- [ ] LAWA trend domain schema exists (Flyway migration)
+- [x] LAWA trend domain schema exists (Flyway migration)
 - [x] Fixture committed:
   - `backend/src/test/resources/fixtures/lawa/water_quality/trend/multi_year/...`
-- [ ] Parser + ingester implemented (reuses lifecycle)
-- [ ] Integration test proves:
+- [x] Parser + ingester implemented (reuses lifecycle)
+ - [x] Integration test proves:
   - lineage idempotency
   - domain persistence
   - deterministic period derivation from paired State fixture slice
@@ -318,9 +318,9 @@ Work Items:
 - [ ] Implement schema migration
 - [x] Implement Trend parser
 - [x] Implement trend normalization layer
-- [ ] Implement ingestion wiring
+- [x] Implement ingestion wiring
 - [x] Generate deterministic fixture slice aligned to Phase 8
-- [ ] Add integration test coverage
+- [x] Add integration test coverage
 - [ ] Add API read exposure
 
 Notes:
@@ -339,7 +339,8 @@ Non-Goals:
 - No taxonomy expansion
 
 Links:
-- PR: [feat(ingestion/lawa-trend): add CSV parser + DTO with normalization and fixture test ](https://github.com/kborn/wai_and_watts/pull/22)
+- PR: [feat(ingestion/lawa-trend): add CSV parser + DTO with normalization and fixture test](https://github.com/kborn/wai_and_watts/pull/22)
+- PR: [feat(ingestion/lawa-trend): wire multi‑year ingestion with schema + idempotent test](https://github.com/kborn/wai_and_watts/pull/23)
 
 ### Phase 10 — Live Ingestion
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
