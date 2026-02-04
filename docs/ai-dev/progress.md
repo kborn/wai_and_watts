@@ -339,7 +339,8 @@ Non-Goals:
 - No taxonomy expansion
 
 Links:
-- PR: [feat(ingestion/lawa-trend): add CSV parser + DTO with normalization and fixture test ](https://github.com/kborn/wai_and_watts/pull/22)
+- PR: [feat(ingestion/lawa-trend): add CSV parser + DTO with normalization and fixture test](https://github.com/kborn/wai_and_watts/pull/22)
+- PR: [feat(ingestion/lawa-trend): wire multi‑year ingestion with schema + idempotent test](https://github.com/kborn/wai_and_watts/pull/23)
 
 ### Phase 10 — Live Ingestion
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
