@@ -310,7 +310,7 @@ Definition of Done:
   - lineage idempotency
   - domain persistence
   - deterministic period derivation from paired State fixture slice
-- [ ] Read-only API exposes LAWA trend data
+- [x] Read-only API exposes LAWA trend data
 - [ ] Phase 8 LAWA state ingestion remains unchanged
 
 Work Items:
@@ -321,7 +321,7 @@ Work Items:
 - [x] Implement ingestion wiring
 - [x] Generate deterministic fixture slice aligned to Phase 8
 - [x] Add integration test coverage
-- [ ] Add API read exposure
+- [x] Add API read exposure
 
 Notes:
 - Fixtures must:
