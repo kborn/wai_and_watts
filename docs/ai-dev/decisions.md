@@ -532,3 +532,67 @@ Notes:
   - Public API: `/api/v1/lawa/water-quality/state/multiyear`
   - Dataset source code: `lawa.water_quality.state.multi_year`
 ***
+
+### Phase 9 — LAWA Trend (Multi‑Year): Dataset Selection & Period Semantics
+Date: 2026-02-03
+
+Decision: Ingest LAWA river water quality Trend results using dataset source code `lawa.water_quality.trend.multi_year`, modeling trend windows as hydrological multi‑year windows anchored to the latest State dataset year.
+
+Rationale:
+- Completes the environmental storytelling pair: State (current condition) + Trend (direction of change)
+- LAWA Trend dataset publishes interpreted classifications and scores rather than raw measurements, aligning with Wai & Watts principle of ingesting published interpretations
+- Trend sheet provides window length but not explicit end year, requiring deterministic period derivation for stable querying and joins with State data
+- Reuses lifecycle, lineage, parser, and schema evolution patterns proven in Phases 6–8
+- Maintains taxonomy v2 structure without introducing additional segments or semantic overload
+
+Implications:
+- Dataset source code is fixed to: `lawa.water_quality.trend.multi_year`
+- Source workbook and sheet are fixed for Phase 9:
+  - Workbook: `lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx`
+  - Sheet: `Trend`
+- Period modeling contract is fixed:
+  - `as_of_year = MAX(hYear)` from `State Attribute Band` sheet in same workbook
+  - `period_type = HYDRO_NYR_WINDOW`
+  - `period_end_year = as_of_year`
+  - `period_start_year = period_end_year - trend_period_years`
+- Trend normalization contract is fixed to enum:
+  - IMPROVING
+  - DEGRADING
+  - NO_CHANGE (reserved; only used if explicitly published by LAWA)
+  - INSUFFICIENT_DATA (covers Not determined / Indeterminate / non-directional classifications)
+- Trend ingestion stores published trend classifications and scores only; no trend computation is performed in Wai & Watts
+- Phase 9 fixtures must be deterministic slices aligned to Phase 8 site/region selection to enable stable integration tests
+
+
+### Phase 9 — Trend Cross-Sheet Period Derivation Contract
+Date: 2026-02-03
+
+Decision:
+Trend period derivation depends on State sheet hYear values from the same workbook artifact used to generate fixtures.
+
+Rationale:
+Trend sheet does not contain explicit period end year. Using MAX(hYear) from State sheet provides deterministic, reproducible period derivation while avoiding cross-dataset coupling or runtime joins.
+
+Implications:
+- Trend ingestion must not query State domain tables.
+- Trend ingestion derives period using fixture/workbook context only.
+- Trend fixture generation must ensure State + Trend slices originate from same workbook version.
+
+
+### Phase 9 — Trend Normalization Vocabulary Is Append-Only
+Date: 2026-02-03
+
+Decision:
+Trend normalization vocabulary is append-only and stored as TEXT in Phase 9.
+
+Rationale:
+LAWA classification vocabulary may evolve. Early enum enforcement would create unnecessary migrations and ingestion failures.
+
+Implications:
+Known normalized values:
+- IMPROVING
+- DEGRADING
+- NO_CHANGE (reserved; only if explicitly published by LAWA)
+- INSUFFICIENT_DATA
+
+Unknown future values map to OTHER or UNKNOWN until a formal expansion decision is recorded.

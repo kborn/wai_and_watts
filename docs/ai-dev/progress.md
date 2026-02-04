@@ -293,8 +293,50 @@ Links:
 
 ---
 
-### Phase 9 — LAWA Trend Ingestion
-Goal: Add a 2nd LAWA dataset ingestion (water quality trend), proving lifecycle + patterns generalize beyond MBIE electricity.
+### Phase 9 — LAWA Trend Ingestion 🟡
+Goal: Add a second LAWA dataset ingestion (water quality trend), proving lifecycle + patterns generalize beyond MBIE electricity and complement Phase 8 “state” data.
+
+Definition of Done:
+- [ ] `specs/phase-9-lawa-trend-multi-year-ingestion.md` exists
+- [ ] `design/lawa-trend-multi-year-schema.md` exists
+- [ ] `decisions.md` includes Phase 9 decision entries (dataset + period semantics + normalization + cross-sheet derivation contract)
+- [ ] `dataset_source.code` created:
+  - `lawa.water_quality.trend.multi_year`
+- [ ] LAWA trend domain schema exists (Flyway migration)
+- [ ] Fixture committed:
+  - `backend/src/test/resources/fixtures/lawa/water_quality/trend/multi_year/...`
+- [ ] Parser + ingester implemented (reuses lifecycle)
+- [ ] Integration test proves:
+  - lineage idempotency
+  - domain persistence
+  - deterministic period derivation from paired State fixture slice
+- [ ] Read-only API exposes LAWA trend data
+- [ ] Phase 8 LAWA state ingestion remains unchanged
+
+Work Items:
+- [ ] Create dataset source record
+- [ ] Implement schema migration
+- [ ] Implement Trend parser
+- [ ] Implement trend normalization layer
+- [ ] Implement ingestion wiring
+- [ ] Generate deterministic fixture slice aligned to Phase 8
+- [ ] Add integration test coverage
+- [ ] Add API read exposure
+
+Notes:
+- Fixtures must:
+  - Use same regions/sites as Phase 8 fixture
+  - Be derived from the same workbook snapshot as Phase 8 fixture slice
+  - Preserve multiple trend window lengths
+  - Preserve raw indicator + trend text
+  - Be deterministic for integration tests
+- Trend period derivation uses State sheet context from the same workbook artifact; Trend ingestion must not query State domain tables.
+
+Non-Goals:
+- No trend computation
+- No joining state + trend at ingestion time
+- No live download orchestration yet
+- No taxonomy expansion
 
 ### Phase 10 — Live Ingestion
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures). 
