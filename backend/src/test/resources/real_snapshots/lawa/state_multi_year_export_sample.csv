@@ -1,0 +1,21 @@
+Region,Agency,Catchment,LawaSiteID,SiteID,CouncilSiteID,hYear,Latitude,Longitude,SedimentClass,WFSLandCover,WFSAltitude,RECLandCoverType,Indicator / Attribute,UnitsOfMeasure,Attribute Band,Median,95th Percentile,RecHealth_% exceedances over 260_numeric attribute statistic,RecHealth_% exceedances over 540_numeric attribute statistic
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,Ammonical nitrogen / Ammonia (toxicity),mg/L,B,0.0111,0.0958,NA,NA
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,Clarity / Suspended fine sediment,m visibility,D,0.5932,NA,NA,NA
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,Dissolved reactive phosphorus,mg/L,C,0.007,0.0321,NA,NA
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,E.coli,#/100 mL,E,1750,13000,94.8275862068966,81.0344827586207
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,Nitrate nitrogen / Nitrate (toxicity),mg/L,A,NA,NA,NA,NA
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,NO3N,mg/L,A,0.35,0.7065,NA,NA
+auckland,Auckland Council,Avondale,arc-00036,Avondale @ Shadbolt,8019,2024,-36.9232796,174.69177898,2,Urban,lowland,Urban,TON,mg/L,A,0.35,0.7165,NA,NA
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,Ammonical nitrogen / Ammonia (toxicity),mg/L,A,0.0015,0.005,NA,NA
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,Clarity / Suspended fine sediment,m visibility,A,2.8763,NA,NA,NA
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,Dissolved reactive phosphorus,mg/L,B,0.007,0.0181,NA,NA
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,E.coli,#/100 mL,A,51,231,3.38983050847458,0
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,Nitrate nitrogen / Nitrate (toxicity),mg/L,A,NA,NA,NA,NA
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,NO3N,mg/L,A,0.0054,0.0332,NA,NA
+auckland,Auckland Council,Cascade Stream,arc-00001,Cascades LTB,44603,2024,-36.88888973,174.52211474,1,Forest,upland,Native vegetation,TON,mg/L,A,0.0065,0.0391,NA,NA
+auckland,Auckland Council,Kaukapakapa River,arc-00035,Kaukapakapa @ Taylors Rd,45415,2024,-36.6306,174.51899,2,Rural,lowland,Pasture,Ammonical nitrogen / Ammonia (toxicity),mg/L,A,0.0082,0.0157,NA,NA
+auckland,Auckland Council,Kaukapakapa River,arc-00035,Kaukapakapa @ Taylors Rd,45415,2024,-36.6306,174.51899,2,Rural,lowland,Pasture,Clarity / Suspended fine sediment,m visibility,B,0.8129,NA,NA,NA
+auckland,Auckland Council,Kaukapakapa River,arc-00035,Kaukapakapa @ Taylors Rd,45415,2024,-36.6306,174.51899,2,Rural,lowland,Pasture,Dissolved reactive phosphorus,mg/L,C,0.0165,0.036,NA,NA
+auckland,Auckland Council,Kaukapakapa River,arc-00035,Kaukapakapa @ Taylors Rd,45415,2024,-36.6306,174.51899,2,Rural,lowland,Pasture,E.coli,#/100 mL,D,260,3400,48.3333333333333,21.6666666666667
+auckland,Auckland Council,Kaukapakapa River,arc-00035,Kaukapakapa @ Taylors Rd,45415,2024,-36.6306,174.51899,2,Rural,lowland,Pasture,Nitrate nitrogen / Nitrate (toxicity),mg/L,A,NA,NA,NA,NA
+auckland,Auckland Council,Kaukapakapa River,arc-00035,Kaukapakapa @ Taylors Rd,45415,2024,-36.6306,174.51899,2,Rural,lowland,Pasture,NO3N,mg/L,A,0.127,0.46,NA,NA
