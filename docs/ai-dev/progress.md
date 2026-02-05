@@ -365,8 +365,8 @@ Work Items:
 - [x] Add file ingestion methods to all dataset ingestion classes
 - [x] Add comprehensive file ingestion tests for all datasets
 - [x] Add findByDatasetReleaseId methods to all repositories
-- [ ] Implement MBIE live download script
-- [ ] Implement LAWA live download script
+- [x] Implement MBIE live download script
+- [x] Implement LAWA live download script
 - [ ] Implement dataset release registration for real files
 - [ ] Validate content hashing + deduplication behavior
 - [ ] Validate parser compatibility with real-world file variation
@@ -389,6 +389,7 @@ Non-Goals:
 
 Links:
 - PR: [feat(ingestion): add local file ingestion foundation](https://github.com/kborn/wai_and_watts/pull/25)
+- PR: [feat(scripts): add manual download helper scripts](https://github.com/kborn/wai_and_watts/pull/26)
 
 ### Phase 11 — Insights & LLM Layer (Grounded Explanations)
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
