@@ -523,6 +523,7 @@ Complete before marking Wai & Watts “portfolio-ready.”
 - [ ] Add schema migration history summary
 - [ ] Add README pointers to fixtures and test strategy
 - [ ] Write a 1-paragraph “Roadmap Philosophy” ection that explains why this sequencing mirrors real platform evolution (PM suggestion)
+- [ ] Decide on a stable Maven/Java setup for tests (JAVA_HOME vs mockito mock-maker) and document the standard workflow
 
 
 #### General TODOs

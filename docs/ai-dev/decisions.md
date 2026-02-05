@@ -677,3 +677,31 @@ Implications:
 - Operator provides a local path to the downloaded workbook/CSV.
 - The system does not implement remote fetchers, storage clients, or background jobs.
 - Any future support for remote storage requires a new explicit architectural decision.
+
+### Introduce Dataset-Specific Transform Step Before Ingestion
+
+Date: 2026-02-05
+
+Decision:
+Introduce a dataset-specific transform step that converts raw publisher artifacts (primarily XLSX) into canonical contract CSV files prior to ingestion. The ingestion pipeline remains contract-CSV-only.
+
+Rationale:
+- Real publisher exports are not contract-shaped and contain layout artifacts (titles, notes, multi-table sheets, header drift).
+- Preserves the contract-first ingestion architecture without expanding parser scope or introducing dual-schema parsing.
+- Ensures live ingestion remains reproducible, testable, and deterministic.
+- Eliminates manual spreadsheet editing from the operator workflow.
+- Keeps ingestion lifecycle, lineage tracking, and hashing strategy unchanged.
+
+Implications:
+- New pipeline boundary is:
+  Raw Publisher Artifact (XLSX)
+  → Dataset-Specific Transformer
+  → Contract CSV
+  → Existing Ingestion Pipeline
+
+- Transformers are dataset-specific implementations (not metadata-driven or generic framework).
+- Transformers must output contract CSV files matching fixture schema exactly (headers, order, types).
+- Parsers remain contract-only and do not accept raw publisher formats.
+- Dataset release hashing continues to operate on contract CSV bytes.
+- Transform step is implemented as an explicit CLI/script step; optional wrapper commands may orchestrate transform + ingest but must not introduce new ingestion logic.
+- Raw CSV export may be supported as a secondary input mode but is not considered canonical input.

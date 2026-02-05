@@ -10,14 +10,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser {
-
-    private static final Set<String> KNOWN = Set.of("HYDRO", "GEOTHERMAL", "WIND", "SOLAR", "GAS", "COAL", "OTHER");
 
     @Override
     public List<MbieGenerationAnnualParsedRecord> parse(InputStream input) throws IOException {
@@ -40,9 +37,9 @@ public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser
                 String raw = getRequired(parts, headerIndex, "fuel_type_raw", lineNo);
                 String norm = getOptional(parts, headerIndex, "fuel_type_norm");
                 if (norm.isEmpty()) {
-                    norm = normalizeFuel(raw);
+                    norm = MbieFuelNormalizer.normalizeFuel(raw);
                 }
-                norm = mapToKnown(norm);
+                norm = MbieFuelNormalizer.mapToKnown(norm);
                 BigDecimal gwh = new BigDecimal(getRequired(parts, headerIndex, "generation_gwh", lineNo));
                 result.add(new MbieGenerationAnnualParsedRecord(year, raw, norm, gwh));
             }
@@ -121,34 +118,6 @@ public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser
             return value.substring(1);
         }
         return value;
-    }
-
-    static String normalizeFuel(String raw) {
-        if (raw == null) return "OTHER";
-        String s = raw.trim();
-        // Normalize hyphen variations: replace any non-alphanumeric with space, then collapse
-        s = s.replace('\u2011', '-') // non-breaking hyphen
-             .replace('\u2013', '-') // en dash
-             .replace('\u2014', '-') // em dash
-             .replace('-', ' ')
-             .replace('/', ' ');
-        // collapse whitespace
-        s = s.replaceAll("\\s+", " ").trim().toUpperCase();
-        // common synonyms
-        if (s.contains("GEO")) return "GEOTHERMAL";
-        if (s.contains("SOLAR")) return "SOLAR";
-        if (s.contains("WIND")) return "WIND";
-        if (s.contains("HYDRO")) return "HYDRO";
-        if (s.contains("GAS")) return "GAS";
-        if (s.contains("COAL")) return "COAL";
-        return "OTHER";
-    }
-
-    static String mapToKnown(String token) {
-        String t = token == null ? "" : token.trim().toUpperCase();
-        if (KNOWN.contains(t)) return t;
-        // try normalize
-        return normalizeFuel(token);
     }
 
     private static final List<String> REQUIRED_COLUMNS = List.of(
