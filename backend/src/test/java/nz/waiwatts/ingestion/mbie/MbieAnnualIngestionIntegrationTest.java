@@ -5,24 +5,33 @@ import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.datasets.ExpectedFormat;
 import nz.waiwatts.domain.datasets.Publisher;
 import nz.waiwatts.domain.datasets.ReleaseStatus;
+import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class MbieAnnualIngestionIntegrationTest {
+
+    @TempDir
+    Path tempDir;
 
     private static final String SOURCE_CODE = "mbie.generation.annual";
     private static final String FIXTURE_PATH = "fixtures/mbie/generation/annual/mbie_generation_annual_fixture_phase6.csv";
@@ -72,5 +81,124 @@ class MbieAnnualIngestionIntegrationTest {
         assertThat(rel2).isEqualTo(rel1);
         assertThat(releaseRepository.count()).isEqualTo(1);
         assertThat(recordRepository.count()).isEqualTo(176);
+    }
+
+    @Test
+    void ingestFile_whenNewFile_createsReleaseAndRecords() throws IOException {
+        // Arrange
+        Path tempFile = createTempMbieFile();
+        String filePath = tempFile.toString();
+        LocalDate publishedDate = LocalDate.of(2025, 1, 15);
+        String releaseLabel = "Test File Integration Release";
+
+        long initialReleaseCount = releaseRepository.count();
+        long initialRecordCount = recordRepository.count();
+
+        // Act
+        UUID releaseId = mbieIngestion.ingestFile(SOURCE_CODE, filePath, publishedDate, releaseLabel);
+
+        // Assert
+        assertThat(releaseId).isNotNull();
+        assertThat(releaseRepository.count()).isEqualTo(initialReleaseCount + 1);
+        assertThat(recordRepository.count()).isEqualTo(initialRecordCount + 2); // 2 rows in test file
+
+        // Verify release was created correctly
+        DatasetRelease release = releaseRepository.findById(releaseId).orElseThrow();
+        assertThat(release.getPublishedDate()).isEqualTo(publishedDate);
+        assertThat(release.getReleaseLabel()).isEqualTo(releaseLabel);
+        assertThat(release.getStatus()).isEqualTo(ReleaseStatus.IMPORTED);
+        assertThat(release.getContentHash()).isNotEmpty();
+        assertThat(release.getRetrievedAt()).isNotNull();
+        assertThat(release.getImportedAt()).isNotNull();
+
+        // Verify domain records were created and linked
+        List<MbieGenerationAnnualRecord> records = recordRepository.findByDatasetReleaseId(releaseId);
+        assertThat(records).hasSize(2);
+        
+        MbieGenerationAnnualRecord record1 = records.getFirst();
+        assertThat(record1.getDatasetRelease().getId()).isEqualTo(releaseId);
+        assertThat(record1.getPeriodYear()).isEqualTo(2022);
+        assertThat(record1.getFuelTypeRaw()).isEqualTo("Hydro");
+        assertThat(record1.getFuelTypeNorm()).isEqualTo("HYDRO");
+        assertThat(record1.getGenerationGwh().intValue()).isEqualTo(26071);
+
+        MbieGenerationAnnualRecord record2 = records.get(1);
+        assertThat(record2.getDatasetRelease().getId()).isEqualTo(releaseId);
+        assertThat(record2.getPeriodYear()).isEqualTo(2022);
+        assertThat(record2.getFuelTypeRaw()).isEqualTo("Geothermal");
+        assertThat(record2.getFuelTypeNorm()).isEqualTo("GEOTHERMAL");
+        assertThat(record2.getGenerationGwh().intValue()).isEqualTo(7984);
+
+        // Cleanup
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void ingestFile_whenSameFileIngestedAgain_isIdempotent() throws IOException {
+        // Arrange
+        Path tempFile = createTempMbieFile();
+        String filePath = tempFile.toString();
+        LocalDate publishedDate = LocalDate.of(2025, 1, 15);
+        String releaseLabel = "Test Idempotent File Release";
+
+        long initialReleaseCount = releaseRepository.count();
+        long initialRecordCount = recordRepository.count();
+
+        // Act - ingest same file twice
+        UUID releaseId1 = mbieIngestion.ingestFile(SOURCE_CODE, filePath, publishedDate, releaseLabel);
+        UUID releaseId2 = mbieIngestion.ingestFile(SOURCE_CODE, filePath, publishedDate, releaseLabel);
+
+        // Assert
+        assertThat(releaseId2).isEqualTo(releaseId1); // Same release ID returned
+        assertThat(releaseRepository.count()).isEqualTo(initialReleaseCount + 1); // Only one new release
+        assertThat(recordRepository.count()).isEqualTo(initialRecordCount + 2); // Only one set of records
+
+        // Cleanup
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void ingestFile_whenFileDoesNotExist_throwsException() {
+        // Arrange
+        String nonExistentPath = "/path/to/nonexistent/file.csv";
+        LocalDate publishedDate = LocalDate.of(2025, 1, 15);
+        String releaseLabel = "Test Non-existent File";
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> mbieIngestion.ingestFile(SOURCE_CODE, nonExistentPath, publishedDate, releaseLabel)
+        );
+        assertThat(exception.getMessage()).contains("File does not exist");
+    }
+
+    @Test
+    void ingestFile_whenDatasetSourceNotFound_throwsException() throws IOException {
+        // Arrange
+        String invalidDatasetSourceCode = "invalid.dataset.code";
+        Path tempFile = createTempMbieFile();
+        String filePath = tempFile.toString();
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> mbieIngestion.ingestFile(invalidDatasetSourceCode, filePath, null, null)
+        );
+        assertThat(exception.getMessage()).contains("DatasetSource not found");
+
+        // Cleanup
+        Files.deleteIfExists(tempFile);
+    }
+
+    private Path createTempMbieFile() throws IOException {
+        String content = """
+            period_year,fuel_type_raw,fuel_type_norm,generation_gwh
+            2022,Hydro,HYDRO,26071
+            2022,Geothermal,GEOTHERMAL,7984
+            """;
+        
+        Path tempFile = tempDir.resolve("mbie-test-" + UUID.randomUUID() + ".csv");
+        Files.writeString(tempFile, content);
+        return tempFile;
     }
 }
