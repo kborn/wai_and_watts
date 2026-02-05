@@ -629,6 +629,22 @@ Implications:
 - New dataset phases must include fixture generation before live ingestion is implemented.
 - Live ingestion is considered an operational extension, not a development dependency.
 
+### Phase 10 — Local File Ingestion Foundation
+Date: 2026-02-04
+
+Decision:
+Extend all ingestion classes with file ingestion capabilities while maintaining existing fixture functionality and lifecycle discipline.
+
+Rationale:
+Live ingestion must be an operational extension of the existing ingestion pipeline, not a new architectural layer. By adding `ingestFile()` methods to all ingestion classes (MBIE Annual, MBIE Quarterly, LAWA State, LAWA Trend), operators can ingest real publisher files using the same provenance tracking, content hashing, and domain persistence patterns as fixture ingestion.
+
+Implications:
+- All dataset ingestion classes now support both fixture and file ingestion
+- FileIngestionUtil provides centralized file validation and hashing
+- No changes to lifecycle, parsing, or domain persistence logic
+- Comprehensive test coverage ensures file ingestion works reliably across all datasets
+- Maintains manual, local-filesystem-only approach per Phase 10 constraints
+
 ### Phase 10 — Live Ingestion Input Boundary (Local Filesystem Only)
 Date: 2026-02-04
 

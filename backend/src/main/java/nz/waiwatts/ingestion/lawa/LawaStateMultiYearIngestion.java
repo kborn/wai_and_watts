@@ -5,6 +5,7 @@ import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
 import nz.waiwatts.ingestion.core.DatasetIngestionRequest;
 import nz.waiwatts.ingestion.core.DatasetIngestionService;
+import nz.waiwatts.ingestion.core.FileIngestionUtil;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -83,6 +85,77 @@ public class LawaStateMultiYearIngestion {
         UUID releaseId = datasetIngestionService.ingest(req);
 
         // Parse and persist rows linked to the new release
+        List<LawaStateMultiYearParsedRecord> rows = parse(bytes);
+        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
+                .orElseThrow();
+        java.util.ArrayList<LawaStateMultiYearRecord> batch = new java.util.ArrayList<>(rows.size());
+        for (LawaStateMultiYearParsedRecord r : rows) {
+            LawaStateMultiYearRecord e = new LawaStateMultiYearRecord();
+            e.setDatasetRelease(release);
+            e.setLawaSiteId(r.getLawaSiteId());
+            e.setSiteName(r.getSiteName());
+            e.setRegion(r.getRegion());
+            e.setLatitude(r.getLatitude());
+            e.setLongitude(r.getLongitude());
+            e.setIndicatorRaw(r.getIndicatorRaw());
+            e.setIndicatorNorm(r.getIndicatorNorm());
+            e.setUnits(r.getUnits());
+            e.setAttributeBand(r.getAttributeBand());
+            e.setStateNorm(r.getStateNorm());
+            e.setMedian(r.getMedian());
+            e.setP95(r.getP95());
+            e.setRecHealthExceed260Pct(r.getRecHealthExceed260Pct());
+            e.setRecHealthExceed540Pct(r.getRecHealthExceed540Pct());
+            e.setPeriodType(r.getPeriodType());
+            e.setPeriodStartYear(r.getPeriodStartYear());
+            e.setPeriodEndYear(r.getPeriodEndYear());
+            batch.add(e);
+        }
+        if (!batch.isEmpty()) {
+            recordRepository.saveAll(batch);
+        }
+        return releaseId;
+    }
+
+    /**
+     * Ingests LAWA state multi-year data from a local file path. Implements idempotency via (source, content_hash).
+     * Reuses the same pipeline and lifecycle as fixture ingestion.
+     *
+     * @param datasetSourceCode stable code of the DatasetSource (e.g., "lawa.water_quality.state.multi_year")
+     * @param filePath          absolute or relative path to the data file
+     * @param publishedDate     optional publication date from the source
+     * @param releaseLabel      optional label (e.g., "2025-Q3 workbook")
+     * @return DatasetRelease id
+     * @throws IllegalArgumentException if file does not exist or is not readable
+     */
+    @Transactional
+    public UUID ingestFile(String datasetSourceCode,
+                            String filePath,
+                            LocalDate publishedDate,
+                            String releaseLabel) {
+        // Validate file path first
+        FileIngestionUtil.validateFilePath(filePath);
+        
+        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
+                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
+
+        byte[] bytes = FileIngestionUtil.readFileBytes(filePath);
+        String sha256 = FileIngestionUtil.sha256Hex(bytes);
+
+        Optional<DatasetRelease> existing = datasetReleaseRepository
+                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
+        if (existing.isPresent()) {
+            return existing.get().getId();
+        }
+
+        DatasetIngestionRequest req = new DatasetIngestionRequest();
+        req.setDatasetSourceCode(datasetSourceCode);
+        req.setReleaseLabel(releaseLabel);
+        req.setPublishedDate(publishedDate);
+        req.setSourceUri(Paths.get(filePath).toUri().toString());
+        req.setContentHash(sha256);
+        UUID releaseId = datasetIngestionService.ingest(req);
+
         List<LawaStateMultiYearParsedRecord> rows = parse(bytes);
         DatasetRelease release = datasetReleaseRepository.findById(releaseId)
                 .orElseThrow();

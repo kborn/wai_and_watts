@@ -361,6 +361,10 @@ Definition of Done:
 - [ ] Example real ingestion execution documented in repo
 
 Work Items:
+- [x] Implement local file ingestion foundation
+- [x] Add file ingestion methods to all dataset ingestion classes
+- [x] Add comprehensive file ingestion tests for all datasets
+- [x] Add findByDatasetReleaseId methods to all repositories
 - [ ] Implement MBIE live download script
 - [ ] Implement LAWA live download script
 - [ ] Implement dataset release registration for real files

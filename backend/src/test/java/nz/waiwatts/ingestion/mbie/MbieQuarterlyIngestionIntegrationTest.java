@@ -5,24 +5,33 @@ import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.datasets.ExpectedFormat;
 import nz.waiwatts.domain.datasets.Publisher;
 import nz.waiwatts.domain.datasets.ReleaseStatus;
+import nz.waiwatts.domain.mbie.MbieGenerationQuarterlyRecord;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationQuarterlyRecordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class MbieQuarterlyIngestionIntegrationTest {
+
+    @TempDir
+    Path tempDir;
 
     private static final String SOURCE_CODE = "mbie.generation.quarterly";
     private static final String FIXTURE_PATH = "fixtures/mbie/generation/quarterly/mbie_generation_quarterly_fixture_phase7.csv";
@@ -70,5 +79,83 @@ class MbieQuarterlyIngestionIntegrationTest {
         assertThat(rel2).isEqualTo(rel1);
         assertThat(releaseRepository.count()).isEqualTo(1);
         assertThat(recordRepository.count()).isEqualTo(108);
+    }
+
+    @Test
+    void ingestFile_whenNewFile_createsReleaseAndRecords() throws IOException {
+        // Arrange
+        Path tempFile = createTempMbieQuarterlyFile();
+        String filePath = tempFile.toString();
+        LocalDate publishedDate = LocalDate.of(2025, 1, 15);
+        String releaseLabel = "Test Quarterly File Integration Release";
+
+        long initialReleaseCount = releaseRepository.count();
+        long initialRecordCount = recordRepository.count();
+
+        // Act
+        UUID releaseId = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, filePath, publishedDate, releaseLabel);
+
+        // Assert
+        assertThat(releaseId).isNotNull();
+        assertThat(releaseRepository.count()).isEqualTo(initialReleaseCount + 1);
+        assertThat(recordRepository.count()).isEqualTo(initialRecordCount + 2); // 2 rows in test file
+
+        // Verify release was created correctly
+        DatasetRelease release = releaseRepository.findById(releaseId).orElseThrow();
+        assertThat(release.getPublishedDate()).isEqualTo(publishedDate);
+        assertThat(release.getReleaseLabel()).isEqualTo(releaseLabel);
+        assertThat(release.getStatus()).isEqualTo(ReleaseStatus.IMPORTED);
+        assertThat(release.getContentHash()).isNotEmpty();
+        assertThat(release.getRetrievedAt()).isNotNull();
+        assertThat(release.getImportedAt()).isNotNull();
+
+        // Verify domain records were created and linked correctly
+        List<MbieGenerationQuarterlyRecord> quarterlyRecords = recordRepository.findByDatasetReleaseId(releaseId);
+        assertThat(quarterlyRecords).hasSize(2); // 2 rows in test file
+
+        // Verify specific domain record values
+        MbieGenerationQuarterlyRecord record1 = quarterlyRecords.getFirst();
+        assertThat(record1.getPeriodYear()).isEqualTo(2022);
+        assertThat(record1.getPeriodQuarter()).isEqualTo(3);
+        assertThat(record1.getFuelTypeRaw()).isEqualTo("Hydro");
+        assertThat(record1.getFuelTypeNorm()).isEqualTo("HYDRO");
+        assertThat(record1.getGenerationGwh().intValue()).isEqualTo(6500);
+
+        MbieGenerationQuarterlyRecord record2 = quarterlyRecords.get(1);
+        assertThat(record2.getPeriodYear()).isEqualTo(2022);
+        assertThat(record2.getPeriodQuarter()).isEqualTo(3);
+        assertThat(record2.getFuelTypeRaw()).isEqualTo("Geothermal");
+        assertThat(record2.getFuelTypeNorm()).isEqualTo("GEOTHERMAL");
+        assertThat(record2.getGenerationGwh().intValue()).isEqualTo(2100);
+
+        // Cleanup
+        Files.deleteIfExists(tempFile);
+    }
+
+    @Test
+    void ingestFile_whenFileDoesNotExist_throwsException() {
+        // Arrange
+        String nonExistentPath = "/path/to/nonexistent/file.csv";
+        LocalDate publishedDate = LocalDate.of(2025, 1, 15);
+        String releaseLabel = "Test Non-existent Quarterly File";
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, nonExistentPath, publishedDate, releaseLabel)
+        );
+        assertThat(exception.getMessage()).contains("File does not exist");
+    }
+
+    private Path createTempMbieQuarterlyFile() throws IOException {
+        String content = """
+            period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh
+            2022,3,Hydro,HYDRO,6500
+            2022,3,Geothermal,GEOTHERMAL,2100
+            """;
+        
+        Path tempFile = tempDir.resolve("mbie-quarterly-test-" + UUID.randomUUID() + ".csv");
+        Files.writeString(tempFile, content);
+        return tempFile;
     }
 }

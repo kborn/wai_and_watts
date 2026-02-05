@@ -5,6 +5,7 @@ import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
 import nz.waiwatts.ingestion.core.DatasetIngestionRequest;
 import nz.waiwatts.ingestion.core.DatasetIngestionService;
+import nz.waiwatts.ingestion.core.FileIngestionUtil;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -54,6 +56,81 @@ public class LawaTrendMultiYearIngestion {
         byte[] bytes = readAllBytes(classpathFixture);
         String sha256 = sha256Hex(bytes);
 
+        // If release already exists for (source, hash), return it without duplicating rows
+        Optional<DatasetRelease> existing = datasetReleaseRepository
+                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
+        if (existing.isPresent()) {
+            // Duplicate content hash detected for this source; short-circuit without persisting rows
+            // (idempotent no-op)
+            return existing.get().getId();
+        }
+
+        // Create/import release via lifecycle service
+        DatasetIngestionRequest req = new DatasetIngestionRequest();
+        req.setDatasetSourceCode(datasetSourceCode);
+        req.setReleaseLabel(releaseLabel);
+        req.setPublishedDate(publishedDate);
+        req.setSourceUri(null);
+        req.setContentHash(sha256);
+        UUID releaseId = datasetIngestionService.ingest(req);
+
+        // Parse and persist rows linked to the new release
+        List<LawaTrendMultiYearParsedRecord> rows = parse(bytes);
+        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
+                .orElseThrow();
+        java.util.ArrayList<LawaTrendMultiYearRecord> batch = new java.util.ArrayList<>(rows.size());
+        for (LawaTrendMultiYearParsedRecord r : rows) {
+            LawaTrendMultiYearRecord e = new LawaTrendMultiYearRecord();
+            e.setDatasetRelease(release);
+            e.setLawaSiteId(r.getLawaSiteId());
+            e.setSiteName(r.getSiteName());
+            e.setRegion(r.getRegion());
+            e.setLatitude(r.getLatitude());
+            e.setLongitude(r.getLongitude());
+            e.setIndicatorRaw(r.getIndicatorRaw());
+            e.setIndicatorNorm(r.getIndicatorNorm());
+            e.setUnits(r.getUnits());
+            e.setTrendRaw(r.getTrendRaw());
+            e.setTrendNorm(r.getTrendNorm());
+            e.setTrendScore(r.getTrendScore());
+            e.setTrendPeriodYears(r.getTrendPeriodYears());
+            e.setTrendDataFrequency(r.getTrendDataFrequency());
+            e.setPeriodType(r.getPeriodType());
+            e.setPeriodStartYear(r.getPeriodStartYear());
+            e.setPeriodEndYear(r.getPeriodEndYear());
+            batch.add(e);
+        }
+        if (!batch.isEmpty()) {
+            recordRepository.saveAll(batch);
+        }
+        return releaseId;
+    }
+
+    /**
+     * Ingests LAWA trend multi-year data from a local file path. Implements idempotency via (source, content_hash).
+     * Reuses the same pipeline and lifecycle as fixture ingestion.
+     *
+     * @param datasetSourceCode stable code of the DatasetSource (e.g., "lawa.water_quality.trend.multi_year")
+     * @param filePath          absolute or relative path to the data file
+     * @param publishedDate     optional publication date from the source
+     * @param releaseLabel      optional label (e.g., "2025-Q3 workbook")
+     * @return DatasetRelease id
+     * @throws IllegalArgumentException if file does not exist or is not readable
+     */
+    @Transactional
+    public UUID ingestFile(String datasetSourceCode,
+                            String filePath,
+                            LocalDate publishedDate,
+                            String releaseLabel) {
+        // Validate file path first
+        FileIngestionUtil.validateFilePath(filePath);
+        
+        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
+                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
+
+        byte[] bytes = FileIngestionUtil.readFileBytes(filePath);
+        String sha256 = FileIngestionUtil.sha256Hex(bytes);
+
         Optional<DatasetRelease> existing = datasetReleaseRepository
                 .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
         if (existing.isPresent()) {
@@ -64,7 +141,7 @@ public class LawaTrendMultiYearIngestion {
         req.setDatasetSourceCode(datasetSourceCode);
         req.setReleaseLabel(releaseLabel);
         req.setPublishedDate(publishedDate);
-        req.setSourceUri(null);
+        req.setSourceUri(Paths.get(filePath).toUri().toString());
         req.setContentHash(sha256);
         UUID releaseId = datasetIngestionService.ingest(req);
 

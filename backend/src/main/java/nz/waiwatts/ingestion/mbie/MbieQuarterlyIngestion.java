@@ -4,6 +4,7 @@ import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.ingestion.core.DatasetIngestionRequest;
 import nz.waiwatts.ingestion.core.DatasetIngestionService;
+import nz.waiwatts.ingestion.core.FileIngestionUtil;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationQuarterlyRecordRepository;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -66,6 +68,62 @@ public class MbieQuarterlyIngestion {
         req.setReleaseLabel(releaseLabel);
         req.setPublishedDate(publishedDate);
         req.setSourceUri(null);
+        req.setContentHash(sha256);
+        UUID releaseId = datasetIngestionService.ingest(req);
+
+        List<MbieGenerationQuarterlyParsedRecord> rows = parse(bytes);
+        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
+                .orElseThrow();
+        for (MbieGenerationQuarterlyParsedRecord r : rows) {
+            MbieGenerationQuarterlyRecord e = new MbieGenerationQuarterlyRecord();
+            e.setDatasetRelease(release);
+            e.setPeriodYear(r.getPeriodYear());
+            e.setPeriodQuarter(r.getPeriodQuarter());
+            e.setFuelTypeRaw(r.getFuelTypeRaw());
+            e.setFuelTypeNorm(r.getFuelTypeNorm());
+            BigDecimal gwh = r.getGenerationGwh();
+            e.setGenerationGwh(gwh);
+            recordRepository.save(e);
+        }
+        return releaseId;
+    }
+
+    /**
+     * Ingests MBIE quarterly generation data from a local file path. Implements idempotency via (source, content_hash).
+     * Reuses the same pipeline and lifecycle as fixture ingestion.
+     *
+     * @param datasetSourceCode stable code of the DatasetSource (e.g., "mbie.generation.quarterly")
+     * @param filePath          absolute or relative path to the data file
+     * @param publishedDate     optional publication date from the source
+     * @param releaseLabel      optional label (e.g., "2025-Q3 workbook")
+     * @return DatasetRelease id
+     * @throws IllegalArgumentException if file does not exist or is not readable
+     */
+    @Transactional
+    public UUID ingestFile(String datasetSourceCode,
+                            String filePath,
+                            LocalDate publishedDate,
+                            String releaseLabel) {
+        // Validate file path first
+        FileIngestionUtil.validateFilePath(filePath);
+        
+        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
+                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
+
+        byte[] bytes = FileIngestionUtil.readFileBytes(filePath);
+        String sha256 = FileIngestionUtil.sha256Hex(bytes);
+
+        Optional<DatasetRelease> existing = datasetReleaseRepository
+                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
+        if (existing.isPresent()) {
+            return existing.get().getId();
+        }
+
+        DatasetIngestionRequest req = new DatasetIngestionRequest();
+        req.setDatasetSourceCode(datasetSourceCode);
+        req.setReleaseLabel(releaseLabel);
+        req.setPublishedDate(publishedDate);
+        req.setSourceUri(Paths.get(filePath).toUri().toString());
         req.setContentHash(sha256);
         UUID releaseId = datasetIngestionService.ingest(req);
 
