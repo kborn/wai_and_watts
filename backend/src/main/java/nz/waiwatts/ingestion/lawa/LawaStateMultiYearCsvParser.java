@@ -23,37 +23,32 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
             // FIXME - is there a better way to parse csv in java?
             String line = reader.readLine(); // header
             if (line == null) return result;
-            // strict header validation per design/007
-            String header = stripBom(line);
-            if (!EXPECTED_HEADER.equals(header)) {
-                throw new IOException("Invalid CSV header. Expected: '" + EXPECTED_HEADER + "' but was: '" + header + "'");
-            }
-            // expect header with 17 columns as per design/007
+            Map<String, Integer> headerIndex = parseHeader(line, REQUIRED_COLUMNS);
             int lineNo = 1;
             while ((line = reader.readLine()) != null) {
                 lineNo++;
                 if (line.isBlank()) continue;
                 String[] parts = splitCsv(line);
-                if (parts.length < 17) {
-                    throw new IOException("Invalid CSV at line " + lineNo + ": expected 17 columns, got " + parts.length);
+                if (isRowBlank(parts)) {
+                    continue;
                 }
-                String lawaSiteId = parts[0].trim();
-                String siteName = parts[1].trim();
-                String region = parts[2].trim();
-                BigDecimal latitude = parseBigDecimal(parts[3]);
-                BigDecimal longitude = parseBigDecimal(parts[4]);
-                String indicatorRaw = parts[5].trim();
-                String indicatorNorm = normalizeIndicator(indicatorRaw, parts[6]);
-                String units = parts[7].trim();
-                String attributeBand = parts[8].trim();
-                String stateNorm = normalizeState(attributeBand, parts[9]);
-                BigDecimal median = parseBigDecimal(parts[10]);
-                BigDecimal p95 = parseBigDecimal(parts[11]);
-                BigDecimal recHealth260 = parseBigDecimal(parts[12]);
-                BigDecimal recHealth540 = parseBigDecimal(parts[13]);
-                String periodType = parts[14].trim();
-                int periodStartYear = Integer.parseInt(parts[15].trim());
-                int periodEndYear = Integer.parseInt(parts[16].trim());
+                String lawaSiteId = getRequired(parts, headerIndex, "lawa_site_id", lineNo);
+                String siteName = getRequired(parts, headerIndex, "site_name", lineNo);
+                String region = getRequired(parts, headerIndex, "region", lineNo);
+                BigDecimal latitude = parseBigDecimal(getOptional(parts, headerIndex, "latitude"));
+                BigDecimal longitude = parseBigDecimal(getOptional(parts, headerIndex, "longitude"));
+                String indicatorRaw = getRequired(parts, headerIndex, "indicator_raw", lineNo);
+                String indicatorNorm = normalizeIndicator(indicatorRaw, getOptional(parts, headerIndex, "indicator_norm"));
+                String units = getRequired(parts, headerIndex, "units", lineNo);
+                String attributeBand = getRequired(parts, headerIndex, "attribute_band", lineNo);
+                String stateNorm = normalizeState(attributeBand, getOptional(parts, headerIndex, "state_norm"));
+                BigDecimal median = parseBigDecimal(getOptional(parts, headerIndex, "median"));
+                BigDecimal p95 = parseBigDecimal(getOptional(parts, headerIndex, "p95"));
+                BigDecimal recHealth260 = parseBigDecimal(getOptional(parts, headerIndex, "rec_health_exceed_260_pct"));
+                BigDecimal recHealth540 = parseBigDecimal(getOptional(parts, headerIndex, "rec_health_exceed_540_pct"));
+                String periodType = getRequired(parts, headerIndex, "period_type", lineNo);
+                int periodStartYear = Integer.parseInt(getRequired(parts, headerIndex, "period_start_year", lineNo));
+                int periodEndYear = Integer.parseInt(getRequired(parts, headerIndex, "period_end_year", lineNo));
 
                 result.add(new LawaStateMultiYearParsedRecord(lawaSiteId, siteName, region, latitude, longitude, indicatorRaw, indicatorNorm, units, attributeBand, stateNorm, median, p95, recHealth260, recHealth540, periodType, periodStartYear, periodEndYear));
             }
@@ -67,6 +62,60 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
             parts[i] = parts[i].trim();
         }
         return parts;
+    }
+
+    private static Map<String, Integer> parseHeader(String line, List<String> required) throws IOException {
+        String[] headerParts = splitCsv(line);
+        if (headerParts.length == 0) {
+            throw new IOException("Missing CSV header");
+        }
+        headerParts[0] = stripBom(headerParts[0]);
+        Map<String, Integer> index = new HashMap<>();
+        for (int i = 0; i < headerParts.length; i++) {
+            String key = normalizeHeader(headerParts[i]);
+            if (!key.isEmpty() && !index.containsKey(key)) {
+                index.put(key, i);
+            }
+        }
+        List<String> missing = new ArrayList<>();
+        for (String col : required) {
+            if (!index.containsKey(col)) {
+                missing.add(col);
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw new IOException("Missing required columns: " + String.join(", ", missing));
+        }
+        return index;
+    }
+
+    private static String getRequired(String[] parts, Map<String, Integer> index, String column, int lineNo) throws IOException {
+        Integer idx = index.get(column);
+        if (idx == null || idx >= parts.length) {
+            throw new IOException("Invalid CSV at line " + lineNo + ": missing column '" + column + "'");
+        }
+        return parts[idx].trim();
+    }
+
+    private static String getOptional(String[] parts, Map<String, Integer> index, String column) {
+        Integer idx = index.get(column);
+        if (idx == null || idx >= parts.length) {
+            return "";
+        }
+        return parts[idx] == null ? "" : parts[idx].trim();
+    }
+
+    private static boolean isRowBlank(String[] parts) {
+        for (String part : parts) {
+            if (part != null && !part.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String normalizeHeader(String header) {
+        return header == null ? "" : header.trim().toLowerCase();
     }
 
     private static String normalizeIndicator(String indicatorRaw, String indicatorNormFromFile) {
@@ -116,9 +165,6 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
 
     private static final Map<String, String> INDICATOR_MAP = createIndicatorMap();
 
-    private static final String EXPECTED_HEADER =
-            "lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,attribute_band,state_norm,median,p95,rec_health_exceed_260_pct,rec_health_exceed_540_pct,period_type,period_start_year,period_end_year";
-
     private static String stripBom(String s) {
         if (s != null && !s.isEmpty() && s.charAt(0) == '\uFEFF') {
             return s.substring(1);
@@ -139,4 +185,23 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
         return m;
     }
 
+    private static final List<String> REQUIRED_COLUMNS = List.of(
+            "lawa_site_id",
+            "site_name",
+            "region",
+            "latitude",
+            "longitude",
+            "indicator_raw",
+            "indicator_norm",
+            "units",
+            "attribute_band",
+            "state_norm",
+            "median",
+            "p95",
+            "rec_health_exceed_260_pct",
+            "rec_health_exceed_540_pct",
+            "period_type",
+            "period_start_year",
+            "period_end_year"
+    );
 }
