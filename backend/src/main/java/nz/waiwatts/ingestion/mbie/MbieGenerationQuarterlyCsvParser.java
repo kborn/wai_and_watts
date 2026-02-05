@@ -24,7 +24,9 @@ public class MbieGenerationQuarterlyCsvParser implements MbieGenerationQuarterly
         List<MbieGenerationQuarterlyParsedRecord> result = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line = reader.readLine(); // header
-            if (line == null) return result;
+            if (line == null) {
+                throw new IOException("CSV file is empty");
+            }
             Map<String, Integer> headerIndex = parseHeader(line, REQUIRED_COLUMNS);
             int lineNo = 1;
             while ((line = reader.readLine()) != null) {
@@ -48,6 +50,9 @@ public class MbieGenerationQuarterlyCsvParser implements MbieGenerationQuarterly
                 BigDecimal gwh = new BigDecimal(getRequired(parts, headerIndex, "generation_gwh", lineNo));
                 result.add(new MbieGenerationQuarterlyParsedRecord(year, quarter, raw, norm, gwh));
             }
+        }
+        if (result.isEmpty()) {
+            throw new IOException("CSV contains header but no data rows");
         }
         return result;
     }

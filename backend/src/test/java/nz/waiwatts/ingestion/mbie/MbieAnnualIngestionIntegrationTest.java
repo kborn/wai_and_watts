@@ -158,6 +158,85 @@ class MbieAnnualIngestionIntegrationTest {
     }
 
     @Test
+    void ingestFile_whenSameContentDifferentFilename_isIdempotent() throws IOException {
+        String content = mbieAnnualContent();
+        Path fileA = createTempMbieFileWithContent(content, "mbie-annual-a");
+        Path fileB = createTempMbieFileWithContent(content, "mbie-annual-b");
+
+        UUID releaseId1 = mbieIngestion.ingestFile(SOURCE_CODE, fileA.toString(), LocalDate.of(2025, 1, 15), "Release A");
+        UUID releaseId2 = mbieIngestion.ingestFile(SOURCE_CODE, fileB.toString(), LocalDate.of(2025, 1, 15), "Release A");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenSameContentWithBom_isIdempotent() throws IOException {
+        String content = "\uFEFF" + mbieAnnualContent();
+        Path tempFile = createTempMbieFileWithContent(content, "mbie-annual-bom");
+
+        UUID releaseId1 = mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "BOM Release");
+        UUID releaseId2 = mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "BOM Release");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenTrailingBlankRows_isIdempotent() throws IOException {
+        String content = mbieAnnualContent() + "\n\n   \n";
+        Path tempFile = createTempMbieFileWithContent(content, "mbie-annual-blank");
+
+        UUID releaseId1 = mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "Blank Rows");
+        UUID releaseId2 = mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "Blank Rows");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenHeaderOnly_failsValidation() throws IOException {
+        String content = "period_year,fuel_type_raw,fuel_type_norm,generation_gwh\n";
+        Path tempFile = createTempMbieFileWithContent(content, "mbie-annual-header-only");
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, null)
+        );
+        assertThat(exception.getMessage()).contains("Failed to parse MBIE CSV");
+    }
+
+    @Test
+    void ingestFile_whenTruncatedRow_failsValidation() throws IOException {
+        String content = """
+            period_year,fuel_type_raw,fuel_type_norm,generation_gwh
+            2022,Hydro
+            """;
+        Path tempFile = createTempMbieFileWithContent(content, "mbie-annual-truncated");
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, null)
+        );
+        assertThat(exception.getMessage()).contains("Failed to parse MBIE CSV");
+    }
+
+    @Test
+    void ingestFile_whenMetadataDiffersForSameContent_reusesRelease() throws IOException {
+        Path tempFile = createTempMbieFile();
+
+        UUID releaseId1 = mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), LocalDate.of(2025, 1, 15), "Release A");
+        UUID releaseId2 = mbieIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), LocalDate.of(2026, 2, 1), "Release B");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
     void ingestFile_whenFileDoesNotExist_throwsException() {
         // Arrange
         String nonExistentPath = "/path/to/nonexistent/file.csv";
@@ -191,14 +270,20 @@ class MbieAnnualIngestionIntegrationTest {
     }
 
     private Path createTempMbieFile() throws IOException {
-        String content = """
+        return createTempMbieFileWithContent(mbieAnnualContent(), "mbie-test");
+    }
+
+    private Path createTempMbieFileWithContent(String content, String prefix) throws IOException {
+        Path tempFile = tempDir.resolve(prefix + "-" + UUID.randomUUID() + ".csv");
+        Files.writeString(tempFile, content);
+        return tempFile;
+    }
+
+    private String mbieAnnualContent() {
+        return """
             period_year,fuel_type_raw,fuel_type_norm,generation_gwh
             2022,Hydro,HYDRO,26071
             2022,Geothermal,GEOTHERMAL,7984
             """;
-        
-        Path tempFile = tempDir.resolve("mbie-test-" + UUID.randomUUID() + ".csv");
-        Files.writeString(tempFile, content);
-        return tempFile;
     }
 }

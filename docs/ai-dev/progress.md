@@ -392,6 +392,7 @@ Links:
 - PR: [feat(scripts): add manual download helper scripts](https://github.com/kborn/wai_and_watts/pull/26)
 - PR: [feat(cli): add manual ingestion command + wrapper script + tests](https://github.com/kborn/wai_and_watts/pull/27)
 - PR: [feat(ingestion/parsers): harden CSV parsing for required headers, BOM, blank rows, and column order](https://github.com/kborn/wai_and_watts/pull/28)
+- PR: [feat(ingestion): harden real-file idempotency + validation with header-only/truncated checks](https://github.com/kborn/wai_and_watts/pull/29)
 
 ### Phase 11 — Insights & LLM Layer (Grounded Explanations)
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
