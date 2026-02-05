@@ -645,6 +645,23 @@ Implications:
 - Comprehensive test coverage ensures file ingestion works reliably across all datasets
 - Maintains manual, local-filesystem-only approach per Phase 10 constraints
 
+### Phase 10 — Manual Download Helper Scripts
+Date: 2026-02-05
+
+Decision:
+Create manual download helper scripts that enable operators to fetch real publisher workbooks without introducing automation or discovery mechanisms.
+
+Rationale:
+Phase 10 requires manual-only, reproducible ingestion workflows. Download scripts provide simple, explicit tools for operators to fetch source files while avoiding complexity of web scraping, API integration, or background polling. Scripts use fixed URLs by default but accept custom URLs as needed.
+
+Implications:
+- Scripts follow consistent pattern: help text, validation, directory creation, download verification
+- MBIE and LAWA scripts save to timestamped directories: ./downloads/<publisher>/<YYYY-MM-DD>/
+- Comprehensive error handling and dependency checking
+- No web scraping or automated discovery (avoids complexity and brittleness)
+- Provides clear next-step guidance for ingestion commands
+- Both scripts are executable and self-documenting via --help flag
+
 ### Phase 10 — Live Ingestion Input Boundary (Local Filesystem Only)
 Date: 2026-02-04
 

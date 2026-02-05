@@ -365,8 +365,8 @@ Work Items:
 - [x] Add file ingestion methods to all dataset ingestion classes
 - [x] Add comprehensive file ingestion tests for all datasets
 - [x] Add findByDatasetReleaseId methods to all repositories
-- [ ] Implement MBIE live download script
-- [ ] Implement LAWA live download script
+- [x] Implement MBIE live download script
+- [x] Implement LAWA live download script
 - [ ] Implement dataset release registration for real files
 - [ ] Validate content hashing + deduplication behavior
 - [ ] Validate parser compatibility with real-world file variation
