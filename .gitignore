@@ -31,3 +31,8 @@ replay_pid*
 
 # Maven
 /backend/target/
+
+/backend/.classpath
+/backend/.project
+/backend/.settings/
+
