@@ -7,7 +7,9 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -23,23 +25,23 @@ public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
             String line = reader.readLine(); // header
             if (line == null) return result;
-            // expect: period_year,fuel_type_raw,fuel_type_norm,generation_gwh
+            Map<String, Integer> headerIndex = parseHeader(line, REQUIRED_COLUMNS);
             int lineNo = 1;
             while ((line = reader.readLine()) != null) {
                 lineNo++;
                 if (line.isBlank()) continue;
                 String[] parts = splitCsv(line);
-                if (parts.length < 4) {
-                    throw new IOException("Invalid CSV at line " + lineNo + ": expected 4 columns, got " + parts.length);
+                if (isRowBlank(parts)) {
+                    continue;
                 }
-                int year = Integer.parseInt(parts[0].trim());
-                String raw = parts[1];
-                String norm = parts[2] != null ? parts[2].trim() : "";
+                int year = Integer.parseInt(getRequired(parts, headerIndex, "period_year", lineNo));
+                String raw = getRequired(parts, headerIndex, "fuel_type_raw", lineNo);
+                String norm = getOptional(parts, headerIndex, "fuel_type_norm");
                 if (norm.isEmpty()) {
                     norm = normalizeFuel(raw);
                 }
                 norm = mapToKnown(norm);
-                BigDecimal gwh = new BigDecimal(parts[3].trim());
+                BigDecimal gwh = new BigDecimal(getRequired(parts, headerIndex, "generation_gwh", lineNo));
                 result.add(new MbieGenerationAnnualParsedRecord(year, raw, norm, gwh));
             }
         }
@@ -53,6 +55,67 @@ public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser
             parts[i] = parts[i].trim();
         }
         return parts;
+    }
+
+    private static Map<String, Integer> parseHeader(String line, List<String> required) throws IOException {
+        String[] headerParts = splitCsv(line);
+        if (headerParts.length == 0) {
+            throw new IOException("Missing CSV header");
+        }
+        headerParts[0] = stripBom(headerParts[0]);
+        Map<String, Integer> index = new HashMap<>();
+        for (int i = 0; i < headerParts.length; i++) {
+            String key = normalizeHeader(headerParts[i]);
+            if (!key.isEmpty() && !index.containsKey(key)) {
+                index.put(key, i);
+            }
+        }
+        List<String> missing = new ArrayList<>();
+        for (String col : required) {
+            if (!index.containsKey(col)) {
+                missing.add(col);
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw new IOException("Missing required columns: " + String.join(", ", missing));
+        }
+        return index;
+    }
+
+    private static String getRequired(String[] parts, Map<String, Integer> index, String column, int lineNo) throws IOException {
+        Integer idx = index.get(column);
+        if (idx == null || idx >= parts.length) {
+            throw new IOException("Invalid CSV at line " + lineNo + ": missing column '" + column + "'");
+        }
+        return parts[idx].trim();
+    }
+
+    private static String getOptional(String[] parts, Map<String, Integer> index, String column) {
+        Integer idx = index.get(column);
+        if (idx == null || idx >= parts.length) {
+            return "";
+        }
+        return parts[idx] == null ? "" : parts[idx].trim();
+    }
+
+    private static boolean isRowBlank(String[] parts) {
+        for (String part : parts) {
+            if (part != null && !part.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String normalizeHeader(String header) {
+        return header == null ? "" : header.trim().toLowerCase();
+    }
+
+    private static String stripBom(String value) {
+        if (value != null && !value.isEmpty() && value.charAt(0) == '\uFEFF') {
+            return value.substring(1);
+        }
+        return value;
     }
 
     static String normalizeFuel(String raw) {
@@ -82,4 +145,11 @@ public class MbieGenerationAnnualCsvParser implements MbieGenerationAnnualParser
         // try normalize
         return normalizeFuel(token);
     }
+
+    private static final List<String> REQUIRED_COLUMNS = List.of(
+            "period_year",
+            "fuel_type_raw",
+            "fuel_type_norm",
+            "generation_gwh"
+    );
 }
