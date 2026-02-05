@@ -133,6 +133,73 @@ class MbieQuarterlyIngestionIntegrationTest {
     }
 
     @Test
+    void ingestFile_whenSameContentDifferentFilename_isIdempotent() throws IOException {
+        String content = mbieQuarterlyContent();
+        Path fileA = createTempMbieQuarterlyFileWithContent(content, "mbie-quarterly-a");
+        Path fileB = createTempMbieQuarterlyFileWithContent(content, "mbie-quarterly-b");
+
+        UUID releaseId1 = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, fileA.toString(), LocalDate.of(2025, 1, 15), "Release A");
+        UUID releaseId2 = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, fileB.toString(), LocalDate.of(2025, 1, 15), "Release A");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenSameContentWithBom_isIdempotent() throws IOException {
+        String content = "\uFEFF" + mbieQuarterlyContent();
+        Path tempFile = createTempMbieQuarterlyFileWithContent(content, "mbie-quarterly-bom");
+
+        UUID releaseId1 = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "BOM Release");
+        UUID releaseId2 = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "BOM Release");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenTrailingBlankRows_isIdempotent() throws IOException {
+        String content = mbieQuarterlyContent() + "\n\n   \n";
+        Path tempFile = createTempMbieQuarterlyFileWithContent(content, "mbie-quarterly-blank");
+
+        UUID releaseId1 = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "Blank Rows");
+        UUID releaseId2 = mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "Blank Rows");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenHeaderOnly_failsValidation() throws IOException {
+        String content = "period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh\n";
+        Path tempFile = createTempMbieQuarterlyFileWithContent(content, "mbie-quarterly-header-only");
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, null)
+        );
+        assertThat(exception.getMessage()).contains("Failed to parse MBIE quarterly CSV");
+    }
+
+    @Test
+    void ingestFile_whenTruncatedRow_failsValidation() throws IOException {
+        String content = """
+            period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh
+            2022,3,Hydro
+            """;
+        Path tempFile = createTempMbieQuarterlyFileWithContent(content, "mbie-quarterly-truncated");
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> mbieQuarterlyIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, null)
+        );
+        assertThat(exception.getMessage()).contains("Failed to parse MBIE quarterly CSV");
+    }
+
+    @Test
     void ingestFile_whenFileDoesNotExist_throwsException() {
         // Arrange
         String nonExistentPath = "/path/to/nonexistent/file.csv";
@@ -148,14 +215,20 @@ class MbieQuarterlyIngestionIntegrationTest {
     }
 
     private Path createTempMbieQuarterlyFile() throws IOException {
-        String content = """
+        return createTempMbieQuarterlyFileWithContent(mbieQuarterlyContent(), "mbie-quarterly-test");
+    }
+
+    private Path createTempMbieQuarterlyFileWithContent(String content, String prefix) throws IOException {
+        Path tempFile = tempDir.resolve(prefix + "-" + UUID.randomUUID() + ".csv");
+        Files.writeString(tempFile, content);
+        return tempFile;
+    }
+
+    private String mbieQuarterlyContent() {
+        return """
             period_year,period_quarter,fuel_type_raw,fuel_type_norm,generation_gwh
             2022,3,Hydro,HYDRO,6500
             2022,3,Geothermal,GEOTHERMAL,2100
             """;
-        
-        Path tempFile = tempDir.resolve("mbie-quarterly-test-" + UUID.randomUUID() + ".csv");
-        Files.writeString(tempFile, content);
-        return tempFile;
     }
 }

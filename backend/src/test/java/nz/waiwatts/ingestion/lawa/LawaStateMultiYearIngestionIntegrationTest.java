@@ -144,6 +144,73 @@ class LawaStateMultiYearIngestionIntegrationTest {
     }
 
     @Test
+    void ingestFile_whenSameContentDifferentFilename_isIdempotent() throws IOException {
+        String content = lawaStateContent();
+        Path fileA = createTempLawaStateFileWithContent(content, "lawa-state-a");
+        Path fileB = createTempLawaStateFileWithContent(content, "lawa-state-b");
+
+        UUID releaseId1 = lawaIngestion.ingestFile(SOURCE_CODE, fileA.toString(), LocalDate.of(2025, 1, 15), "Release A");
+        UUID releaseId2 = lawaIngestion.ingestFile(SOURCE_CODE, fileB.toString(), LocalDate.of(2025, 1, 15), "Release A");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenSameContentWithBom_isIdempotent() throws IOException {
+        String content = "\uFEFF" + lawaStateContent();
+        Path tempFile = createTempLawaStateFileWithContent(content, "lawa-state-bom");
+
+        UUID releaseId1 = lawaIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "BOM Release");
+        UUID releaseId2 = lawaIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "BOM Release");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenTrailingBlankRows_isIdempotent() throws IOException {
+        String content = lawaStateContent() + "\n\n   \n";
+        Path tempFile = createTempLawaStateFileWithContent(content, "lawa-state-blank");
+
+        UUID releaseId1 = lawaIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "Blank Rows");
+        UUID releaseId2 = lawaIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, "Blank Rows");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isEqualTo(2);
+    }
+
+    @Test
+    void ingestFile_whenHeaderOnly_failsValidation() throws IOException {
+        String content = "lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,attribute_band,state_norm,median,p95,rec_health_exceed_260_pct,rec_health_exceed_540_pct,period_type,period_start_year,period_end_year\n";
+        Path tempFile = createTempLawaStateFileWithContent(content, "lawa-state-header-only");
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> lawaIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, null)
+        );
+        assertThat(exception.getMessage()).contains("Failed to parse LAWA state multi-year CSV");
+    }
+
+    @Test
+    void ingestFile_whenTruncatedRow_failsValidation() throws IOException {
+        String content = """
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,attribute_band,state_norm,median,p95,rec_health_exceed_260_pct,rec_health_exceed_540_pct,period_type,period_start_year,period_end_year
+            R001,Kaituna River,Hawke's Bay,-40.95,175.55,E.coli
+            """;
+        Path tempFile = createTempLawaStateFileWithContent(content, "lawa-state-truncated");
+
+        RuntimeException exception = assertThrows(
+                RuntimeException.class,
+                () -> lawaIngestion.ingestFile(SOURCE_CODE, tempFile.toString(), null, null)
+        );
+        assertThat(exception.getMessage()).contains("Failed to parse LAWA state multi-year CSV");
+    }
+
+    @Test
     void ingestFile_whenFileDoesNotExist_throwsException() {
         // Arrange
         String nonExistentPath = "/path/to/nonexistent/file.csv";
@@ -159,14 +226,20 @@ class LawaStateMultiYearIngestionIntegrationTest {
     }
 
     private Path createTempLawaStateFile() throws IOException {
-        String content = """
+        return createTempLawaStateFileWithContent(lawaStateContent(), "lawa-state-test");
+    }
+
+    private Path createTempLawaStateFileWithContent(String content, String prefix) throws IOException {
+        Path tempFile = tempDir.resolve(prefix + "-" + UUID.randomUUID() + ".csv");
+        Files.writeString(tempFile, content);
+        return tempFile;
+    }
+
+    private String lawaStateContent() {
+        return """
             lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,attribute_band,state_norm,median,p95,rec_health_exceed_260_pct,rec_health_exceed_540_pct,period_type,period_start_year,period_end_year
             R001,Kaituna River,Hawke's Bay,-40.95,175.55,E.coli,E_COLI,CFU/100mL,A,FAIR,45,85,5.2,0.8,HYDRO_NYR_WINDOW,2018,2022
             R002,Waikato River,Waikato,-37.85,175.35,E.coli,E_COLI,CFU/100mL,B,GOOD,20,50,1.1,0.3,HYDRO_NYR_WINDOW,2018,2022
             """;
-        
-        Path tempFile = tempDir.resolve("lawa-state-test-" + UUID.randomUUID() + ".csv");
-        Files.writeString(tempFile, content);
-        return tempFile;
     }
 }
