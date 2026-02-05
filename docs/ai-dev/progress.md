@@ -389,6 +389,7 @@ Non-Goals:
 
 Links:
 - PR: [feat(ingestion): add local file ingestion foundation](https://github.com/kborn/wai_and_watts/pull/25)
+- PR: [feat(scripts): add manual download helper scripts](https://github.com/kborn/wai_and_watts/pull/26)
 
 ### Phase 11 — Insights & LLM Layer (Grounded Explanations)
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
