@@ -208,3 +208,4 @@ curl "http://localhost:8080/api/v1/lawa/trend/multiyear"
 - **Authentication failed**: Wrong DB_USER or DB_PASSWORD
 - **Database does not exist**: Run `createdb waiwatts` first
 - **No migrations applied**: Run Spring Boot app once to execute Flyway migrations
+- **Flyway validation errors**: Database may be in inconsistent state, requiring database reset
