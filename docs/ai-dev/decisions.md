@@ -699,6 +699,7 @@ Implications:
   → Contract CSV
   → Existing Ingestion Pipeline
 
+- Transform is a pure function of artifact → contract CSV. Network IO is always external to transform.
 - Transformers are dataset-specific implementations (not metadata-driven or generic framework).
 - Transformers must output contract CSV files matching fixture schema exactly (headers, order, types).
 - Parsers remain contract-only and do not accept raw publisher formats.
