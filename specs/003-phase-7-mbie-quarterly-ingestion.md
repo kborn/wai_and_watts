@@ -12,7 +12,7 @@ granularity.
 
 ## Source of Truth
 
-Workbook: https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx
+Workbook:https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx
 
 Sheet: `1 - Fuel type (GWh)`
 

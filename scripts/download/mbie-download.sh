@@ -17,7 +17,7 @@
 set -euo pipefail
 
 # Configuration
-DEFAULT_URL="https://www.mbie.govt.nz/assets/data-files/electricity-data/electricity-generation-quarterly-and-annual-data-2025-quarter-3.xlsx"
+DEFAULT_URL="https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx"
 DOWNLOAD_BASE_DIR="./downloads/mbie"
 TIMESTAMP=$(date +%Y-%m-%d)
 TARGET_DIR="${DOWNLOAD_BASE_DIR}/${TIMESTAMP}"
@@ -42,7 +42,7 @@ print_usage() {
     echo ""
     echo "Examples:"
     echo "  $0"
-    echo "  $0 --output-dir /tmp/downloads https://www.mbie.govt.nz/assets/data-files/electricity-data/electricity-generation-quarterly-and-annual-data-2025-quarter-3.xlsx"
+    echo "  $0 --output-dir /tmp/downloads https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx"
     echo ""
     echo "The script will:"
     echo "  1. Create YYYY-MM-DD directory in output location"

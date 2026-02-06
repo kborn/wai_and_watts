@@ -17,7 +17,7 @@
 set -euo pipefail
 
 # Configuration
-DEFAULT_URL="https://www.lawa.org.nz/assets/Uploads/State-and-trend-data/NZ-State-and-Trend-Water-Quality-Data-2025.xlsx"
+DEFAULT_URL="https://www.lawa.org.nz/media/ftmb4fjn/lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx"
 DOWNLOAD_BASE_DIR="./downloads/lawa"
 TIMESTAMP=$(date +%Y-%m-%d)
 TARGET_DIR="${DOWNLOAD_BASE_DIR}/${TIMESTAMP}"
@@ -42,7 +42,7 @@ print_usage() {
     echo ""
     echo "Examples:"
     echo "  $0"
-    echo "  $0 --output-dir /tmp/downloads https://www.lawa.org.nz/assets/Uploads/State-and-trend-data/NZ-State-and-Trend-Water-Quality-Data-2025.xlsx"
+    echo "  $0 --output-dir /tmp/downloads https://www.lawa.org.nz/media/ftmb4fjn/lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx"
     echo ""
     echo "The script will:"
     echo "  1. Create YYYY-MM-DD directory in output location"

@@ -67,7 +67,7 @@ done
 
 if [[ -z "$JAR" || ! -f "$JAR" ]]; then
   echo "ERROR: Backend jar not found in: $REPO_ROOT/backend/target"
-  echo "Build it with: mvn -f backend -DskipTests=true -Dmaven.test.skip=true package"
+  echo "Build it with: mvn -f backend clean package spring-boot:repackage -DskipTests"
   exit 2
 fi
 echo "Using jar: $JAR"
