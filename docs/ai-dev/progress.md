@@ -542,7 +542,117 @@ These tasks validate that repository documentation is sufficient for new AI agen
 - [ ] Record onboarding friction points in decisions.md
 - [ ] Backfill missing documentation based on onboarding failures
 
----
+
+#### TODO — Toolchain Hardening (Prevent Future JVM / Build Friction)
+
+Goal
+Make Wai & Watts development environment **boring, deterministic, and drift-resistant** across:
+- Local dev (Mac)
+- CI
+- Future contributors
+
+This is not feature work. This is DevEx + stability.
+
+
+Context / Why
+During Phase 10 we hit:
+- Multiple JDKs active (21 vs 25)
+- Maven using different JDK than shell
+- Mockito inline + modern JDK attach behavior
+- Local `.m2` permission / ownership drift
+- Dependency version pin mismatch with Central
+
+None were code problems — all were environment/toolchain drift.
+
+The 5 Rules (Adopt + Document)
+
+1️⃣ Single Supported JDK
+**Decision:**  
+Project standard = **JDK 21 LTS**
+
+**Actions**
+- POM compiler release = 21
+- CI builds + tests on 21
+- Docs state 21 as required dev JDK
+
+**Optional Later**
+- Maven Toolchains enforcement
+
+2️⃣ Never Run Maven / Gradle as Root
+**Rule**  
+Never run:
+- `sudo mvn`
+- `sudo ./mvnw`
+
+**Why**  
+Prevents silent corruption of:
+- `~/.m2`
+
+
+3️⃣ Let Spring Boot Manage Test Dependency Versions
+**Rule**  
+Do NOT pin versions for:
+- Mockito
+- ByteBuddy
+- JUnit components
+
+Unless required for security or breaking change mitigation.
+
+**Why**  
+Boot BOM keeps ecosystem aligned.
+
+
+4️⃣ Prefer CLI Tools That Do NOT Require Spring Context
+**Decision**  
+Keep transform tools:
+- Plain Java main classes
+- No Spring container startup
+
+**Why**
+- Faster
+- Less launcher magic
+- Less JDK weirdness
+- Easier scripting
+
+
+5️⃣ CI Is Source of Truth
+If:
+- CI passes
+- Local fails
+
+Assume local environment drift first.
+
+
+Nice-To-Have (Later, Not Urgent)
+
+Containerized Build
+Optional:
+
+docker build
+docker test
+
+
+Benefit:
+- Zero JDK drift
+- Zero local Maven cache weirdness
+
+
+Maven Toolchains Hard Enforcement
+Ensures:
+- Even if dev installs JDK 25+
+- Build still compiles + tests with 21
+
+Definition of Done
+- [ ] progress.md contains toolchain rules
+- [ ] README documents required JDK
+- [ ] CI pinned to JDK 21
+- [ ] POM compiler release locked to 21
+- [ ] Team guidance: never sudo Maven
+
+Non-Goals
+- Supporting multiple JDKs simultaneously
+- Early adoption of non-LTS JDKs
+- Over-engineering local dev environment
 
 
 ---
