@@ -37,3 +37,6 @@ replay_pid*
 /backend/.settings/
 
 .m2*
+
+/downloads/
+/transforms/
