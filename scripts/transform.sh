@@ -2,19 +2,18 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: ./scripts/ingest.sh <dataset_source_code> <file_path> [published_date] [release_label]"
-  echo "Example: ./scripts/ingest.sh mbie.generation.annual data.csv 2025-01-01 \"MBIE Workbook\""
+  echo "Usage: ./scripts/transform.sh <dataset_source_code> <input_xlsx_path> <output_csv_path>"
+  echo "Example: ./scripts/transform.sh mbie.generation.annual workbook.xlsx /tmp/mbie_annual.csv"
 }
 
-if [[ $# -lt 2 || $# -gt 4 ]]; then
+if [[ $# -ne 3 ]]; then
   usage
   exit 1
 fi
 
 DATASET_SOURCE_CODE="$1"
-FILE_PATH="$2"
-PUBLISHED_DATE="${3:-}"
-RELEASE_LABEL="${4:-}"
+INPUT_PATH="$2"
+OUTPUT_PATH="$3"
 
 KNOWN_DATASETS=(
   "mbie.generation.annual"
@@ -36,18 +35,29 @@ if [[ "$dataset_known" != "true" ]]; then
   exit 2
 fi
 
-if [[ ! -f "$FILE_PATH" ]]; then
-  echo "ERROR: File does not exist: $FILE_PATH"
+if [[ ! -f "$INPUT_PATH" ]]; then
+  echo "ERROR: Input file does not exist: $INPUT_PATH"
   exit 2
 fi
 
-if [[ ! -r "$FILE_PATH" ]]; then
-  echo "ERROR: File is not readable: $FILE_PATH"
+if [[ ! -r "$INPUT_PATH" ]]; then
+  echo "ERROR: Input file is not readable: $INPUT_PATH"
   exit 2
 fi
 
-if [[ ! -s "$FILE_PATH" ]]; then
-  echo "ERROR: File is empty: $FILE_PATH"
+if [[ ! -s "$INPUT_PATH" ]]; then
+  echo "ERROR: Input file is empty: $INPUT_PATH"
+  exit 2
+fi
+
+OUT_DIR="$(dirname "$OUTPUT_PATH")"
+mkdir -p "$OUT_DIR" 2>/dev/null || true
+if [[ -d "$OUTPUT_PATH" ]]; then
+  echo "ERROR: Output path is a directory: $OUTPUT_PATH"
+  exit 2
+fi
+if [[ ! "$OUTPUT_PATH" =~ \.csv$ ]]; then
+  echo "ERROR: Output path must end with .csv: $OUTPUT_PATH"
   exit 2
 fi
 
@@ -72,15 +82,8 @@ if [[ -z "$JAR" || ! -f "$JAR" ]]; then
 fi
 echo "Using jar: $JAR"
 
-args=("$DATASET_SOURCE_CODE" "$FILE_PATH")
-if [[ -n "$PUBLISHED_DATE" ]]; then
-  args+=("$PUBLISHED_DATE")
-fi
-if [[ -n "$RELEASE_LABEL" ]]; then
-  args+=("$RELEASE_LABEL")
-fi
-
+args=("$DATASET_SOURCE_CODE" "$INPUT_PATH" "$OUTPUT_PATH")
 java -cp "$JAR" \
-  -Dloader.main=nz.waiwatts.cli.ManualIngestionCommand \
+  -Dloader.main=nz.waiwatts.cli.ManualTransformCommand \
   org.springframework.boot.loader.launch.PropertiesLauncher \
   "${args[@]}"

@@ -2,6 +2,7 @@ package nz.waiwatts.ingestion.lawa;
 
 import nz.waiwatts.domain.datasets.*;
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
+import nz.waiwatts.ingestion.transform.lawa.LawaStateMultiYearXlsxTransformer;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
@@ -211,6 +213,19 @@ class LawaStateMultiYearIngestionIntegrationTest {
     }
 
     @Test
+    void ingestFile_realSnapshot_isIdempotent() throws IOException {
+        Path xlsxSnapshot = classpathToFile("real_snapshots/lawa/lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx");
+        Path csv = transformToTempCsv(xlsxSnapshot, "lawa-state-snapshot");
+
+        UUID releaseId1 = lawaIngestion.ingestFile(SOURCE_CODE, csv.toString(), null, "LAWA snapshot");
+        UUID releaseId2 = lawaIngestion.ingestFile(SOURCE_CODE, csv.toString(), null, "LAWA snapshot");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isGreaterThan(0);
+    }
+
+    @Test
     void ingestFile_whenFileDoesNotExist_throwsException() {
         // Arrange
         String nonExistentPath = "/path/to/nonexistent/file.csv";
@@ -241,5 +256,17 @@ class LawaStateMultiYearIngestionIntegrationTest {
             R001,Kaituna River,Hawke's Bay,-40.95,175.55,E.coli,E_COLI,CFU/100mL,A,FAIR,45,85,5.2,0.8,HYDRO_NYR_WINDOW,2018,2022
             R002,Waikato River,Waikato,-37.85,175.35,E.coli,E_COLI,CFU/100mL,B,GOOD,20,50,1.1,0.3,HYDRO_NYR_WINDOW,2018,2022
             """;
+    }
+
+    private Path classpathToFile(String classpath) throws IOException {
+        return new ClassPathResource(classpath).getFile().toPath();
+    }
+
+    private Path transformToTempCsv(Path xlsxSnapshot, String prefix) throws IOException {
+        LawaStateMultiYearXlsxTransformer transformer = new LawaStateMultiYearXlsxTransformer();
+        byte[] csvBytes = transformer.transform(Files.newInputStream(xlsxSnapshot));
+        Path tempFile = tempDir.resolve(prefix + "-" + UUID.randomUUID() + ".csv");
+        Files.write(tempFile, csvBytes);
+        return tempFile;
     }
 }

@@ -1,0 +1,38 @@
+lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,attribute_band,state_norm,median,p95,rec_health_exceed_260_pct,rec_health_exceed_540_pct,period_type,period_start_year,period_end_year
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Ammonical nitrogen / Ammonia (toxicity),AMMONIA_TOXICITY,mg/L,A,EXCELLENT,0.0015,0.005,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Clarity / Suspended fine sediment,CLARITY,m visibility,A,EXCELLENT,2.8763,,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Dissolved reactive phosphorus,DRP,mg/L,B,GOOD,0.007,0.0181,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,E.coli,ECOLI,#/100 mL,A,EXCELLENT,51.0,231.0,3.38983050847458,0.0,HYDRO_5YR_ROLLING,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Nitrate nitrogen / Nitrate (toxicity),NITRATE_TOXICITY,mg/L,A,EXCELLENT,,,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,NO3N,NO3N,mg/L,A,EXCELLENT,0.0054,0.0332,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,TON,TON,mg/L,A,EXCELLENT,0.0065,0.0391,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Ammonical nitrogen / Ammonia (toxicity),AMMONIA_TOXICITY,mg/L,B,GOOD,0.0111,0.0958,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Clarity / Suspended fine sediment,CLARITY,m visibility,D,POOR,0.5932,,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Dissolved reactive phosphorus,DRP,mg/L,C,FAIR,0.007,0.0321,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,E.coli,ECOLI,#/100 mL,E,VERY_POOR,1750.0,13000.0,94.8275862068966,81.0344827586207,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Nitrate nitrogen / Nitrate (toxicity),NITRATE_TOXICITY,mg/L,A,EXCELLENT,,,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,NO3N,NO3N,mg/L,A,EXCELLENT,0.35,0.7065,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,TON,TON,mg/L,A,EXCELLENT,0.35,0.7165,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Ammonical nitrogen / Ammonia (toxicity),AMMONIA_TOXICITY,mg/L,A,EXCELLENT,0.0028,0.0059,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Clarity / Suspended fine sediment,CLARITY,m visibility,A,EXCELLENT,1.0094,,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Dissolved reactive phosphorus,DRP,mg/L,B,GOOD,0.009,0.0145,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,E.coli,ECOLI,#/100 mL,C,FAIR,45.0,1165.0,15.2542372881356,8.47457627118644,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Nitrate nitrogen / Nitrate (toxicity),NITRATE_TOXICITY,mg/L,A,EXCELLENT,,,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,NO3N,NO3N,mg/L,A,EXCELLENT,0.111,0.2765,,,HYDRO_5YR_ROLLING,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,TON,TON,mg/L,A,EXCELLENT,0.113,0.2765,,,HYDRO_5YR_ROLLING,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Ammonical nitrogen / Ammonia (toxicity),AMMONIA_TOXICITY,mg/L,B,GOOD,0.0452,0.1505,,,HYDRO_5YR_ROLLING,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Dissolved reactive phosphorus,DRP,mg/L,D,POOR,0.0195,0.0481,,,HYDRO_5YR_ROLLING,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,E.coli,ECOLI,#/100 mL,E,VERY_POOR,540.0,5720.0,64.2857142857143,48.2142857142857,HYDRO_5YR_ROLLING,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Nitrate nitrogen / Nitrate (toxicity),NITRATE_TOXICITY,mg/L,B,GOOD,,,,,HYDRO_5YR_ROLLING,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,TON,TON,mg/L,B,GOOD,0.9,1.64,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00020,Ashburton River North Branch at SH72,canterbury,-43.60523782,171.53191075,Ammonical nitrogen / Ammonia (toxicity),AMMONIA_TOXICITY,mg/L,A,EXCELLENT,0.003,0.0055,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00020,Ashburton River North Branch at SH72,canterbury,-43.60523782,171.53191075,Dissolved reactive phosphorus,DRP,mg/L,A,EXCELLENT,0.0026,0.0063,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00020,Ashburton River North Branch at SH72,canterbury,-43.60523782,171.53191075,E.coli,ECOLI,#/100 mL,A,EXCELLENT,16.0,95.8,0.0,0.0,HYDRO_5YR_ROLLING,2019,2024
+ecan-00020,Ashburton River North Branch at SH72,canterbury,-43.60523782,171.53191075,Nitrate nitrogen / Nitrate (toxicity),NITRATE_TOXICITY,mg/L,A,EXCELLENT,,,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00020,Ashburton River North Branch at SH72,canterbury,-43.60523782,171.53191075,TON,TON,mg/L,A,EXCELLENT,0.0295,0.1114,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Ammonical nitrogen / Ammonia (toxicity),AMMONIA_TOXICITY,mg/L,A,EXCELLENT,0.0022,0.0038,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Clarity / Suspended fine sediment,CLARITY,m visibility,A,EXCELLENT,1.82,,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Dissolved reactive phosphorus,DRP,mg/L,A,EXCELLENT,0.0016,0.003,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,E.coli,ECOLI,#/100 mL,A,EXCELLENT,41.5,365.7,5.35714285714286,3.57142857142857,HYDRO_5YR_ROLLING,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Nitrate nitrogen / Nitrate (toxicity),NITRATE_TOXICITY,mg/L,A,EXCELLENT,,,,,HYDRO_5YR_ROLLING,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,TON,TON,mg/L,A,EXCELLENT,0.0595,0.1304,,,HYDRO_5YR_ROLLING,2019,2024
