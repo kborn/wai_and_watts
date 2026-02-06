@@ -1,5 +1,7 @@
 package nz.waiwatts.ingestion.lawa;
 
+import nz.waiwatts.ingestion.util.CsvParser;
+
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -20,7 +22,6 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
     public List<LawaStateMultiYearParsedRecord> parse(InputStream input) throws IOException {
         List<LawaStateMultiYearParsedRecord> result = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
-            // FIXME - is there a better way to parse csv in java?
             String line = reader.readLine(); // header
             if (line == null) {
                 throw new IOException("CSV file is empty");
@@ -30,7 +31,7 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
             while ((line = reader.readLine()) != null) {
                 lineNo++;
                 if (line.isBlank()) continue;
-                String[] parts = splitCsv(line);
+                String[] parts = CsvParser.parseLineTrimmed(line);
                 if (isRowBlank(parts)) {
                     continue;
                 }
@@ -61,16 +62,10 @@ public class LawaStateMultiYearCsvParser implements LawaStateMultiYearParser {
         return result;
     }
 
-    private static String[] splitCsv(String line) {
-        String[] parts = line.split(",", -1);
-        for (int i = 0; i < parts.length; i++) {
-            parts[i] = parts[i].trim();
-        }
-        return parts;
-    }
+    
 
     private static Map<String, Integer> parseHeader(String line, List<String> required) throws IOException {
-        String[] headerParts = splitCsv(line);
+        String[] headerParts = CsvParser.parseLineTrimmed(line);
         if (headerParts.length == 0) {
             throw new IOException("Missing CSV header");
         }

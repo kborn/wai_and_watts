@@ -1,5 +1,7 @@
 package nz.waiwatts.ingestion.lawa;
 
+import nz.waiwatts.ingestion.util.CsvParser;
+
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -30,7 +32,7 @@ public class LawaTrendMultiYearCsvParser implements LawaTrendMultiYearParser {
             while ((line = reader.readLine()) != null) {
                 lineNo++;
                 if (line.isBlank()) continue;
-                String[] parts = splitCsv(line);
+                String[] parts = CsvParser.parseLineTrimmed(line);
                 if (isRowBlank(parts)) {
                     continue;
                 }
@@ -66,16 +68,8 @@ public class LawaTrendMultiYearCsvParser implements LawaTrendMultiYearParser {
         return result;
     }
 
-    private static String[] splitCsv(String line) {
-        String[] parts = line.split(",", -1);
-        for (int i = 0; i < parts.length; i++) {
-            parts[i] = parts[i].trim();
-        }
-        return parts;
-    }
-
     private static Map<String, Integer> parseHeader(String line, List<String> required) throws IOException {
-        String[] headerParts = splitCsv(line);
+        String[] headerParts = CsvParser.parseLineTrimmed(line);
         if (headerParts.length == 0) {
             throw new IOException("Missing CSV header");
         }

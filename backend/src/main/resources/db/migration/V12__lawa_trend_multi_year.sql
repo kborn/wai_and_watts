@@ -21,4 +21,4 @@ CREATE TABLE IF NOT EXISTS lawa_water_quality_trend_multi_year_record (
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS uk_lawa_trend_window
-ON lawa_water_quality_trend_multi_year_record (dataset_release_id, lawa_site_id, indicator_norm, period_type, trend_period_years, period_end_year);
+ON lawa_water_quality_trend_multi_year_record (dataset_release_id, lawa_site_id, indicator_raw, period_type, trend_period_years, period_end_year);
