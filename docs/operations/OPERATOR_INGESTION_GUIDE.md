@@ -180,10 +180,10 @@ mvn -pl backend spring-boot:run
 Then run API validation calls:
 
 ```bash
-curl "http://localhost:8080/api/v1/mbie/generation"
+curl "http://localhost:8080/api/v1/mbie/generation/annual"
 curl "http://localhost:8080/api/v1/mbie/generation/quarterly"
-curl "http://localhost:8080/api/v1/lawa/state/multiyear"
-curl "http://localhost:8080/api/v1/lawa/trend/multiyear"
+curl "http://localhost:8080/api/v1/lawa/water-quality/state/multiyear"
+curl "http://localhost:8080/api/v1/lawa/water-quality/trend/multiyear"
 ```
 
 ## Troubleshooting (operator-first)
