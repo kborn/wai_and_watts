@@ -2,18 +2,112 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: ./scripts/transform.sh <dataset_source_code> <input_xlsx_path> <output_csv_path>"
-  echo "Example: ./scripts/transform.sh mbie.generation.annual workbook.xlsx /tmp/mbie_annual.csv"
+  echo "Wai & Watts Transform Script"
+  echo ""
+  echo "Transforms publisher XLSX workbooks to canonical contract CSV files"
+  echo ""
+  echo "Usage:"
+  echo "  $0 <dataset_source_code> <input_xlsx_path> [OPTIONS]"
+  echo "  $0 --help"
+  echo ""
+  echo "Arguments:"
+  echo "  dataset_source_code    Dataset identifier (e.g., mbie.generation.annual)"
+  echo "  input_xlsx_path        Path to the Excel workbook to transform"
+  echo ""
+  echo "Options:"
+  echo "  --output-dir DIR       Specify output directory (default: ./transforms/<dataset_code>/)"
+  echo "  --output-file FILE     Specify output filename (default: auto-generated)"
+  echo "  --help                 Show this help message"
+  echo ""
+  echo "Examples:"
+  echo "  $0 mbie.generation.annual ./downloads/mbie/2026-02-06/workbook.xlsx"
+  echo "  $0 mbie.generation.annual ./downloads/mbie/2026-02-06/workbook.xlsx --output-dir /tmp"
+  echo "  $0 lawa.water_quality.state.multi_year ./downloads/lawa/2026-02-06/workbook.xlsx"
+  echo ""
+  echo "The script will:"
+  echo "  1. Create ./transforms/<dataset_code>/<YYYY-MM-DD>/ directory"
+  echo "  2. Transform XLSX to canonical CSV contract"
+  echo "  3. Save with auto-generated filename based on dataset code"
 }
 
-if [[ $# -ne 3 ]]; then
+# Default configuration
+TIMESTAMP=$(date +%Y-%m-%d)
+CUSTOM_OUTPUT_DIR=""
+CUSTOM_OUTPUT_FILE=""
+
+# Parse arguments
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --output-dir)
+      CUSTOM_OUTPUT_DIR="$2"
+      shift 2
+      ;;
+    --output-file)
+      CUSTOM_OUTPUT_FILE="$2"
+      shift 2
+      ;;
+    -*)
+      echo "ERROR: Unknown option: $1"
+      usage
+      exit 1
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+# Check if we have the right number of positional arguments
+if [[ ${#ARGS[@]} -ne 2 ]]; then
+  echo "ERROR: Missing required arguments"
   usage
   exit 1
 fi
 
-DATASET_SOURCE_CODE="$1"
-INPUT_PATH="$2"
-OUTPUT_PATH="$3"
+DATASET_SOURCE_CODE="${ARGS[0]}"
+INPUT_PATH="${ARGS[1]}"
+
+# Set up output directory and filename
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+if [[ -n "$CUSTOM_OUTPUT_DIR" ]]; then
+  OUTPUT_DIR="$CUSTOM_OUTPUT_DIR"
+else
+  OUTPUT_DIR="${REPO_ROOT}/transforms/${DATASET_SOURCE_CODE}/${TIMESTAMP}"
+fi
+
+# Generate default filename based on dataset code
+if [[ -z "$CUSTOM_OUTPUT_FILE" ]]; then
+  case "$DATASET_SOURCE_CODE" in
+    "mbie.generation.annual")
+      OUTPUT_FILE="mbie_generation_annual.csv"
+      ;;
+    "mbie.generation.quarterly")
+      OUTPUT_FILE="mbie_generation_quarterly.csv"
+      ;;
+    "lawa.water_quality.state.multi_year")
+      OUTPUT_FILE="lawa_state_multi_year.csv"
+      ;;
+    "lawa.water_quality.trend.multi_year")
+      OUTPUT_FILE="lawa_trend_multi_year.csv"
+      ;;
+    *)
+      # Fallback: replace dots with underscores and add .csv
+      OUTPUT_FILE="${DATASET_SOURCE_CODE//./_}.csv"
+      ;;
+  esac
+else
+  OUTPUT_FILE="$CUSTOM_OUTPUT_FILE"
+fi
+
+OUTPUT_PATH="${OUTPUT_DIR}/${OUTPUT_FILE}"
 
 KNOWN_DATASETS=(
   "mbie.generation.annual"
@@ -50,8 +144,7 @@ if [[ ! -s "$INPUT_PATH" ]]; then
   exit 2
 fi
 
-OUT_DIR="$(dirname "$OUTPUT_PATH")"
-mkdir -p "$OUT_DIR" 2>/dev/null || true
+# Validate output file
 if [[ -d "$OUTPUT_PATH" ]]; then
   echo "ERROR: Output path is a directory: $OUTPUT_PATH"
   exit 2
@@ -60,6 +153,11 @@ if [[ ! "$OUTPUT_PATH" =~ \.csv$ ]]; then
   echo "ERROR: Output path must end with .csv: $OUTPUT_PATH"
   exit 2
 fi
+
+# Create output directory
+mkdir -p "$(dirname "$OUTPUT_PATH")"
+echo "Transform directory: $(dirname "$OUTPUT_PATH")"
+echo "Output file: $OUTPUT_FILE"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -77,7 +175,7 @@ done
 
 if [[ -z "$JAR" || ! -f "$JAR" ]]; then
   echo "ERROR: Backend jar not found in: $REPO_ROOT/backend/target"
-  echo "Build it with: mvn -f backend -DskipTests=true -Dmaven.test.skip=true package"
+  echo "Build it with: mvn -f backend clean package spring-boot:repackage -DskipTests"
   exit 2
 fi
 echo "Using jar: $JAR"

@@ -17,7 +17,7 @@ The goal is to prove ingestion extensibility across environmental domains, not j
 
 ## Source of Truth
 
-- **Workbook:** https://www.lawa.org.nz/download-data#download-data-river-water-quality-state  
+- **Workbook:** https://www.lawa.org.nz/media/ftmb4fjn/lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx  
 - **Sheet:** `State Attribute Band`  
 - **Semantics:** multi-year state (band) classification for river monitoring sites.
 

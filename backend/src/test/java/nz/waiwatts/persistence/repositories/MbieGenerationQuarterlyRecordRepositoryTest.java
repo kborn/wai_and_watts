@@ -30,9 +30,9 @@ class MbieGenerationQuarterlyRecordRepositoryTest {
         // Arrange: create lineage
         DatasetSource src = new DatasetSource();
         src.setId(UUID.randomUUID());
-        src.setName("MBIE Electricity Generation (Fuel Type, Quarterly)");
+        src.setName("MBIE Electricity Generation (Fuel Type, Quarterly) Test");
         src.setPublisher(Publisher.MBIE);
-        src.setCode("mbie.generation.quarterly");
+        src.setCode("test.mbie.generation.quarterly");
         src.setSourceUrl("https://example.com/mbie-q-" + UUID.randomUUID());
         src.setExpectedFormat(ExpectedFormat.CSV);
         src.setUpdateCadence("quarterly");

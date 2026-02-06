@@ -13,7 +13,7 @@ This identifier is the stable key used in:
 
 ## Source
 Workbook: electricity-sept-2025-q3.xlsx  
-URL: https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx  
+URL:https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx  
 Sheet: "6 - Fuel type (GWh)"  
 Unit: GWh
 

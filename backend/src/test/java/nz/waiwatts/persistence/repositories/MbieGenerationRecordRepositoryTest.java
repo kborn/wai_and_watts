@@ -28,9 +28,10 @@ class MbieGenerationRecordRepositoryTest {
     void saveAndReadGenerationRecord() {
         // Arrange: create lineage
         DatasetSource src = new DatasetSource();
-        src.setName("MBIE Electricity Generation");
+        src.setName("MBIE Electricity Generation Test");
         src.setPublisher(Publisher.MBIE);
-        src.setSourceUrl("https://www.mbie.govt.nz/assets/Data-Files/Energy/nz-energy-quarterly-and-energy-in-nz/electricity-sept-2025-q3.xlsx");
+        src.setCode("test.mbie.generation.annual");
+        src.setSourceUrl("https://example.com/test-mbie-annual.xlsx");
         src.setExpectedFormat(ExpectedFormat.XLSX);
         src.setUpdateCadence("annual");
         src = sourceRepo.save(src);

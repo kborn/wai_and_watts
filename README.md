@@ -16,6 +16,36 @@ download → transform → ingest (CLI) → start backend → validate APIs
 
 - `docs/validation/PHASE10_OPERATOR_TEST_DRIVE.md`
 
+## Quick Start
+
+1. **Prerequisites**
+   ```bash
+   # Verify Java 21
+   java -version
+   
+   # Verify Maven
+   mvn -v
+   
+   # Install and start Postgres locally
+   ```
+
+2. **Environment Setup**
+   ```bash
+   # Set database credentials
+   export DB_URL="jdbc:postgresql://localhost:5432/waiwatts"
+   export DB_USER="waiwatts"
+   export DB_PASSWORD="waiwatts"
+   ```
+
+3. **Build**
+   ```bash
+   # Build executable Spring Boot JAR
+   mvn -f backend clean package spring-boot:repackage -DskipTests
+   
+   # Make scripts executable
+   chmod +x scripts/*.sh scripts/download/*.sh
+   ```
+
 ## Phase 10 execution model (strict)
 
 - Ingestion is **CLI-driven only** via `./scripts/ingest.sh` (no HTTP ingestion in the operator path).

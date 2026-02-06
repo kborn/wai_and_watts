@@ -30,7 +30,8 @@ Goals:
 - [ ] Maven works (`mvn -v`)
 - [ ] Postgres running locally
 - [ ] DB env vars set: `DB_URL`, `DB_USER`, `DB_PASSWORD`
-- [ ] Backend builds: `mvn -f backend -DskipTests package`
+- [ ] Backend builds: `mvn -f backend clean package spring-boot:repackage -DskipTests`
+- [ ] Database migrations run once: `mvn -f backend spring-boot:run` (then stop)
 - [ ] Download scripts produce XLSX under `./downloads/<publisher>/<YYYY-MM-DD>/`
 
 ---
@@ -60,21 +61,27 @@ Confirm you have the XLSX paths under `./downloads/<publisher>/<YYYY-MM-DD>/`.
 Run at least one dataset transform:
 
 ```bash
-./scripts/transform.sh mbie.generation.annual   ./downloads/mbie/2026-02-05/electricity-generation-quarterly-and-annual-data-2025-quarter-3.xlsx   /tmp/mbie_generation_annual.csv
+./scripts/transform.sh mbie.generation.annual ./downloads/mbie/2026-02-05/electricity-sept-2025-q3.xlsx
 ```
 
 Verify:
 - CSV exists and is non-empty
 - Headers match the contract schema
+- File is saved in `./transforms/mbie.generation.annual/YYYY-MM-DD/mbie_generation_annual.csv`
+
+Optional: Test custom output directory:
+```bash
+./scripts/transform.sh mbie.generation.annual ./downloads/mbie/2026-02-05/electricity-sept-2025-q3.xlsx --output-dir /tmp
+```
 
 ---
 
 ## Phase 3 — Ingest (CLI)
 
-Ingest the contract CSV:
+Ingest the contract CSV (using transform output from Phase 2):
 
 ```bash
-./scripts/ingest.sh mbie.generation.annual /tmp/mbie_generation_annual.csv 2025-09-01 "MBIE Q3 2025 workbook"
+./scripts/ingest.sh mbie.generation.annual ./transforms/mbie.generation.annual/2026-02-05/mbie_generation_annual.csv 2025-09-01 "MBIE Q3 2025 workbook"
 ```
 
 Verify:

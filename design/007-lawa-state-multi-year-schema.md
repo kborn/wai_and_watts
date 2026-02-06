@@ -10,7 +10,7 @@
 
 ## Source
 
-- **Workbook:** https://www.lawa.org.nz/download-data#download-data-river-water-quality-state  
+- **Workbook:** https://www.lawa.org.nz/media/ftmb4fjn/lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx  
 - **Sheet:** `State Attribute Band`  
 - **Units:** Mixed categorical + numeric indicators
 
