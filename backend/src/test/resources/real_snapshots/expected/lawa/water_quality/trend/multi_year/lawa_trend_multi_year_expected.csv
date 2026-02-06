@@ -1,0 +1,111 @@
+lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,E.coli,ECOLI,,Very likely degrading,DEGRADING,-2,10,Bi-monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,E.coli,ECOLI,,Likely degrading,DEGRADING,-1,15,Bi-monthly,HYDRO_NYR_WINDOW,2009,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,5,unassessed,HYDRO_NYR_WINDOW,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Nitrate nitrogen,NITRATE_N,,Indeterminate,INSUFFICIENT_DATA,0,10,Bi-monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Nitrate nitrogen,NITRATE_N,,Indeterminate,INSUFFICIENT_DATA,0,15,Bi-monthly,HYDRO_NYR_WINDOW,2009,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Nitrate nitrogen,NITRATE_N,,Very likely improving,IMPROVING,2,20,Bi-monthly,HYDRO_NYR_WINDOW,2004,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Total nitrogen,TOTAL_N,,Likely degrading,DEGRADING,-1,10,Bi-monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Total nitrogen,TOTAL_N,,Likely degrading,DEGRADING,-1,15,Bi-monthly,HYDRO_NYR_WINDOW,2009,2024
+arc-00001,Cascades LTB,auckland,-36.88888973,174.52211474,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Ammoniacal nitrogen,AMMONIACAL_N,,Likely degrading,DEGRADING,-1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Dissolved reactive phosphorus,DRP,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,E.coli,ECOLI,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,E.coli,ECOLI,,Likely improving,IMPROVING,1,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Nitrate nitrogen,NITRATE_N,,Very likely degrading,DEGRADING,-2,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Nitrate nitrogen,NITRATE_N,,Very likely improving,IMPROVING,2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,15,unassessed,HYDRO_NYR_WINDOW,2009,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,20,unassessed,HYDRO_NYR_WINDOW,2004,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Total nitrogen,TOTAL_N,,Very likely degrading,DEGRADING,-2,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Total nitrogen,TOTAL_N,,Very likely degrading,DEGRADING,-2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+arc-00036,Avondale @ Shadbolt,auckland,-36.9232796,174.69177898,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Ammoniacal nitrogen,AMMONIACAL_N,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Dissolved reactive phosphorus,DRP,,Likely improving,IMPROVING,1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,E.coli,ECOLI,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,E.coli,ECOLI,,Likely improving,IMPROVING,1,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Nitrate nitrogen,NITRATE_N,,Very likely degrading,DEGRADING,-2,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Nitrate nitrogen,NITRATE_N,,Very likely degrading,DEGRADING,-2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,15,unassessed,HYDRO_NYR_WINDOW,2009,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,20,unassessed,HYDRO_NYR_WINDOW,2004,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Total nitrogen,TOTAL_N,,Likely degrading,DEGRADING,-1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Total nitrogen,TOTAL_N,,Likely degrading,DEGRADING,-1,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+arc-00040,Cascades @ Whakanewha,auckland,-36.81831942,175.08471729,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Ammoniacal nitrogen,AMMONIACAL_N,,Likely degrading,DEGRADING,-1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Ammoniacal nitrogen,AMMONIACAL_N,,Very likely improving,IMPROVING,2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Ammoniacal nitrogen,AMMONIACAL_N,,Very likely improving,IMPROVING,2,15,Monthly,HYDRO_NYR_WINDOW,2009,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Dissolved reactive phosphorus,DRP,,Likely degrading,DEGRADING,-1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Dissolved reactive phosphorus,DRP,,Likely improving,IMPROVING,1,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Dissolved reactive phosphorus,DRP,,Very likely improving,IMPROVING,2,15,Monthly,HYDRO_NYR_WINDOW,2009,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,E.coli,ECOLI,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,E.coli,ECOLI,,Indeterminate,INSUFFICIENT_DATA,0,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,E.coli,ECOLI,,Very likely degrading,DEGRADING,-2,15,Monthly,HYDRO_NYR_WINDOW,2009,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Nitrate nitrogen,NITRATE_N,,Likely degrading,DEGRADING,-1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Nitrate nitrogen,NITRATE_N,,Very likely improving,IMPROVING,2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Nitrate nitrogen,NITRATE_N,,Very likely improving,IMPROVING,2,15,Monthly,HYDRO_NYR_WINDOW,2009,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,20,unassessed,HYDRO_NYR_WINDOW,2004,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Total nitrogen,TOTAL_N,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Total nitrogen,TOTAL_N,,Very likely improving,IMPROVING,2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Total nitrogen,TOTAL_N,,Very likely improving,IMPROVING,2,15,Monthly,HYDRO_NYR_WINDOW,2009,2024
+ccc-00006,Addington Brook,canterbury,-43.53388384,172.62161724,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,10,,HYDRO_NYR_WINDOW,2014,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Clarity,CLARITY,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Clarity,CLARITY,,Not determined,INSUFFICIENT_DATA,-99,10,,HYDRO_NYR_WINDOW,2014,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Clarity,CLARITY,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Clarity,CLARITY,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,10,,HYDRO_NYR_WINDOW,2014,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,10,,HYDRO_NYR_WINDOW,2014,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,5,unassessed,HYDRO_NYR_WINDOW,2019,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,10,unassessed,HYDRO_NYR_WINDOW,2014,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,15,unassessed,HYDRO_NYR_WINDOW,2009,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,20,unassessed,HYDRO_NYR_WINDOW,2004,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,5,,HYDRO_NYR_WINDOW,2019,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,10,,HYDRO_NYR_WINDOW,2014,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00016,Ashburton River North Branch at Digbys Bridge,canterbury,-43.85380489,171.73104707,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Ammoniacal nitrogen,AMMONIACAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Clarity,CLARITY,,Indeterminate,INSUFFICIENT_DATA,0,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Clarity,CLARITY,,Very likely improving,IMPROVING,2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Clarity,CLARITY,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Clarity,CLARITY,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Dissolved reactive phosphorus,DRP,,Likely degrading,DEGRADING,-1,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Dissolved reactive phosphorus,DRP,,Very likely degrading,DEGRADING,-2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Dissolved reactive phosphorus,DRP,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,E.coli,ECOLI,,Very likely degrading,DEGRADING,-2,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,E.coli,ECOLI,,Likely improving,IMPROVING,1,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,E.coli,ECOLI,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Nitrate nitrogen,NITRATE_N,,Very likely degrading,DEGRADING,-2,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Nitrate nitrogen,NITRATE_N,,Very likely degrading,DEGRADING,-2,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,15,unassessed,HYDRO_NYR_WINDOW,2009,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Nitrate nitrogen,NITRATE_N,,Not determined,INSUFFICIENT_DATA,-99,20,unassessed,HYDRO_NYR_WINDOW,2004,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Total nitrogen,TOTAL_N,,Very likely degrading,DEGRADING,-2,5,Monthly,HYDRO_NYR_WINDOW,2019,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Total nitrogen,TOTAL_N,,Likely degrading,DEGRADING,-1,10,Monthly,HYDRO_NYR_WINDOW,2014,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,15,,HYDRO_NYR_WINDOW,2009,2024
+ecan-00187,Ahuriri River Ben Omar,canterbury,-44.48838974,170.05804734,Total nitrogen,TOTAL_N,,Not determined,INSUFFICIENT_DATA,-99,20,,HYDRO_NYR_WINDOW,2004,2024

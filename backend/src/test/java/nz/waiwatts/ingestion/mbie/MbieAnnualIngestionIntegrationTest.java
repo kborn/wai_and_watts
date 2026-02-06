@@ -6,6 +6,7 @@ import nz.waiwatts.domain.datasets.ExpectedFormat;
 import nz.waiwatts.domain.datasets.Publisher;
 import nz.waiwatts.domain.datasets.ReleaseStatus;
 import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
+import nz.waiwatts.ingestion.transform.mbie.MbieAnnualXlsxTransformer;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
@@ -237,6 +239,19 @@ class MbieAnnualIngestionIntegrationTest {
     }
 
     @Test
+    void ingestFile_realSnapshot_isIdempotent() throws IOException {
+        Path xlsxSnapshot = classpathToFile("real_snapshots/mbie/electricity-sept-2025-q3.xlsx");
+        Path csv = transformToTempCsv(xlsxSnapshot, "mbie-annual-snapshot");
+
+        UUID releaseId1 = mbieIngestion.ingestFile(SOURCE_CODE, csv.toString(), null, "MBIE snapshot");
+        UUID releaseId2 = mbieIngestion.ingestFile(SOURCE_CODE, csv.toString(), null, "MBIE snapshot");
+
+        assertThat(releaseId2).isEqualTo(releaseId1);
+        assertThat(releaseRepository.count()).isEqualTo(1);
+        assertThat(recordRepository.count()).isGreaterThan(0);
+    }
+
+    @Test
     void ingestFile_whenFileDoesNotExist_throwsException() {
         // Arrange
         String nonExistentPath = "/path/to/nonexistent/file.csv";
@@ -285,5 +300,17 @@ class MbieAnnualIngestionIntegrationTest {
             2022,Hydro,HYDRO,26071
             2022,Geothermal,GEOTHERMAL,7984
             """;
+    }
+
+    private Path classpathToFile(String classpath) throws IOException {
+        return new ClassPathResource(classpath).getFile().toPath();
+    }
+
+    private Path transformToTempCsv(Path xlsxSnapshot, String prefix) throws IOException {
+        MbieAnnualXlsxTransformer transformer = new MbieAnnualXlsxTransformer();
+        byte[] csvBytes = transformer.transform(Files.newInputStream(xlsxSnapshot));
+        Path tempFile = tempDir.resolve(prefix + "-" + UUID.randomUUID() + ".csv");
+        Files.write(tempFile, csvBytes);
+        return tempFile;
     }
 }

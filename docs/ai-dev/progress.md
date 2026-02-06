@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 10 — Live Ingestion 🟡
-- **Status:** In progress
+- **Active Phase:** Phase 10 — Live Ingestion ✅
+- **Status:** Complete
 
 ---
 
@@ -293,7 +293,7 @@ Links:
 
 ---
 
-### Phase 9 — LAWA Trend Ingestion 🟡
+### Phase 9 — LAWA Trend Ingestion ✅
 Goal: Add a second LAWA dataset ingestion (water quality trend), proving lifecycle + patterns generalize beyond MBIE electricity and complement Phase 8 “state” data.
 
 Definition of Done:
@@ -343,22 +343,23 @@ Links:
 - PR: [feat(ingestion/lawa-trend): wire multi‑year ingestion with schema + idempotent test](https://github.com/kborn/wai_and_watts/pull/23)
 - PR: [feat(api/lawa-trend): add read service + controller with filters; tests; update progress](https://github.com/kborn/wai_and_watts/pull/24)
 
-### Phase 10 — Live Ingestion 🟡
+### Phase 10 — Live Ingestion ✅
 Goal: Fetch and ingest real datasets end-to-end (not just fixtures).  
 This is a **manual operator-triggered process**. Wai & Watts intentionally does **not** include scheduling, orchestration, or automated polling of data publishers.
 
 Definition of Done:
-- [ ] Live download script exists per dataset family (MBIE, LAWA)
-- [ ] Raw source files can be stored locally or in configured storage path
-- [ ] Dataset release creation supports ingestion from real files
-- [ ] Content hashing works for real source files
-- [ ] Ingestion pipeline runs successfully against real files
-- [ ] Re-running ingestion on same file is idempotent
-- [ ] Re-running ingestion on new file creates new dataset release
-- [ ] Parser logic contains no fixture-only assumptions
-- [ ] Failure modes are documented (schema drift, missing columns, corrupt download)
-- [ ] Manual operator runbook exists
-- [ ] Example real ingestion execution documented in repo
+- [x] Live download script exists per dataset family (MBIE, LAWA)
+- [x] Raw source files are stored on the local filesystem and provided to ingestion via explicit file path
+- [x] Dataset release creation supports ingestion from real files
+- [x] Content hashing works for real source files
+- [x] Ingestion pipeline runs successfully against real files
+- [x] Re-running ingestion on same file is idempotent
+- [x] Re-running ingestion on new file creates new dataset release
+- [x] Parser logic contains no fixture-only assumptions
+- [x] Validate parser compatibility with real-world file variation
+- [x] Failure modes are documented (schema drift, missing columns, corrupt download)
+- [x] Manual operator runbook exists
+- [x] Example real ingestion execution documented in repo
 
 Work Items:
 - [x] Implement local file ingestion foundation
@@ -367,13 +368,12 @@ Work Items:
 - [x] Add findByDatasetReleaseId methods to all repositories
 - [x] Implement MBIE live download script
 - [x] Implement LAWA live download script
-- [ ] Implement dataset release registration for real files
-- [ ] Validate content hashing + deduplication behavior
-- [ ] Validate parser compatibility with real-world file variation
-- [ ] Add manual ingestion CLI entrypoints or scripts
-- [ ] Document manual ingestion workflow
-- [ ] Add example live ingestion execution documentation
-- [ ] Add integration test using real file snapshot (optional)
+- [x] Implement dataset release registration for real files
+- [x] Validate content hashing + deduplication behavior
+- [x] Add manual ingestion CLI entrypoints or scripts
+- [x] Document manual ingestion workflow
+- [x] Add example live ingestion execution documentation
+- [x] Add integration test using real file snapshot (optional)
 
 Notes:
 - Live ingestion must preserve dataset lineage, dataset immutability per release, and idempotent ingestion behavior.
@@ -393,6 +393,7 @@ Links:
 - PR: [feat(cli): add manual ingestion command + wrapper script + tests](https://github.com/kborn/wai_and_watts/pull/27)
 - PR: [feat(ingestion/parsers): harden CSV parsing for required headers, BOM, blank rows, and column order](https://github.com/kborn/wai_and_watts/pull/28)
 - PR: [feat(ingestion): harden real-file idempotency + validation with header-only/truncated checks](https://github.com/kborn/wai_and_watts/pull/29)
+- PR: [- feat(ingestion/transform): add XLSX transformers + real snapshot tests](https://github.com/kborn/wai_and_watts/pull/31)
 
 ### Phase 11 — Insights & LLM Layer (Grounded Explanations)
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
@@ -523,6 +524,7 @@ Complete before marking Wai & Watts “portfolio-ready.”
 - [ ] Add schema migration history summary
 - [ ] Add README pointers to fixtures and test strategy
 - [ ] Write a 1-paragraph “Roadmap Philosophy” ection that explains why this sequencing mirrors real platform evolution (PM suggestion)
+- [ ] Decide on a stable Maven/Java setup for tests (JAVA_HOME vs mockito mock-maker) and document the standard workflow
 
 
 #### General TODOs
