@@ -706,3 +706,61 @@ Implications:
 - Dataset release hashing continues to operate on contract CSV bytes.
 - Transform step is implemented as an explicit CLI/script step; optional wrapper commands may orchestrate transform + ingest but must not introduce new ingestion logic.
 - Raw CSV export may be supported as a secondary input mode but is not considered canonical input.
+
+
+## Operator Execution Model
+
+Date: 2026-02-05
+
+Decision:
+Operator ingestion is CLI-driven and must not require the backend service runtime.
+
+The backend service runtime is required for post-ingestion validation workflows, including API verification and end-to-end platform checks.
+
+Internal ingestion HTTP endpoints are retained for:
+- Dev/test convenience
+- Integration testing
+- Local debugging
+
+Internal endpoints are not part of the operator workflow and must not be documented as such.
+
+Canonical Operator Flow:
+
+download → transform → ingest (CLI) → start service → API validation
+
+
+
+Rationale:
+
+- This model provides:
+  - Deterministic ingestion execution
+  - Offline transform and ingestion capability
+  - Reduced runtime coupling
+  - Simplified CI execution
+  - Clear separation of data plane and service runtime
+  - Cleaner future transition to orchestrated ingestion in later phases
+
+Non-Goals:
+
+Phase 10 does not attempt to:
+
+- Expose ingestion via public APIs
+- Require service runtime for ingestion execution
+- Provide scheduler or orchestration capabilities
+
+
+Architectural Invariant:
+
+Transform is a pure function of publisher artifact → contract CSV.
+
+Network IO, artifact acquisition, scheduling, and service runtime must remain external to transform and ingestion execution.
+
+Future Considerations:
+
+Future phases may introduce:
+
+- Orchestrated ingestion triggers
+- Control-plane APIs
+- Scheduled ingestion workflows
+
+These must preserve CLI execution capability for deterministic and reproducible ingestion.

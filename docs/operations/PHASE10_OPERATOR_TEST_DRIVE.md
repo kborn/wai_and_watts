@@ -36,6 +36,21 @@ By the end of this exercise you should have:
 
     mvn -f backend clean verify
 
+
+------------------------------------------------------------------------
+
+### Backend Service Runtime Requirement
+
+The backend service runtime is **not required** to perform ingestion.
+
+However, the backend service **is required** for:
+- Post-ingestion API validation
+- End-to-end operator verification workflows
+- Exercising read APIs via curl or other clients
+
+Ingestion must remain executable via CLI tooling without requiring the service runtime.
+
+
 ------------------------------------------------------------------------
 
 ### Publisher Artifact Acquisition
@@ -47,14 +62,14 @@ following methods**:
 
 Use project download tooling to fetch publisher artifacts.
 
-Example (conceptual):
+Example:
 
-    ./scripts/download_mbie.sh 2025Q3
-    ./scripts/download_lawa.sh state
+    ./scripts/download/mbie-download.sh
+    ./scripts/download/lawa-download.sh
 
 Output should land in a raw artifact location such as:
 
-    data/raw/<dataset>/<publisher_file>.xlsx
+    ./downloads/<publisher>/<YYYY-MM-DD>/<publisher_file>.xlsx
 
 ------------------------------------------------------------------------
 
@@ -97,8 +112,14 @@ Example:
 
     ./scripts/transform.sh \
       mbie.generation.annual \
-      data/raw/mbie/electricity-sept-2025-q3.xlsx \
+      ./downloads/mbie/2026-02-05/electricity-generation-quarterly-and-annual-data-2025-quarter-3.xlsx \
       /tmp/mbie_annual_contract.csv
+
+Repeat for all datasets:
+- `mbie.generation.annual`
+- `mbie.generation.quarterly`
+- `lawa.water_quality.state.multi_year`
+- `lawa.water_quality.trend.multi_year`
 
 Verify: - Script exits successfully - CSV output exists - File is
 non-empty - Headers match contract schema
@@ -112,7 +133,9 @@ Optional:
 
 ## Phase 3 --- Ingest Contract CSV
 
-Run ingestion using existing manual ingestion workflow.
+Run ingestion using the manual ingestion CLI wrapper:
+
+    ./scripts/ingest.sh mbie.generation.annual /tmp/mbie_annual_contract.csv 2025-09-01 "MBIE Q3 2025 workbook"
 
 Verify: - Dataset release created - Status transitions complete - Rows
 persisted
@@ -121,7 +144,25 @@ persisted
 
 ## Phase 4 --- Query Validation
 
-Validate domain tables contain expected data.
+### Service Runtime Requirement
+
+#### Validate domain tables contain expected data via API or direct DB queries.
+
+The backend service must be running for Phase 4 API validation steps.
+
+Example:
+
+    mvn -f backend spring-boot:run
+or
+    java -jar backend/target/backend.jar
+
+
+Example API calls (after starting the backend server):
+
+    curl "http://localhost:8080/api/v1/mbie/generation"
+    curl "http://localhost:8080/api/v1/mbie/generation/quarterly"
+    curl "http://localhost:8080/api/v1/lawa/state/multiyear"
+    curl "http://localhost:8080/api/v1/lawa/trend/multiyear"
 
 Check: - Row counts match expectation - Sample rows match publisher
 source values - No duplicate records
@@ -256,3 +297,12 @@ Phase 10 intentionally prioritizes: - Deterministic ingestion - Contract
 schema stability - Operator clarity - Real publisher artifact handling
 
 Automation, scheduling, and orchestration are future phases.
+
+### Architectural Invariant
+
+Ingestion is executed via CLI tooling and must not depend on service runtime.
+
+The backend service runtime is required only for:
+- API validation
+- End-to-end verification
+- Operator confidence checks

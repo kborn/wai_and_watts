@@ -6,7 +6,7 @@ It is intentionally simple and repeatable.
 ## Pre-requisites
 - Java + Maven available locally
 - Backend built: `mvn -f backend -DskipTests package`
-- Postgres running and backend config set
+- Postgres running and backend config set (env vars: `DB_URL`, `DB_USER`, `DB_PASSWORD`)
 
 ## Step 1: Download source workbook
 Use the helper scripts:
@@ -24,10 +24,18 @@ Use the transformer to convert the publisher workbook to the contract CSV.
 
 Example:
 ```
-./scripts/transform.sh mbie.generation.annual ./downloads/mbie/2026-02-05/electricity-sept-2025-q3.xlsx /tmp/mbie_generation_annual.csv
+./scripts/transform.sh mbie.generation.annual ./downloads/mbie/2026-02-05/electricity-generation-quarterly-and-annual-data-2025-quarter-3.xlsx /tmp/mbie_generation_annual.csv
 ```
 
-Note: Publisher sheets may include title rows, notes, or footers. The transformer targets the canonical table region; if the workbook layout has extra sections in the same sheet, trim to the table region before saving the snapshot.
+The transformer is contract-first; it produces the canonical CSV required by ingestion.
+
+Dataset codes:
+- `mbie.generation.annual`
+- `mbie.generation.quarterly`
+- `lawa.water_quality.state.multi_year`
+- `lawa.water_quality.trend.multi_year`
+
+Note: MBIE annual + quarterly both come from the MBIE workbook; LAWA state + trend both come from the LAWA workbook.
 
 ## Step 3: Run manual ingestion
 Use the ingestion CLI wrapper:
@@ -63,6 +71,20 @@ Release Label: MBIE Q3 2025 workbook
 SUCCESS
 Release ID: <uuid>
 Rows persisted: <count>
+```
+
+## Step 4: Run the API (optional)
+Start the backend server:
+```
+mvn -pl backend spring-boot:run
+```
+
+Example API calls:
+```
+curl "http://localhost:8080/api/v1/mbie/generation"
+curl "http://localhost:8080/api/v1/mbie/generation/quarterly"
+curl "http://localhost:8080/api/v1/lawa/state/multiyear"
+curl "http://localhost:8080/api/v1/lawa/trend/multiyear"
 ```
 
 ## Troubleshooting

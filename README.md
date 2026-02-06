@@ -37,11 +37,12 @@ Backend source tree has moved under `backend/src/...`:
 
 This project uses structured documentation to support AI-assisted development and future contributors:
 
-- `project-context.md` — project purpose, repo layout, and session recovery guide
-- `progress.md` — current phase, tasks, and Definition of Done
-- `decisions.md` — append-only architectural and sequencing decisions
+- `docs/ai-dev/project-context.md` — project purpose, repo layout, and session recovery guide
+- `docs/ai-dev/progress.md` — current phase, tasks, and Definition of Done
+- `docs/ai-dev/decisions.md` — append-only architectural and sequencing decisions
 - `specs/phase-6-mbie-ingestion.md` — MBIE dataset selection and ingestion rationale
 - `design/mbie-schema.md` — Phase 6 database schema and fixture contract
+- `docs/operations/MANUAL_INGESTION_RUNBOOK.md` — operator workflow (download → transform → ingest)
 
 
 ## Build & Test (local)
@@ -51,8 +52,6 @@ From repository root:
 - Test only: `mvn -f backend clean test`
 
 ## Run (backend)
-
-At this stage (Step 2), there are no controllers, entities, or ingestion code. The goal is only to boot the app and run Flyway V1.
 
 Option A (cd into module):
 - `cd backend`
@@ -67,6 +66,17 @@ Expected on startup:
 
 Config:
 - Postgres via env vars: `DB_URL`, `DB_USER`, `DB_PASSWORD` (defaults provided in `application.yml`).
+
+For manual ingestion, use:
+- `./scripts/transform.sh` (publisher XLSX -> contract CSV)
+- `./scripts/ingest.sh` (contract CSV -> DB)
+
+Ingestion is executed via CLI tooling and must not depend on the service runtime.
+The backend service runtime is required for post-ingestion API validation only.
+
+For operator workflow details, see:
+- `docs/operations/MANUAL_INGESTION_RUNBOOK.md`
+- `docs/operations/PHASE10_OPERATOR_TEST_DRIVE.md`
 
 Note: The legacy `src/` directory at repo root is not built and can be safely deleted outside this environment.
 
