@@ -1,5 +1,7 @@
 # Phase 9 Fixture Generation — LAWA Trend (Multi-Year)
 
+_*Note!  Historical doc. Used to create early fixtures but now not the current ingestion path. Replaced by scripts/transform.sh_
+
 - Dataset Source Code: `lawa.water_quality.trend.multi_year`
 - Workbook: `lawa-river-water-quality-state-and-trend-results_30oct2025.xlsx`
 - Sheet: `Trend`

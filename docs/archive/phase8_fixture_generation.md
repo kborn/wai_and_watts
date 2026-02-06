@@ -1,5 +1,7 @@
 # Phase 8 Fixture Generation — LAWA State (Multi-Year)
 
+_*Note!  Historical doc. Used to create early fixtures but now not the current ingestion path. Replaced by scripts/transform.sh_
+
 - Dataset Source Code: `lawa.water_quality.state.multi_year`
 - Workbook: LAWA River Water Quality State download
 - Sheet: `State Attribute Band`

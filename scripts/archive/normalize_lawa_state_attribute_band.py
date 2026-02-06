@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+------------------------------------------------------------------------------------------------------------------------------
+*Note!  Historical doc. Used to create early fixtures but now not the current ingestion path. Replaced by scripts/transform.sh
+------------------------------------------------------------------------------------------------------------------------------
+"""
+
 """Normalize LAWA 'State Attribute Band' into a deterministic Phase 8 fixture CSV.
 
 Dataset Source Code: lawa.water_quality.state.multi_year

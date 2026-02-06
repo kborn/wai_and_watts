@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+------------------------------------------------------------------------------------------------------------------------------
+*Note!  Historical doc. Used to create early fixtures but now not the current ingestion path. Replaced by scripts/transform.sh
+------------------------------------------------------------------------------------------------------------------------------
+"""
+
 """Normalize LAWA 'Trend' sheet into a deterministic Phase 9 fixture CSV.
 
 Dataset Source Code: lawa.water_quality.trend.multi_year
