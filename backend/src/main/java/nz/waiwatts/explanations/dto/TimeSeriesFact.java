@@ -66,7 +66,7 @@ public class TimeSeriesFact {
     }
 
     public void setPoints(List<DataPoint> points) {
-        this.points = points;
+        this.points = new ArrayList<>(points);
         // Ensure deterministic ordering for stable serialization
         this.points.sort((a, b) -> a.getPeriod().compareTo(b.getPeriod()));
     }
