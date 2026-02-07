@@ -20,7 +20,7 @@ public class StubExplanationProvider implements ExplanationProvider {
 
     @Override
     public Explanation generateExplanation(String question, FactPack factPack) {
-        String questionType = factPack.getRequestContext().getQuestionType();
+        String questionType = question;
         
         // Check if question type is supported
         if (factPack.getGuardrails().getAllowedClaims().isEmpty()) {
@@ -36,7 +36,6 @@ public class StubExplanationProvider implements ExplanationProvider {
         return generateDeterministicExplanation(questionType, factPack);
     }
 
-    @Override
     public boolean validateCitations(Explanation explanation, FactPack factPack) {
         List<String> requiredCitations = factPack.getGuardrails().getRequiredCitations();
         List<String> actualCitations = explanation.getCitations();
