@@ -408,19 +408,19 @@ Definition of Done:
 - [ ] Refusal behavior documented and tested at least once (e.g., unsupported question)
 - [ ] `Insights.md` exists with 3–5 grounded findings:
   - at least 2 MBIE (annual/quarterly)
-  - at least 1 LAWA
+  - at least 2 LAWA (state/trend)
   - each insight links to the query/fact pack used
 - [ ] No autonomous agents committing code; human-in-the-loop remains enforced
 
 Work Items:
-- [ ] Record Phase 9 decision brief in decisions.md (fact pack contract + grounding + refusal posture)
+- [ ] Record Phase 11 decision brief in decisions.md (fact pack contract + grounding + refusal posture)
 - [ ] Implement fact pack builders per dataset (MBIE annual, MBIE quarterly, LAWA)
 - [ ] Implement explanation service (pluggable LLM provider)
 - [ ] Add minimal tests for:
   - fact pack correctness (query returns expected fields)
   - explanation output includes citations/field references
 - [ ] Write `Insights.md` with grounded tables/charts (static ok)
-- [ ] Update `docs/ai-dev/ai_usage.md` with Phase 9 practices and examples
+- [ ] Update `docs/ai-dev/ai_usage.md` with Phase 11 practices and examples
 
 Notes:
 - Explanations must be tied to persisted DB rows and explicit fact pack fields.
