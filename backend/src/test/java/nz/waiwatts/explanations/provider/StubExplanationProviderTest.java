@@ -43,7 +43,7 @@ class StubExplanationProviderTest {
         
         // Citation should contain the time series ID
         assertTrue(explanation.getCitations().getFirst().contains("ts:mbie:renewable_generation_gwh:2018_2024"));
-        
+
         // Validate citations passes
         assertTrue(provider.validateCitations(explanation, factPack));
     }
@@ -117,7 +117,7 @@ class StubExplanationProviderTest {
             new TimeSeriesFact.DataPoint("2018", new BigDecimal("40000")),
             new TimeSeriesFact.DataPoint("2024", new BigDecimal("45000"))
         )));
-        
+
         factPack.getFacts().getTimeSeries().add(timeSeries);
         
         // Set guardrails
