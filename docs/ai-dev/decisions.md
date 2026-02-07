@@ -4,6 +4,26 @@ Append-only record of why irreversible choices were made.
 
 ---
 
+### Phase 11 Fact Pack Contract
+Date: 2025-02-07
+
+Decision: Fact Pack is the only interface to LLM providers; no direct database access or hallucination risks.
+
+Rationale:
+- Fact Pack enforces deterministic data boundaries
+- LLM cannot hallucinate since only receives structured facts
+- Citations are tied to persisted database rows
+- Prevents ungrounded responses and data leakage
+
+Implications:
+- LLM providers receive only validated Fact Pack objects
+- No direct repository access from explanation providers
+- Citation validation occurs before returning responses
+- Refusal behavior enforced at service layer
+- All data must pass through Fact Pack serialization and provenance tracking
+
+---
+
 ## Decision Entry Format (Required)
 
 ### [Title]

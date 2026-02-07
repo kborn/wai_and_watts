@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 10 — Live Ingestion ✅
+- **Active Phase:** Phase 11 — Insights & LLM Layer (Grounded Explanations) ✅
 - **Status:** Complete
 
 ---
@@ -395,32 +395,32 @@ Links:
 - PR: [feat(ingestion): harden real-file idempotency + validation with header-only/truncated checks](https://github.com/kborn/wai_and_watts/pull/29)
 - PR: [- feat(ingestion/transform): add XLSX transformers + real snapshot tests](https://github.com/kborn/wai_and_watts/pull/31)
 
-### Phase 11 — Insights & LLM Layer (Grounded Explanations)
+### Phase 11 — Insights & LLM Layer (Grounded Explanations) ✅
 Goal: Produce grounded, non-hallucinatory explanations over persisted facts (MBIE annual + quarterly + LAWA) and publish a small set of curated insights.
 
 Definition of Done:
-- [ ] `design/fact-pack-contract.md` exists (fact pack schema + provenance rules)
-- [ ] Grounding rules documented (no guessing, no forecasting, cite fact pack fields)
-- [ ] Explanation endpoint(s) implemented that:
+- [x] `design/fact-pack-contract.md` exists (fact pack schema + provenance rules)
+- [x] Grounding rules documented (no guessing, no forecasting, cite fact pack fields)
+- [x] Explanation endpoint(s) implemented that:
   - build fact packs from DB queries
   - call the LLM with fact-pack-first prompting
   - return explanation + citations to fact pack fields
-- [ ] Refusal behavior documented and tested at least once (e.g., unsupported question)
-- [ ] `Insights.md` exists with 3–5 grounded findings:
+- [x] Refusal behavior documented and tested at least once (e.g., unsupported question)
+- [x] `Insights.md` exists with 3–5 grounded findings:
   - at least 2 MBIE (annual/quarterly)
   - at least 2 LAWA (state/trend)
   - each insight links to the query/fact pack used
-- [ ] No autonomous agents committing code; human-in-the-loop remains enforced
+- [x] No autonomous agents committing code; human-in-the-loop remains enforced
 
 Work Items:
-- [ ] Record Phase 11 decision brief in decisions.md (fact pack contract + grounding + refusal posture)
-- [ ] Implement fact pack builders per dataset (MBIE annual, MBIE quarterly, LAWA)
-- [ ] Implement explanation service (pluggable LLM provider)
-- [ ] Add minimal tests for:
+- [x] Record Phase 11 decision brief in decisions.md (fact pack contract + grounding + refusal posture)
+- [x] Implement fact pack builders per dataset (MBIE annual, MBIE quarterly, LAWA)
+- [x] Implement explanation service (pluggable LLM provider)
+- [x] Add minimal tests for:
   - fact pack correctness (query returns expected fields)
   - explanation output includes citations/field references
-- [ ] Write `Insights.md` with grounded tables/charts (static ok)
-- [ ] Update `docs/ai-dev/ai_usage.md` with Phase 11 practices and examples
+- [x] Write `Insights.md` with grounded tables/charts (static ok)
+- [x] Update `docs/ai-dev/ai_usage.md` with Phase 11 practices and examples
 
 Notes:
 - Explanations must be tied to persisted DB rows and explicit fact pack fields.
