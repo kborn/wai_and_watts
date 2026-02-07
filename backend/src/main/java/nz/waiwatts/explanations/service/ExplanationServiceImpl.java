@@ -28,32 +28,32 @@ public class ExplanationServiceImpl implements ExplanationService {
         try {
             // Select appropriate Fact Pack Builder
             FactPackBuilder builder = selectFactPackBuilder(request);
-            
+
             if (builder == null) {
                 return Explanation.refusal("No data source available for this request");
             }
-            
+
             // Generate Fact Pack
             FactPack factPack = builder.buildFactPack(request);
-            
+
             // Handle null FactPack from builder
             if (factPack == null) {
                 return Explanation.refusal("No data source available for this request");
             }
-            
+
             // Generate explanation using provider (question derived from questionType)
             Explanation explanation = explanationProvider.generateExplanation(request.getQuestionType(), factPack);
-            
+
             // Handle null explanation from provider
             if (explanation == null) {
                 return Explanation.refusal("Provider returned null");
             }
-            
+
             // Validate citations
             if (!explanation.isRefusal() && !explanationProvider.validateCitations(explanation, factPack)) {
                 return Explanation.refusal("Generated explanation missing required citations");
             }
-            
+
             return explanation;
         } catch (Exception e) {
             return Explanation.refusal("No data source available for this request");
