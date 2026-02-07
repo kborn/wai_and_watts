@@ -2,8 +2,9 @@ package nz.waiwatts.explanations.provider;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
-import org.springframework.stereotype.Component;
+import nz.waiwatts.explanations.dto.MetricFact;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -13,7 +14,6 @@ import java.util.List;
  * without calling a real LLM. This allows testing the architecture, grounding, citations, 
  * and refusal behavior in Phase 11.
  */
-@Component
 public class StubExplanationProvider implements ExplanationProvider {
 
     @Override
@@ -73,12 +73,12 @@ public class StubExplanationProvider implements ExplanationProvider {
         explanation.append("Based on the available data, renewable electricity generation has shown ");
         
         if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-            var timeSeries = factPack.getFacts().getTimeSeries().get(0);
+            var timeSeries = factPack.getFacts().getTimeSeries().getFirst();
             var points = timeSeries.getPoints();
             
             if (points.size() >= 2) {
-                var first = points.get(0);
-                var last = points.get(points.size() - 1);
+                var first = points.getFirst();
+                var last = points.getLast();
                 
                 if (last.getValue().compareTo(first.getValue()) > 0) {
                     explanation.append("an overall increasing trend ");
@@ -115,7 +115,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         
         // Check if we have comparison data
         if (!factPack.getFacts().getComparisons().isEmpty()) {
-            var comparison = factPack.getFacts().getComparisons().get(0);
+            var comparison = factPack.getFacts().getComparisons().getFirst();
             explanation.append("a change of ")
                 .append(comparison.getDeltaAbsolute())
                 .append(" GWh (")
@@ -134,7 +134,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         
         // Fall back to time series if no comparison
         if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-            var timeSeries = factPack.getFacts().getTimeSeries().get(0);
+            var timeSeries = factPack.getFacts().getTimeSeries().getFirst();
             explanation.append("the generation pattern over the available period.");
             
             return new Explanation(
@@ -155,7 +155,7 @@ public class StubExplanationProvider implements ExplanationProvider {
             
             // Find the fuel type with highest generation
             var maxMetric = metrics.stream()
-                .max((a, b) -> a.getValue().compareTo(b.getValue()));
+                .max(Comparator.comparing(MetricFact::getValue));
                 
             if (maxMetric.isPresent()) {
                 var top = maxMetric.get();

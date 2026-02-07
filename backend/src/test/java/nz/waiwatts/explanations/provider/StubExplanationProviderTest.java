@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ class StubExplanationProviderTest {
         assertFalse(explanation.getCitations().isEmpty());
         
         // Citation should contain the time series ID
-        assertTrue(explanation.getCitations().get(0).contains("ts:mbie:renewable_generation_gwh:2018_2024"));
+        assertTrue(explanation.getCitations().getFirst().contains("ts:mbie:renewable_generation_gwh:2018_2024"));
         
         // Validate citations passes
         assertTrue(provider.validateCitations(explanation, factPack));
@@ -112,10 +113,10 @@ class StubExplanationProviderTest {
         );
         
         // Add data points
-        timeSeries.setPoints(List.of(
+        timeSeries.setPoints(new ArrayList<>(List.of(
             new TimeSeriesFact.DataPoint("2018", new BigDecimal("40000")),
             new TimeSeriesFact.DataPoint("2024", new BigDecimal("45000"))
-        ));
+        )));
         
         factPack.getFacts().getTimeSeries().add(timeSeries);
         
