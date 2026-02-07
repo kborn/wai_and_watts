@@ -27,7 +27,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         // Set request context
         FactPack.RequestContext requestContext = new FactPack.RequestContext();
         requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(Arrays.asList("mbie.generation.annual"));
+        requestContext.setDatasetScope(List.of("mbie.generation.annual"));
         requestContext.setFiltersApplied(request.getFilters());
         factPack.setRequestContext(requestContext);
 
@@ -47,7 +47,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                 source.setDatasetSourceCode("mbie.generation.annual");
                 source.setDatasetReleaseId(releaseId.toString());
                 // Get content hash from DatasetRelease
-                source.setContentHash(records.get(0).getDatasetRelease().getContentHash());
+                source.setContentHash(records.getFirst().getDatasetRelease().getContentHash());
                 source.setPeriodCoverage(getPeriodCoverage(records));
                 sources.add(source);
             }
@@ -113,21 +113,24 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                     Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
 
-        // Create time series fact
-        TimeSeriesFact timeSeries = new TimeSeriesFact(
-            "ts:mbie:renewable_generation_gwh:2010_2024",
-            "renewable_generation_gwh",
-            "GWh",
-            Map.of("scope", "NZ")
-        );
+        // Only create time series if we have data
+        if (!yearlyRenewableTotals.isEmpty()) {
+            // Create time series fact
+            TimeSeriesFact timeSeries = new TimeSeriesFact(
+                "ts:mbie:renewable_generation_gwh:2010_2024",
+                "renewable_generation_gwh",
+                "GWh",
+                Map.of("scope", "NZ")
+            );
 
-        List<TimeSeriesFact.DataPoint> points = yearlyRenewableTotals.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
-            .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey().toString(), entry.getValue()))
-            .collect(Collectors.toList());
+            List<TimeSeriesFact.DataPoint> points = yearlyRenewableTotals.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey().toString(), entry.getValue()))
+                .collect(Collectors.toList());
 
-        timeSeries.setPoints(points);
-        factPack.getFacts().getTimeSeries().add(timeSeries);
+            timeSeries.setPoints(points);
+            factPack.getFacts().getTimeSeries().add(timeSeries);
+        }
     }
 
     private void buildHydroGenerationTrendFacts(FactPack factPack, List<MbieGenerationAnnualRecord> records) {
@@ -140,29 +143,32 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                     Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
             ));
 
-        // Create time series fact
-        TimeSeriesFact timeSeries = new TimeSeriesFact(
-            "ts:mbie:hydro_generation_gwh:2010_2024",
-            "hydro_generation_gwh",
-            "GWh",
-            Map.of("scope", "NZ", "fuel_type", "HYDRO")
-        );
+        // Only create time series if we have data
+        if (!yearlyHydroTotals.isEmpty()) {
+            // Create time series fact
+            TimeSeriesFact timeSeries = new TimeSeriesFact(
+                "ts:mbie:hydro_generation_gwh:2010_2024",
+                "hydro_generation_gwh",
+                "GWh",
+                Map.of("scope", "NZ", "fuel_type", "HYDRO")
+            );
 
-        List<TimeSeriesFact.DataPoint> points = yearlyHydroTotals.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
-            .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey().toString(), entry.getValue()))
-            .collect(Collectors.toList());
+            List<TimeSeriesFact.DataPoint> points = yearlyHydroTotals.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey().toString(), entry.getValue()))
+                .collect(Collectors.toList());
 
-        timeSeries.setPoints(points);
-        factPack.getFacts().getTimeSeries().add(timeSeries);
+            timeSeries.setPoints(points);
+            factPack.getFacts().getTimeSeries().add(timeSeries);
+        }
 
         // Add comparison between most recent and previous year if we have data
         List<Integer> years = yearlyHydroTotals.keySet().stream()
             .sorted()
-            .collect(Collectors.toList());
+            .toList();
         
         if (years.size() >= 2) {
-            int latestYear = years.get(years.size() - 1);
+            int latestYear = years.getLast();
             int previousYear = years.get(years.size() - 2);
             
             BigDecimal latestValue = yearlyHydroTotals.get(latestYear);
@@ -252,7 +258,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_increase", "trend_decrease", "trend_summary"));
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation"));
                 if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(Arrays.asList(factPack.getFacts().getTimeSeries().get(0).getId()));
+                    factPack.getGuardrails().setRequiredCitations(Collections.singletonList(factPack.getFacts().getTimeSeries().getFirst().getId()));
                 }
                 break;
             case "fuel_type_comparison":

@@ -6,6 +6,7 @@ import nz.waiwatts.domain.datasets.ReleaseStatus;
 import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.dto.MetricFact;
 import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -61,6 +63,8 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
 
         FactPack factPack1 = builder.buildFactPack(request);
         FactPack factPack2 = builder.buildFactPack(request);
+
+        
 
         // Both should be empty but structured identically
         assertTrue(factPack1.getFacts().getTimeSeries().isEmpty());
@@ -110,10 +114,10 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
         
         // Sort both by ID for comparison (since builder should sort them deterministically)
         var sorted1 = factPack1.getFacts().getMetrics().stream()
-            .sorted((a, b) -> a.getId().compareTo(b.getId()))
+            .sorted(Comparator.comparing(MetricFact::getId))
             .toList();
         var sorted2 = factPack2.getFacts().getMetrics().stream()
-            .sorted((a, b) -> a.getId().compareTo(b.getId()))
+            .sorted(Comparator.comparing(MetricFact::getId))
             .toList();
 
         for (int i = 0; i < sorted1.size(); i++) {
@@ -151,8 +155,8 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
         assertEquals(1, factPack2.getFacts().getComparisons().size());
 
         // Time series should be identical
-        var ts1 = factPack1.getFacts().getTimeSeries().get(0);
-        var ts2 = factPack2.getFacts().getTimeSeries().get(0);
+        var ts1 = factPack1.getFacts().getTimeSeries().getFirst();
+        var ts2 = factPack2.getFacts().getTimeSeries().getFirst();
         assertEquals(ts1.getId(), ts2.getId());
         assertEquals(ts1.getPoints().size(), ts2.getPoints().size());
 
@@ -163,8 +167,8 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
         }
 
         // Comparison facts should be identical (should compare 2023 vs 2022)
-        var comp1 = factPack1.getFacts().getComparisons().get(0);
-        var comp2 = factPack2.getFacts().getComparisons().get(0);
+        var comp1 = factPack1.getFacts().getComparisons().getFirst();
+        var comp2 = factPack2.getFacts().getComparisons().getFirst();
         assertEquals(comp1.getId(), comp2.getId());
         assertEquals(comp1.getDeltaAbsolute(), comp2.getDeltaAbsolute());
         assertEquals(comp1.getDeltaPercent(), comp2.getDeltaPercent());
@@ -216,7 +220,7 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
         assertNotNull(factPack.getProvenance().getDatasetSources());
         assertEquals(1, factPack.getProvenance().getDatasetSources().size());
 
-        var provenance = factPack.getProvenance().getDatasetSources().get(0);
+        var provenance = factPack.getProvenance().getDatasetSources().getFirst();
         assertEquals("mbie.generation.annual", provenance.getDatasetSourceCode());
         assertEquals(datasetRelease.getId().toString(), provenance.getDatasetReleaseId());
         assertEquals("sha256:test456", provenance.getContentHash());
