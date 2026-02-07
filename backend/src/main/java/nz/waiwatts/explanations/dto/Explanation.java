@@ -1,16 +1,19 @@
 package nz.waiwatts.explanations.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * Explanation response from the LLM provider.
+ * Explanation response from LLM provider.
  * 
  * Includes stable citations to Fact Pack facts and refusal handling.
  */
 public class Explanation {
     private String explanationText;
     private List<String> citations;
+    @JsonProperty("isRefusal")
     private boolean isRefusal;
+    @JsonProperty("refusalReason")
     private String refusalReason;
 
     public Explanation() {}
