@@ -38,7 +38,33 @@ Constraints:
 - Read `decisions.md` → understand non-negotiables and rationale
 - Confirm the next action with the human before expanding scope
 
+---
+
 ## Maintenance workflow for Builder GPT
 - After completing a task:
   - Update `progress.md` (status, brief notes, links to commits/PRs)
   - Append any new decisions to `decisions.md` (append-only, with rationale)
+
+---
+
+## Phase 11 Addition --- Fact Pack LLM Boundary
+
+### Fact Pack Requirement
+
+All LLM interactions must operate exclusively on Fact Pack inputs.
+
+LLMs must not: - Query the database - Access domain entities - Access
+raw publisher artifacts - Compute new metrics not present in Fact Pack
+inputs
+
+### Philosophy Reinforcement
+
+This maintains Wai & Watts' core AI principle:
+
+AI accelerates execution, but humans retain architectural and data
+authority.
+
+### Testing Expectation
+
+LLM behavior must be testable via deterministic Fact Pack inputs and
+expected citation outputs.

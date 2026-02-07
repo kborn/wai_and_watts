@@ -764,3 +764,32 @@ Future phases may introduce:
 - Scheduled ingestion workflows
 
 These must preserve CLI execution capability for deterministic and reproducible ingestion.
+
+### Fact Pack Is The Exclusive LLM Data Boundary
+
+Date: 2026-02-06
+
+Decision:
+Fact Packs are the mandatory and exclusive boundary between Wai & Watts domain data and any LLM interaction. All LLM-driven explanation generation must operate solely on Fact Pack inputs.
+
+LLMs are prohibited from:
+- Accessing database entities or queries
+- Accessing raw publisher artifacts
+- Inferring or fabricating missing factual data
+- Using external knowledge for factual claims
+
+Rationale:
+- Prevent hallucination via architecture rather than prompt design
+- Preserve deterministic explanation inputs and reproducibility
+- Maintain dataset lineage and provenance traceability
+- Ensure explanations remain testable and auditable
+- Enable provider-agnostic LLM integration without leaking domain or persistence concerns
+
+Implications:
+- Fact Pack builders are required per dataset
+- Explanation services must never embed DB queries or domain logic
+- Derived metrics must be computed deterministically inside Fact Pack builders
+- LLM outputs must cite Fact Pack fields or IDs
+- Refusal behavior is considered correct system behavior
+- New explanation capabilities must extend Fact Pack schema rather than bypassing it
+- Fact Pack schema versioning must be maintained for compatibility and test stability
