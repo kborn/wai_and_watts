@@ -427,8 +427,80 @@ Notes:
 - The LLM explains; the database remains source of truth.
 
 ---
+## Phase 12 — Natural Language Query Interface + Thin Frontend
 
-### Phase 12 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
+### Goal
+Add natural language question support while maintaining all fact-pack grounding guarantees, and expose this through a minimal but production-realistic frontend.
+
+This phase introduces **intent parsing only**. It does NOT change fact pack construction, data lineage, or explanation safety architecture.
+
+---
+
+### Definition of Done
+
+- [ ] Natural language endpoint exists: `POST /api/v1/explanations/ask`
+- [ ] Intent parsing maps natural language → structured ExplanationRequest
+- [ ] Parsed intent is validated against supported `question_type` enum
+- [ ] Invalid or ambiguous intents trigger deterministic refusal
+- [ ] Structured endpoint (`POST /api/v1/explanations`) remains supported and unchanged
+- [ ] Integration test: NL → intent → fact pack → explanation
+- [ ] Refusal test: unsupported NL question → explicit refusal
+- [ ] Minimal frontend exists:
+  - Text input for NL queries
+  - Example questions (click to populate input)
+  - Explanation + citation rendering
+  - Optional debug display of parsed intent
+
+---
+
+### Work Items
+
+- [ ] Implement IntentParserService (LLM structured output or function calling)
+- [ ] Add NL endpoint routing to existing explanation pipeline
+- [ ] Add validation layer for parsed intents (question type + filters)
+- [ ] Add logging of raw question + parsed intent for audit/debug
+- [ ] Test with “minimal ship” question subset
+- [ ] Document NL parsing contract (design doc optional)
+
+---
+
+### Guardrails
+
+- Natural language layer may ONLY output:
+  - questionType
+  - datasetSource(s)
+  - filters
+- Natural language layer may NOT:
+  - Generate facts
+  - Access database
+  - Bypass fact pack builders
+  - Bypass refusal model
+
+---
+
+### Non-Goals
+
+- Conversational chat
+- Multi-turn reasoning
+- Forecasting or causal inference
+- Client-side intent parsing
+
+---
+
+### Architecture Reminder
+
+```
+User NL Question
+ → Intent Parser (LLM - routing only)
+ → Structured Explanation Request
+ → Fact Pack Builder (DB + deterministic computation)
+ → Explanation Provider (Stub or LLM renderer)
+ → Explanation + Citations
+```
+
+
+
+### Phase 13 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
 Goal: Provide a thin UI for demo and interviews without shifting business logic into the frontend.
 
 Definition of Done:
@@ -449,7 +521,7 @@ Notes:
 - Frontend is for demoability, not product completeness.
 ---
 
-### Phase 13 — Polish & Presentation (Portfolio-Ready)
+### Phase 14 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 
 Definition of Done:

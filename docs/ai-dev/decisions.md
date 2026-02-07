@@ -813,3 +813,52 @@ Implications:
 - Refusal behavior is considered correct system behavior
 - New explanation capabilities must extend Fact Pack schema rather than bypassing it
 - Fact Pack schema versioning must be maintained for compatibility and test stability
+
+---
+
+## Decision: Natural Language Intent Parsing Boundary
+
+Date: 2026-02-07
+
+### Context
+To improve usability and discoverability of supported explanation capabilities, the system introduces a natural language query interface that maps user questions to structured explanation requests.
+
+### Decision
+Natural language LLM usage is restricted to **intent parsing only**.
+
+The intent parser may:
+- Convert natural language → structured ExplanationRequest
+- Extract question type, dataset scope, and filters
+
+The intent parser may NOT:
+- Generate facts or metrics
+- Access database or domain entities
+- Perform reasoning about dataset values
+- Bypass fact pack construction
+- Bypass explanation validation or refusal logic
+
+All parsed intents MUST be validated against supported question types and filter schemas before entering the explanation pipeline.
+
+The structured explanation endpoint is the canonical system interface and source of truth for explanation execution. It exists to support deterministic testing, internal consumers, automation workflows, and operational fallback scenarios.
+
+The natural language endpoint is a user convenience layer that translates unstructured questions into validated structured explanation requests.
+
+Both endpoints are intentionally permanent to enforce separation of concerns between intent parsing and grounded explanation generation, and to maintain system debuggability and operational resilience.
+
+
+### Rationale
+- Preserves fact-pack safety architecture
+- Prevents hallucinated or inferred facts
+- Maintains deterministic explanation inputs
+- Enables modern natural language UX without sacrificing system guarantees
+
+### Implications
+- Structured explanation endpoint remains permanent and supported
+- Natural language endpoint is additive, not replacement
+- Intent parsing failures must default to refusal, not guesswork
+- Raw user question and parsed intent should be logged for auditability
+
+### Future Considerations
+- Confidence scoring may be introduced
+- UI may optionally expose parsed intent for transparency
+- Provider abstraction should remain intact for future LLM vendor flexibility
