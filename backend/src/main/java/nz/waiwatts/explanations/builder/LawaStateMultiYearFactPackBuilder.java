@@ -1,0 +1,470 @@
+package nz.waiwatts.explanations.builder;
+
+import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
+import nz.waiwatts.explanations.dto.*;
+import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * Fact Pack Builder for LAWA State Multi-Year data
+ */
+public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
+
+    private final LawaStateMultiYearRecordRepository repository;
+
+    // Centralized excellent state bands for LAWA water quality
+    private static final Set<String> EXCELLENT_BANDS = Set.of("A");
+    private static final Set<String> POOR_BANDS = Set.of("D", "E");
+
+    public LawaStateMultiYearFactPackBuilder(LawaStateMultiYearRecordRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public FactPack buildFactPack(ExplanationRequest request) {
+        FactPack factPack = new FactPack();
+        
+        // Set request context
+        FactPack.RequestContext requestContext = new FactPack.RequestContext();
+        requestContext.setQuestionType(request.getQuestionType());
+        requestContext.setDatasetScope(List.of("lawa.water_quality.state.multi_year"));
+        requestContext.setFiltersApplied(request.getFilters());
+        factPack.setRequestContext(requestContext);
+
+        // Build provenance
+        FactPack.Provenance provenance = new FactPack.Provenance();
+        List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
+
+        // Get records for facts and derive provenance from them (Phase 11 acceptable)
+        List<LawaStateMultiYearRecord> records = getRecordsForRequest(request);
+        if (!records.isEmpty()) {
+            // Group by dataset release to ensure correct contentHash and per-release coverage
+            // Use a stable string key: prefer UUID string, else contentHash, else "unknown"
+            Map<String, List<LawaStateMultiYearRecord>> byReleaseKey = records.stream()
+                .filter(r -> r.getDatasetRelease() != null)
+                .collect(Collectors.groupingBy(r -> {
+                    var rel = r.getDatasetRelease();
+                    if (rel.getId() != null) return rel.getId().toString();
+                    if (rel.getContentHash() != null && !rel.getContentHash().isBlank()) return "hash:" + rel.getContentHash();
+                    return "unknown";
+                }));
+
+            byReleaseKey.entrySet().stream()
+                // Deterministic ordering by key for stability
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    String releaseKey = entry.getKey();
+                    List<LawaStateMultiYearRecord> group = entry.getValue();
+                    FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
+                    source.setDatasetSourceCode("lawa.water_quality.state.multi_year");
+                    source.setDatasetReleaseId(releaseKey);
+                    // contentHash from this release specifically if present
+                    if (!group.isEmpty()
+                        && group.getFirst().getDatasetRelease() != null
+                        && group.getFirst().getDatasetRelease().getContentHash() != null) {
+                        source.setContentHash(group.getFirst().getDatasetRelease().getContentHash());
+                    }
+                    // periodCoverage computed for this release's records only
+                    source.setPeriodCoverage(getPeriodCoverage(group));
+                    sources.add(source);
+                });
+        }
+        // Always set a (possibly empty) list to avoid nulls upstream
+        provenance.setDatasetSources(sources);
+        factPack.setProvenance(provenance);
+
+        // Build facts based on question type
+        buildFacts(factPack, request, records);
+
+        // Set guardrails based on question type
+        setGuardrails(factPack, request);
+
+        return factPack;
+    }
+
+    @Override
+    public boolean canHandle(ExplanationRequest request) {
+        Map<String, Object> filters = request.getFilters();
+        if (filters == null) return false;
+        Object ds = filters.get("datasetSource");
+        return "lawa.water_quality.state.multi_year".equals(String.valueOf(ds));
+    }
+
+    @Override
+    public String getSupportedDatasetSourceCode() {
+        return "lawa.water_quality.state.multi_year";
+    }
+
+    private List<LawaStateMultiYearRecord> getRecordsForRequest(ExplanationRequest request) {
+        // Phase 11: apply basic in-memory filtering for determinism without expanding repo surface
+        List<LawaStateMultiYearRecord> all = repository.findAll();
+
+        Map<String, Object> filters = request != null ? request.getFilters() : null;
+        if (filters == null || filters.isEmpty()) {
+            return all;
+        }
+
+        Integer startYear = null;
+        Integer endYear = null;
+        try {
+            Object s = filters.get("startYear");
+            Object e = filters.get("endYear");
+            if (s != null) startYear = Integer.parseInt(s.toString());
+            if (e != null) endYear = Integer.parseInt(e.toString());
+        } catch (NumberFormatException ignore) {
+            // Leave bounds null; service-level validation already handles bad inputs
+        }
+
+        String indicatorFilter = null;
+        Object indObj = filters.get("indicator");
+        if (indObj instanceof String str && !str.isBlank()) {
+            indicatorFilter = str.trim().toUpperCase();
+        }
+
+        String regionFilter = null;
+        Object regObj = filters.get("region");
+        if (regObj instanceof String str && !str.isBlank()) {
+            regionFilter = str.trim();
+        }
+
+        final Integer fStart = startYear;
+        final Integer fEnd = endYear;
+        final String fIndicator = indicatorFilter;
+        final String fRegion = regionFilter;
+
+        return all.stream()
+            .filter(r -> fStart == null || r.getPeriodEndYear() >= fStart)
+            .filter(r -> fEnd == null || r.getPeriodStartYear() <= fEnd)
+            .filter(r -> fIndicator == null || fRegion == null || 
+                      (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(fIndicator)))
+            .filter(r -> fRegion == null || (r.getRegion() != null && r.getRegion().equalsIgnoreCase(fRegion)))
+            .toList();
+    }
+
+    private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaStateMultiYearRecord> records) {
+        String questionType = request.getQuestionType();
+        
+        switch (questionType) {
+            case "water_quality_overview":
+                buildWaterQualityOverviewFacts(factPack, records);
+                break;
+            case "excellent_sites_trend":
+                buildExcellentSitesTrendFacts(factPack, records);
+                break;
+            case "regional_water_quality":
+                buildRegionalWaterQualityFacts(factPack, records);
+                break;
+            default:
+                // Build basic facts for unsupported question types (will result in refusal)
+                buildBasicFacts(factPack, records);
+                break;
+        }
+    }
+
+    private void buildWaterQualityOverviewFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
+        // Overall water quality distribution across all sites and indicators
+        Map<String, Long> stateDistribution = records.stream()
+            .collect(Collectors.groupingBy(
+                LawaStateMultiYearRecord::getStateNorm,
+                Collectors.counting()
+            ));
+
+        // Create classification facts for water quality states
+        stateDistribution.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey()) // deterministic ordering
+            .forEach(entry -> {
+                String state = entry.getKey();
+
+                ClassificationFact classification = new ClassificationFact(
+                    "class:lawa:water_quality_state:" + state,
+                    "water_quality_state",
+                    "water_quality_state",
+                    state,
+                    null, // periodStartYear
+                    null, // periodEndYear
+                    Map.of("scope", "NZ", "dataset", "state_multi_year")
+                );
+                factPack.getFacts().getClassifications().add(classification);
+            });
+
+        // Calculate percentage of excellent vs poor sites
+        long totalSites = records.stream()
+            .map(LawaStateMultiYearRecord::getLawaSiteId)
+            .distinct()
+            .count();
+
+        long excellentSites = records.stream()
+            .filter(r -> EXCELLENT_BANDS.contains(r.getAttributeBand()))
+            .map(LawaStateMultiYearRecord::getLawaSiteId)
+            .distinct()
+            .count();
+
+        long poorSites = records.stream()
+            .filter(r -> POOR_BANDS.contains(r.getAttributeBand()))
+            .map(LawaStateMultiYearRecord::getLawaSiteId)
+            .distinct()
+            .count();
+
+        if (totalSites > 0) {
+            BigDecimal excellentPercent = new BigDecimal(excellentSites)
+                .multiply(new BigDecimal("100"))
+                .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+
+            BigDecimal poorPercent = new BigDecimal(poorSites)
+                .multiply(new BigDecimal("100"))
+                .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+
+            MetricFact excellentMetric = new MetricFact(
+                "metric:lawa:excellent_sites_percentage",
+                "excellent_sites_percentage",
+                excellentPercent,
+                "%",
+                "current_period",
+                Map.of("scope", "NZ", "quality_band", "excellent")
+            );
+
+            MetricFact poorMetric = new MetricFact(
+                "metric:lawa:poor_sites_percentage",
+                "poor_sites_percentage",
+                poorPercent,
+                "%",
+                "current_period",
+                Map.of("scope", "NZ", "quality_band", "poor")
+            );
+
+            factPack.getFacts().getMetrics().add(excellentMetric);
+            factPack.getFacts().getMetrics().add(poorMetric);
+        }
+    }
+
+    private void buildExcellentSitesTrendFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
+        // Track excellent sites over time periods
+        Map<Integer, Long> excellentSitesByEndYear = records.stream()
+            .filter(r -> EXCELLENT_BANDS.contains(r.getAttributeBand()))
+            .collect(Collectors.groupingBy(
+                LawaStateMultiYearRecord::getPeriodEndYear,
+                Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
+            ));
+
+        if (!excellentSitesByEndYear.isEmpty()) {
+            List<Integer> years = excellentSitesByEndYear.keySet().stream()
+                .sorted()
+                .toList();
+            
+            String coverage = !years.isEmpty() ? years.getFirst() + "_to_" + years.getLast() : "all_time";
+
+            TimeSeriesFact timeSeries = new TimeSeriesFact(
+                "ts:lawa:excellent_sites_count:" + coverage,
+                "excellent_sites_count",
+                "sites",
+                Map.of("scope", "NZ", "quality_band", "excellent")
+            );
+
+            List<TimeSeriesFact.DataPoint> points = years.stream()
+                .sorted()
+                .map(year -> new TimeSeriesFact.DataPoint(
+                    year.toString(), 
+                    new BigDecimal(excellentSitesByEndYear.get(year))
+                ))
+                .collect(Collectors.toList());
+
+            timeSeries.setPoints(points);
+            factPack.getFacts().getTimeSeries().add(timeSeries);
+
+            // Add comparison between most recent and previous period if we have data
+            if (years.size() >= 2) {
+                int latestYear = years.getLast();
+                int previousYear = years.get(years.size() - 2);
+                
+                Long latestCount = excellentSitesByEndYear.get(latestYear);
+                Long previousCount = excellentSitesByEndYear.get(previousYear);
+                
+                if (previousCount > 0) {
+                    BigDecimal delta = new BigDecimal(latestCount - previousCount);
+                    BigDecimal deltaPercent = delta
+                        .divide(new BigDecimal(previousCount), 4, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal("100"))
+                        .setScale(2, RoundingMode.HALF_UP);
+
+                    ComparisonFact comparison = new ComparisonFact(
+                        "cmp:lawa:excellent_sites:" + latestYear + "_vs_" + previousYear,
+                        "excellent_sites_count",
+                        String.valueOf(previousYear),
+                        String.valueOf(latestYear),
+                        delta,
+                        deltaPercent,
+                        "sites",
+                        Map.of("quality_band", "excellent")
+                    );
+                    
+                    factPack.getFacts().getComparisons().add(comparison);
+                }
+            }
+        }
+    }
+
+    private void buildRegionalWaterQualityFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
+        // Water quality distribution by region
+        Map<String, Map<String, Long>> regionalStateDistribution = records.stream()
+            .collect(Collectors.groupingBy(
+                LawaStateMultiYearRecord::getRegion,
+                Collectors.groupingBy(
+                    LawaStateMultiYearRecord::getStateNorm,
+                    Collectors.counting()
+                )
+            ));
+
+        // Create classification facts for each region
+        regionalStateDistribution.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey()) // deterministic ordering by region
+            .forEach(regionEntry -> {
+                String region = regionEntry.getKey();
+                Map<String, Long> stateCounts = regionEntry.getValue();
+                
+                stateCounts.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey()) // deterministic ordering by state
+                    .forEach(stateEntry -> {
+                        String state = stateEntry.getKey();
+
+                        ClassificationFact classification = new ClassificationFact(
+                            "class:lawa:water_quality_state:" + region + ":" + state,
+                            "water_quality_state",
+                            "water_quality_state",
+                            state,
+                            null, // periodStartYear
+                            null, // periodEndYear
+                            Map.of("region", region, "dataset", "state_multi_year")
+                        );
+                        factPack.getFacts().getClassifications().add(classification);
+                    });
+            });
+
+        // Calculate percentage of excellent sites by region
+        Map<String, Long> totalSitesByRegion = records.stream()
+            .collect(Collectors.groupingBy(
+                LawaStateMultiYearRecord::getRegion,
+                Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
+            ));
+
+        Map<String, Long> excellentSitesByRegion = records.stream()
+            .filter(r -> EXCELLENT_BANDS.contains(r.getAttributeBand()))
+            .collect(Collectors.groupingBy(
+                LawaStateMultiYearRecord::getRegion,
+                Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
+            ));
+
+        totalSitesByRegion.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .forEach(regionEntry -> {
+                String region = regionEntry.getKey();
+                Long totalSites = totalSitesByRegion.get(region);
+                Long excellentSites = excellentSitesByRegion.getOrDefault(region, 0L);
+                
+                if (totalSites > 0) {
+                    BigDecimal excellentPercent = new BigDecimal(excellentSites)
+                        .multiply(new BigDecimal("100"))
+                        .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+
+                    MetricFact metric = new MetricFact(
+                        "metric:lawa:excellent_sites_percentage:" + region,
+                        "excellent_sites_percentage",
+                        excellentPercent,
+                        "%",
+                        "current_period",
+                        Map.of("region", region, "quality_band", "excellent")
+                    );
+                    
+                    factPack.getFacts().getMetrics().add(metric);
+                }
+            });
+    }
+
+    private void buildBasicFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
+        // Add basic summary statistics for unsupported question types
+        if (!records.isEmpty()) {
+            long totalRecords = records.size();
+            long uniqueSites = records.stream()
+                .map(LawaStateMultiYearRecord::getLawaSiteId)
+                .distinct()
+                .count();
+
+            MetricFact totalRecordsMetric = new MetricFact(
+                "metric:lawa:total_state_records:all",
+                "total_state_records",
+                new BigDecimal(totalRecords),
+                "records",
+                "all_time",
+                Map.of("scope", "NZ", "dataset", "state_multi_year")
+            );
+
+            MetricFact uniqueSitesMetric = new MetricFact(
+                "metric:lawa:unique_sites:all",
+                "unique_sites",
+                new BigDecimal(uniqueSites),
+                "sites",
+                "all_time",
+                Map.of("scope", "NZ", "dataset", "state_multi_year")
+            );
+            
+            factPack.getFacts().getMetrics().add(totalRecordsMetric);
+            factPack.getFacts().getMetrics().add(uniqueSitesMetric);
+        }
+    }
+
+    private void setGuardrails(FactPack factPack, ExplanationRequest request) {
+        String questionType = request.getQuestionType();
+        
+        switch (questionType) {
+            case "water_quality_overview":
+            case "excellent_sites_trend":
+            case "regional_water_quality":
+                // If there are no facts, keep allowed claims empty to trigger refusal as per tests
+                boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
+                        && factPack.getFacts().getMetrics().isEmpty()
+                        && factPack.getFacts().getTimeSeries().isEmpty());
+                if (hasAnyFacts) {
+                    factPack.getGuardrails().setAllowedClaims(Arrays.asList("distribution", "trend", "percentage", "regional_comparison"));
+                } else {
+                    factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+                }
+                factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
+                if (!factPack.getFacts().getClassifications().isEmpty()) {
+                    factPack.getGuardrails().setRequiredCitations(
+                        factPack.getFacts().getClassifications().stream()
+                            .limit(3) // Limit to first 3 for reasonable citation list
+                            .map(ClassificationFact::getId)
+                            .collect(Collectors.toList())
+                    );
+                } else if (!factPack.getFacts().getTimeSeries().isEmpty()) {
+                    factPack.getGuardrails().setRequiredCitations(Collections.singletonList(factPack.getFacts().getTimeSeries().getFirst().getId()));
+                }
+                break;
+            default:
+                // For unsupported question types, set empty guardrails to trigger refusal
+                factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+                factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
+                factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
+                break;
+        }
+    }
+
+    private String getPeriodCoverage(List<LawaStateMultiYearRecord> records) {
+        if (records.isEmpty()) {
+            return "unknown";
+        }
+        
+        IntSummaryStatistics startStats = records.stream()
+            .mapToInt(LawaStateMultiYearRecord::getPeriodStartYear)
+            .summaryStatistics();
+        
+        IntSummaryStatistics endStats = records.stream()
+            .mapToInt(LawaStateMultiYearRecord::getPeriodEndYear)
+            .summaryStatistics();
+        
+        return startStats.getMin() + "-" + endStats.getMax();
+    }
+}
