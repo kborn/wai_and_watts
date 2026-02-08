@@ -35,8 +35,8 @@ class StubExplanationProviderComprehensiveTest {
             List.of("partial:ts:mbie:renewable_generation_gwh:2018_2024:extra")
         );
         
-        // Should pass validation (contains the required ID)
-        assertTrue(provider.validateCitations(explanation, factPack));
+        // With exact-match policy, partial/substring matches must NOT pass
+        assertFalse(provider.validateCitations(explanation, factPack));
     }
 
     @Test

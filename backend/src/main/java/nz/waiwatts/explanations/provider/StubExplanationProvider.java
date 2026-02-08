@@ -19,8 +19,7 @@ import java.util.List;
 public class StubExplanationProvider implements ExplanationProvider {
 
     @Override
-    public Explanation generateExplanation(String question, FactPack factPack) {
-        String questionType = question;
+    public Explanation generateExplanation(String questionType, FactPack factPack) {
         
         // Check if question type is supported
         if (factPack.getGuardrails().getAllowedClaims().isEmpty()) {
@@ -41,9 +40,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         List<String> actualCitations = explanation.getCitations();
         
         // Check if all required citations are present
-        return requiredCitations.stream().allMatch(required -> 
-            actualCitations.stream().anyMatch(actual -> actual.contains(required))
-        );
+        return requiredCitations.stream().allMatch(actualCitations::contains);
     }
 
     private boolean hasMissingFacts(FactPack factPack) {
@@ -57,16 +54,16 @@ public class StubExplanationProvider implements ExplanationProvider {
     }
 
     private Explanation generateDeterministicExplanation(String questionType, FactPack factPack) {
-        switch (questionType) {
-            case "renewable_generation_trend":
-                return generateRenewableGenerationTrendExplanation(factPack);
-            case "hydro_generation_trend":
-                return generateHydroGenerationTrendExplanation(factPack);
-            case "fuel_type_comparison":
-                return generateFuelTypeComparisonExplanation(factPack);
-            default:
-                return Explanation.refusal("Question type not supported in Phase 11: " + questionType);
-        }
+        return switch (questionType) {
+            case "renewable_generation_trend" ->
+                    generateRenewableGenerationTrendExplanation(factPack);
+            case "hydro_generation_trend" ->
+                    generateHydroGenerationTrendExplanation(factPack);
+            case "fuel_type_comparison" ->
+                    generateFuelTypeComparisonExplanation(factPack);
+            default ->
+                    Explanation.refusal("Question type not supported in Phase 11: " + questionType);
+        };
     }
 
     private Explanation generateRenewableGenerationTrendExplanation(FactPack factPack) {
@@ -171,7 +168,7 @@ public class StubExplanationProvider implements ExplanationProvider {
                     
                 // Create citations for all fuel types
                 List<String> citations = metrics.stream()
-                    .map(metric -> metric.getId())
+                    .map(MetricFact::getId)
                     .toList();
                     
                 return new Explanation(

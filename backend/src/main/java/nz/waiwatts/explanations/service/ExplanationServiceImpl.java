@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of Explanation Service that orchestrates the explanation generation process.
@@ -16,15 +18,17 @@ import java.util.List;
 @Service
 public class ExplanationServiceImpl implements ExplanationService {
 
+    private static final Logger log = LoggerFactory.getLogger(ExplanationServiceImpl.class);
+
     private final List<FactPackBuilder> factPackBuilders;
     private final ExplanationProvider explanationProvider;
 
     public ExplanationServiceImpl(List<FactPackBuilder> factPackBuilders, ExplanationProvider explanationProvider) {
         if (factPackBuilders == null) {
-            throw new NullPointerException("FactPack builders list cannot be null");
+            throw new IllegalArgumentException("FactPack builders list cannot be null");
         }
         if (explanationProvider == null) {
-            throw new NullPointerException("ExplanationProvider cannot be null");
+            throw new IllegalArgumentException("ExplanationProvider cannot be null");
         }
         this.factPackBuilders = factPackBuilders;
         this.explanationProvider = explanationProvider;
@@ -42,15 +46,61 @@ public class ExplanationServiceImpl implements ExplanationService {
         FactPackBuilder builder = selectFactPackBuilder(request);
 
         if (builder == null) {
+            // Helpful context for diagnosis without exposing internals
+            try {
+                String ds = request != null && request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
+                log.debug("No FactPackBuilder found for questionType={} datasetSource={}",
+                        request != null ? request.getQuestionType() : null, ds);
+            } catch (Exception ignore) {
+                // avoid impacting user flow
+            }
             return Explanation.refusal("No data source available for this request");
         }
 
         // Generate Fact Pack
+        try {
+            String ds = request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
+            log.debug("Selected builder={} for request: questionType={} datasetSource={}",
+                    builder.getClass().getSimpleName(), request.getQuestionType(), ds);
+        } catch (Exception ignore) {
+            // do not fail due to logging
+        }
         FactPack factPack = builder.buildFactPack(request);
 
-        // Handle null Fact Pack from builder
+        // Handle null Fact Pack from builder → refuse rather than crash
         if (factPack == null) {
-            throw new NullPointerException("FactPack builder returned null");
+            return Explanation.refusal("Unable to build FactPack for the requested question");
+        }
+
+        // Pre-provider safety gates
+        if (factPack.getGuardrails() == null) {
+            return Explanation.refusal("FactPack missing guardrails");
+        }
+        if (factPack.getGuardrails().getAllowedClaims() == null) {
+            return Explanation.refusal("FactPack missing guardrails.allowedClaims");
+        }
+        if (factPack.getGuardrails().getRequiredCitations() == null) {
+            return Explanation.refusal("FactPack missing guardrails.requiredCitations");
+        }
+
+        // Treat null lists as empty to avoid NPEs
+        boolean noFacts;
+        if (factPack.getFacts() == null) {
+            noFacts = true;
+        } else {
+            var facts = factPack.getFacts();
+            var ts = facts.getTimeSeries();
+            var mets = facts.getMetrics();
+            var comps = facts.getComparisons();
+            var classes = facts.getClassifications();
+            boolean tsEmpty = (ts == null || ts.isEmpty());
+            boolean metsEmpty = (mets == null || mets.isEmpty());
+            boolean compsEmpty = (comps == null || comps.isEmpty());
+            boolean classesEmpty = (classes == null || classes.isEmpty());
+            noFacts = tsEmpty && metsEmpty && compsEmpty && classesEmpty;
+        }
+        if (noFacts) {
+            return Explanation.refusal("No facts available to answer the question");
         }
 
         // Generate explanation using provider (question derived from questionType)
@@ -58,15 +108,61 @@ public class ExplanationServiceImpl implements ExplanationService {
 
         // Handle null explanation from provider
         if (explanation == null) {
-            throw new NullPointerException("ExplanationProvider returned null");
+            return Explanation.refusal("Explanation provider failed to generate an explanation");
         }
 
-        // Validate citations
-        if (!explanation.isRefusal() && !explanationProvider.validateCitations(explanation, factPack)) {
-            return Explanation.refusal("Generated explanation missing required citations");
+        // Validate citations — service enforces; provider validation still called for redundancy in Phase 11
+        if (!explanation.isRefusal()) {
+            boolean serviceCitationsOk = validateCitations(explanation, factPack);
+            if (!serviceCitationsOk) {
+                // Internal debug payload to assist development without leaking to clients
+                logCitationFailureDebug(request, explanation, factPack);
+                return Explanation.refusal("Generated explanation missing required citations");
+            }
+
+            // Backward compatibility: also consult provider's validator (may be removed in a future phase)
+            if (!explanationProvider.validateCitations(explanation, factPack)) {
+                logCitationFailureDebug(request, explanation, factPack);
+                return Explanation.refusal("Generated explanation missing required citations");
+            }
         }
 
         return explanation;
+    }
+
+    /**
+     * Service-owned citation validation: all required citations from guardrails must
+     * be present among the explanation's citations. Empty required list implies no requirement.
+     */
+    private boolean validateCitations(Explanation explanation, FactPack factPack) {
+        try {
+            List<String> required = (factPack.getGuardrails() != null && factPack.getGuardrails().getRequiredCitations() != null)
+                    ? factPack.getGuardrails().getRequiredCitations() : List.of();
+            List<String> actual = (explanation.getCitations() != null) ? explanation.getCitations() : List.of();
+            // Vacuously true if no required citations
+            return required.stream().allMatch(actual::contains);
+        } catch (Exception e) {
+            // Defensive: on unexpected structure, fail validation
+            return false;
+        }
+    }
+
+    private void logCitationFailureDebug(ExplanationRequest request, Explanation explanation, FactPack factPack) {
+        try {
+            List<String> required = factPack.getGuardrails() != null ? factPack.getGuardrails().getRequiredCitations() : List.of();
+            List<String> actual = explanation.getCitations();
+            String fpVer = factPack.getFactPackVersion();
+            String provenance = (factPack.getProvenance() != null && factPack.getProvenance().getDatasetSources() != null)
+                    ? factPack.getProvenance().getDatasetSources().stream()
+                        .map(ds -> String.format("%s@%s#%s", ds.getDatasetSourceCode(), ds.getDatasetReleaseId(), ds.getContentHash()))
+                        .toList()
+                        .toString()
+                    : "[]";
+            log.debug("Citation validation failed. questionType={}, requiredCitations={}, actualCitations={}, factPackVersion={}, provenance={}",
+                    request != null ? request.getQuestionType() : null, required, actual, fpVer, provenance);
+        } catch (Exception e) {
+            log.debug("Citation failure debug logging encountered an error: {}", e.getMessage());
+        }
     }
 
     /**
@@ -90,56 +186,16 @@ public class ExplanationServiceImpl implements ExplanationService {
             return "Invalid request: filters are required";
         }
 
-        String datasetSource = (String) filters.get("datasetSource");
+        Object dsObj = filters.get("datasetSource");
+        String datasetSource = (dsObj instanceof String) ? ((String) dsObj) : null;
         if (datasetSource == null || datasetSource.trim().isEmpty()) {
             return "Invalid request: datasetSource filter is required";
         }
 
-        // Validate question type and dataset source compatibility
-        if (!isValidQuestionDatasetCombination(questionType, datasetSource)) {
-            return String.format("Invalid combination: questionType '%s' is not supported with datasetSource '%s'", 
-                questionType, datasetSource);
-        }
-
         // Validate time range filters (if present)
-        String timeRangeError = validateTimeRangeFilters(filters);
-        if (timeRangeError != null) {
-            return timeRangeError;
-        }
-
-        return null; // No validation errors
+        return validateTimeRangeFilters(filters);// No validation errors
     }
 
-    /**
-     * Check if question type is compatible with dataset source
-     */
-    private boolean isValidQuestionDatasetCombination(String questionType, String datasetSource) {
-        // Define valid combinations
-        List<String> mbieAnnualQuestions = List.of(
-            "renewable_generation_trend", 
-            "hydro_generation_trend", 
-            "fuel_type_comparison"
-        );
-
-        List<String> mbieQuarterlyQuestions = List.of(
-            "renewable_generation_trend", 
-            "hydro_generation_trend", 
-            "fuel_type_comparison"
-        );
-
-        List<String> lawaQuestions = List.of(
-            "water_quality_trend",
-            "water_quality_comparison"
-        );
-
-        return switch (datasetSource) {
-            case "mbie.generation.annual" -> mbieAnnualQuestions.contains(questionType);
-            case "mbie.generation.quarterly" -> mbieQuarterlyQuestions.contains(questionType);
-            case "lawa.water_quality.state.multi_year" -> lawaQuestions.contains(questionType);
-            case "lawa.water_quality.trend.multi_year" -> lawaQuestions.contains(questionType);
-            default -> false;
-        };
-    }
 
     /**
      * Validate time range filters (startYear, endYear)
@@ -163,8 +219,9 @@ public class ExplanationServiceImpl implements ExplanationService {
                     return String.format("Invalid time range: endYear (%d) cannot be in the future", end);
                 }
 
+                // TODO(Phase 12/metadata): Replace hardcoded lower bound with dataset-derived metadata
                 if (end < 1990 || start < 1990) {
-                    return String.format("Invalid time range: years before 1990 are not supported");
+                    return "Invalid time range: years before 1990 are not supported";
                 }
 
             } catch (NumberFormatException e) {
