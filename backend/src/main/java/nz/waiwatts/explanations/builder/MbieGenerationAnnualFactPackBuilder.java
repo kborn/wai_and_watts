@@ -16,6 +16,9 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
     private final MbieGenerationAnnualRecordRepository repository;
 
+    // Centralized renewable types to avoid drift
+    private static final Set<String> RENEWABLE_FUEL_TYPES = Set.of("HYDRO", "WIND", "GEOTHERMAL", "BIOMASS", "SOLAR");
+
     public MbieGenerationAnnualFactPackBuilder(MbieGenerationAnnualRecordRepository repository) {
         this.repository = repository;
     }
@@ -34,24 +37,34 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         // Build provenance
         FactPack.Provenance provenance = new FactPack.Provenance();
         List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
-        
-        // Get all records to build provenance info
+
+        // Get records for facts and derive provenance from them (Phase 11 acceptable)
+        // TODO(Phase 12+): Replace with distinct release lookup to avoid heavy loads
         List<MbieGenerationAnnualRecord> records = getRecordsForRequest(request);
         if (!records.isEmpty()) {
-            Set<UUID> releaseIds = records.stream()
-                .map(record -> record.getDatasetRelease().getId())
-                .collect(Collectors.toSet());
-            
-            for (UUID releaseId : releaseIds) {
-                FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                source.setDatasetSourceCode("mbie.generation.annual");
-                source.setDatasetReleaseId(releaseId.toString());
-                // Get content hash from DatasetRelease
-                source.setContentHash(records.getFirst().getDatasetRelease().getContentHash());
-                source.setPeriodCoverage(getPeriodCoverage(records));
-                sources.add(source);
-            }
+            // Group by dataset release to ensure correct contentHash and per-release coverage
+            Map<UUID, List<MbieGenerationAnnualRecord>> byRelease = records.stream()
+                .collect(Collectors.groupingBy(r -> r.getDatasetRelease().getId()));
+
+            byRelease.entrySet().stream()
+                // Deterministic ordering by UUID string for stability
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(UUID::toString)))
+                .forEach(entry -> {
+                    UUID releaseId = entry.getKey();
+                    List<MbieGenerationAnnualRecord> group = entry.getValue();
+                    FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
+                    source.setDatasetSourceCode("mbie.generation.annual");
+                    source.setDatasetReleaseId(releaseId.toString());
+                    // contentHash from this release specifically
+                    if (!group.isEmpty() && group.getFirst().getDatasetRelease() != null) {
+                        source.setContentHash(group.getFirst().getDatasetRelease().getContentHash());
+                    }
+                    // periodCoverage computed for this release's records only
+                    source.setPeriodCoverage(getPeriodCoverage(group));
+                    sources.add(source);
+                });
         }
+        // Always set a (possibly empty) list to avoid nulls upstream
         provenance.setDatasetSources(sources);
         factPack.setProvenance(provenance);
 
@@ -67,7 +80,9 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
     @Override
     public boolean canHandle(ExplanationRequest request) {
         Map<String, Object> filters = request.getFilters();
-        return filters != null && "mbie.generation.annual".equals(filters.get("datasetSource"));
+        if (filters == null) return false;
+        Object ds = filters.get("datasetSource");
+        return "mbie.generation.annual".equals(String.valueOf(ds));
     }
 
     @Override
@@ -76,9 +91,46 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
     }
 
     private List<MbieGenerationAnnualRecord> getRecordsForRequest(ExplanationRequest request) {
-        // For Phase 11, we'll keep it simple and return all records
-        // In a full implementation, we'd apply filters based on the request
-        return repository.findAll();
+        // Phase 11: apply basic in-memory filtering for determinism without expanding repo surface
+        List<MbieGenerationAnnualRecord> all = repository.findAll();
+
+        Map<String, Object> filters = request != null ? request.getFilters() : null;
+        if (filters == null || filters.isEmpty()) {
+            return all;
+        }
+
+        Integer startYear = null;
+        Integer endYear = null;
+        try {
+            Object s = filters.get("startYear");
+            Object e = filters.get("endYear");
+            if (s != null) startYear = Integer.parseInt(s.toString());
+            if (e != null) endYear = Integer.parseInt(e.toString());
+        } catch (NumberFormatException ignore) {
+            // Leave bounds null; service-level validation already handles bad inputs
+        }
+
+        // Only apply a fuelType filter for question types that actually need a single-fuel focus
+        // e.g., hydro_generation_trend. For broader questions (renewables trend, fuel comparison), ignore it.
+        String questionType = (request != null) ? request.getQuestionType() : null;
+        boolean applyFuelType = "hydro_generation_trend".equals(questionType);
+        String fuelType = null;
+        if (applyFuelType) {
+            Object ftObj = filters.get("fuelType");
+            if (ftObj instanceof String str && !str.isBlank()) {
+                fuelType = str.trim().toUpperCase();
+            }
+        }
+
+        final Integer fStart = startYear;
+        final Integer fEnd = endYear;
+        final String fFuel = fuelType;
+
+        return all.stream()
+            .filter(r -> fStart == null || r.getPeriodYear() >= fStart)
+            .filter(r -> fEnd == null || r.getPeriodYear() <= fEnd)
+            .filter(r -> !applyFuelType || fFuel == null || (r.getFuelTypeNorm() != null && r.getFuelTypeNorm().equalsIgnoreCase(fFuel)))
+            .toList();
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationAnnualRecord> records) {
@@ -103,10 +155,8 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
     private void buildRenewableGenerationTrendFacts(FactPack factPack, List<MbieGenerationAnnualRecord> records) {
         // Filter for renewable fuel types
-        List<String> renewableTypes = Arrays.asList("HYDRO", "WIND", "GEOTHERMAL", "BIOMASS");
-        
         Map<Integer, BigDecimal> yearlyRenewableTotals = records.stream()
-            .filter(record -> renewableTypes.contains(record.getFuelTypeNorm()))
+            .filter(record -> RENEWABLE_FUEL_TYPES.contains(record.getFuelTypeNorm()))
             .collect(Collectors.groupingBy(
                 MbieGenerationAnnualRecord::getPeriodYear,
                 Collectors.mapping(MbieGenerationAnnualRecord::getGenerationGwh, 
@@ -116,8 +166,12 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         // Only create time series if we have data
         if (!yearlyRenewableTotals.isEmpty()) {
             // Create time series fact
+            // Compute coverage dynamically from the years present
+            IntSummaryStatistics stats = yearlyRenewableTotals.keySet().stream().mapToInt(Integer::intValue).summaryStatistics();
+            String coverage = stats.getCount() > 0 ? stats.getMin() + "_" + stats.getMax() : "all_time";
+
             TimeSeriesFact timeSeries = new TimeSeriesFact(
-                "ts:mbie:renewable_generation_gwh:2010_2024",
+                "ts:mbie:renewable_generation_gwh:" + coverage,
                 "renewable_generation_gwh",
                 "GWh",
                 Map.of("scope", "NZ")
@@ -146,8 +200,11 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         // Only create time series if we have data
         if (!yearlyHydroTotals.isEmpty()) {
             // Create time series fact
+            IntSummaryStatistics stats = yearlyHydroTotals.keySet().stream().mapToInt(Integer::intValue).summaryStatistics();
+            String coverage = stats.getCount() > 0 ? stats.getMin() + "_" + stats.getMax() : "all_time";
+
             TimeSeriesFact timeSeries = new TimeSeriesFact(
-                "ts:mbie:hydro_generation_gwh:2010_2024",
+                "ts:mbie:hydro_generation_gwh:" + coverage,
                 "hydro_generation_gwh",
                 "GWh",
                 Map.of("scope", "NZ", "fuel_type", "HYDRO")
@@ -173,22 +230,25 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
             
             BigDecimal latestValue = yearlyHydroTotals.get(latestYear);
             BigDecimal previousValue = yearlyHydroTotals.get(previousYear);
-            BigDecimal delta = latestValue.subtract(previousValue);
-            BigDecimal deltaPercent = delta.divide(previousValue, 4, RoundingMode.HALF_UP)
-                .multiply(new BigDecimal("100"));
+            // Guard against division by zero; skip comparison if previous is zero or null
+            if (previousValue != null && previousValue.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal delta = latestValue.subtract(previousValue);
+                BigDecimal deltaPercent = delta.divide(previousValue, 4, RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("100"));
 
-            ComparisonFact comparison = new ComparisonFact(
-                "cmp:mbie:generation_gwh:HYDRO:" + latestYear + "_vs_" + previousYear,
-                "generation_gwh",
-                String.valueOf(previousYear),
-                String.valueOf(latestYear),
-                delta,
-                deltaPercent,
-                "GWh",
-                Map.of("fuel_type", "HYDRO")
-            );
-            
-            factPack.getFacts().getComparisons().add(comparison);
+                ComparisonFact comparison = new ComparisonFact(
+                    "cmp:mbie:generation_gwh:HYDRO:" + latestYear + "_vs_" + previousYear,
+                    "generation_gwh",
+                    String.valueOf(previousYear),
+                    String.valueOf(latestYear),
+                    delta,
+                    deltaPercent,
+                    "GWh",
+                    Map.of("fuel_type", "HYDRO")
+                );
+                
+                factPack.getFacts().getComparisons().add(comparison);
+            }
         }
     }
 
@@ -290,6 +350,8 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
             .mapToInt(MbieGenerationAnnualRecord::getPeriodYear)
             .summaryStatistics();
         
+        // Keep hyphen format to preserve existing contract/tests for provenance coverage (min-max)
+        // Note: time-series IDs currently use underscore (min_max). Consider harmonizing in a future phase.
         return stats.getMin() + "-" + stats.getMax();
     }
 }

@@ -47,8 +47,8 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         ExplanationRequest lawaRequest = new ExplanationRequest(
-            "water_quality_state",
-            Map.of("datasetSource", "lawa.water_quality.state")
+            "water_quality_trend",
+            Map.of("datasetSource", "lawa.water_quality.state.multi_year")
         );
 
         // Configure builders
@@ -81,8 +81,8 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testNoAvailableBuilderReturnsRefusal() {
         ExplanationRequest request = new ExplanationRequest(
-            "unsupported_question",
-            Map.of("datasetSource", "nonexistent.source")
+            "hydro_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
         );
 
         when(factPackBuilder.canHandle(request)).thenReturn(false);
@@ -107,10 +107,10 @@ class ExplanationServiceImplEdgeCaseTest {
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(null);
 
-        // Should handle null gracefully
-        assertThrows(NullPointerException.class, () -> {
-            service.generateExplanation(request);
-        });
+        // Should handle null gracefully by refusing, not crashing
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Unable to build FactPack for the requested question", result.getRefusalReason());
     }
 
     @Test
@@ -121,14 +121,17 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         FactPack factPack = new FactPack();
+        // Satisfy pre-provider gates
+        factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m0", null, null, null, null, null));
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
         when(explanationProvider.generateExplanation(any(), any())).thenReturn(null);
 
-        // Should handle null gracefully
-        assertThrows(NullPointerException.class, () -> {
-            service.generateExplanation(request);
-        });
+        // Should handle null gracefully by refusing, not crashing
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Explanation provider failed to generate an explanation", result.getRefusalReason());
     }
 
     @Test
@@ -139,6 +142,9 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         FactPack factPack = new FactPack();
+        // Ensure pre-provider gates pass: allowedClaims not empty and at least one fact present
+        factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m1", null, null, null, null, null));
         Explanation explanation = new Explanation("Some explanation", List.of());
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);
@@ -164,9 +170,7 @@ class ExplanationServiceImplEdgeCaseTest {
             .thenThrow(new RuntimeException("Database connection failed"));
 
         // Should propagate exception
-        assertThrows(RuntimeException.class, () -> {
-            service.generateExplanation(request);
-        });
+        assertThrows(RuntimeException.class, () -> service.generateExplanation(request));
     }
 
     @Test
@@ -177,15 +181,16 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         FactPack factPack = new FactPack();
+        // Satisfy pre-provider gates
+        factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m2", null, null, null, null, null));
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
         when(explanationProvider.generateExplanation(any(), any()))
             .thenThrow(new RuntimeException("LLM provider unavailable"));
 
         // Should propagate exception
-        assertThrows(RuntimeException.class, () -> {
-            service.generateExplanation(request);
-        });
+        assertThrows(RuntimeException.class, () -> service.generateExplanation(request));
     }
 
     @Test
@@ -196,6 +201,9 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         FactPack factPack = new FactPack();
+        // Satisfy pre-provider gates
+        factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m3", null, null, null, null, null));
         Explanation explanation = new Explanation("Some explanation", List.of("citation"));
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);
@@ -205,9 +213,7 @@ class ExplanationServiceImplEdgeCaseTest {
             .thenThrow(new RuntimeException("Validation failed"));
 
         // Should propagate exception
-        assertThrows(RuntimeException.class, () -> {
-            service.generateExplanation(request);
-        });
+        assertThrows(RuntimeException.class, () -> service.generateExplanation(request));
     }
 
     @Test
@@ -215,8 +221,8 @@ class ExplanationServiceImplEdgeCaseTest {
         ExplanationService emptyService = new ExplanationServiceImpl(List.of(), explanationProvider);
         
         ExplanationRequest request = new ExplanationRequest(
-            "any_question",
-            Map.of("datasetSource", "any.source")
+            "hydro_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
         );
 
         Explanation result = emptyService.generateExplanation(request);
@@ -228,17 +234,13 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testNullProviderInConstructor() {
         // Should handle null provider gracefully in constructor
-        assertThrows(NullPointerException.class, () -> {
-            new ExplanationServiceImpl(List.of(factPackBuilder), null);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(List.of(factPackBuilder), null));
     }
 
     @Test
     void testNullBuilderListInConstructor() {
         // Should handle null builder list gracefully in constructor
-        assertThrows(NullPointerException.class, () -> {
-            new ExplanationServiceImpl(null, explanationProvider);
-        });
+        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(null, explanationProvider));
     }
 
     @Test
@@ -249,6 +251,9 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         FactPack factPack = new FactPack();
+        // Satisfy pre-provider gates
+        factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m4", null, null, null, null, null));
         Explanation explanation = new Explanation("Successful explanation", List.of("ts:hydro:2023"));
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);

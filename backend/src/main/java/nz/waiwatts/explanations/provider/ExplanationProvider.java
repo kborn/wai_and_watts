@@ -18,12 +18,14 @@ public interface ExplanationProvider {
     
     /**
      * Generates an explanation from a Fact Pack.
-     * 
-     * @param question the user's question (derived from question_type)
+     *
+     * Routing must be based on structured context (e.g., questionType/promptKey), not freeform text.
+     *
+     * @param questionType the structured question type (derived from request.questionType)
      * @param factPack the Fact Pack containing relevant facts
      * @return an Explanation with citations or a refusal
      */
-    Explanation generateExplanation(String question, FactPack factPack);
+    Explanation generateExplanation(String questionType, FactPack factPack);
     
     /**
      * Validates that the explanation includes required citations.
