@@ -475,6 +475,13 @@ This phase introduces **intent parsing only**. It does NOT change fact pack cons
   - Access database
   - Bypass fact pack builders
   - Bypass refusal model
+- Supported question types are spec-owned: 
+  - IntentParser must map only to an existing question_type enum value; 
+  - it must never introduce new question types via “best guess” or synonyms. 
+  - Unknown intents → refusal.
+- UI is single-turn and stateless: 
+  - each submission is evaluated independently; 
+  - no conversation history, no follow-up context, no multi-turn flows.
 
 ---
 
@@ -604,6 +611,16 @@ Complete before marking Wai & Watts “portfolio-ready.”
 - [ ] idx for READ API queries for LAWA state multi year
 - [ ] normalize meta data columns across all tables
 - [ ] create abstract csv parser
+- [ ] Add concept of FilterConfidence OR FilterDerivationNotes
+    - Example risk: 
+      - User: “Hydro vs wind in early 2020s” 
+      - Parser output possibilities:
+        - 2020–2023 
+        - 2021–2024 
+        - 2020–2022 
+        - All plausible. Only one is correct per spec.
+- [ ] Differentiate unsupported and ambigous refusalsa in UI
+- 
 ---
 
 #### AI Onboarding & Documentation Validation Tasks
