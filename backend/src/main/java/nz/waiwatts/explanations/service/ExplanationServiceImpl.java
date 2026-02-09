@@ -130,6 +130,45 @@ public class ExplanationServiceImpl implements ExplanationService {
         return explanation;
     }
 
+    @Override
+    public Object buildFactPack(ExplanationRequest request) {
+        // Validate request structure first
+        String validationError = validateRequest(request);
+        if (validationError != null) {
+            return Map.of(
+                "error", validationError,
+                "request", request
+            );
+        }
+
+        // Select appropriate Fact Pack Builder
+        FactPackBuilder builder = selectFactPackBuilder(request);
+
+        if (builder == null) {
+            return Map.of(
+                "error", "No FactPackBuilder found for this request",
+                "request", request
+            );
+        }
+
+        // Generate Fact Pack
+        try {
+            FactPack factPack = builder.buildFactPack(request);
+            if (factPack == null) {
+                return Map.of(
+                    "error", "FactPackBuilder returned null",
+                    "request", request
+                );
+            }
+            return factPack;
+        } catch (Exception e) {
+            return Map.of(
+                "error", "Exception building FactPack: " + e.getMessage(),
+                "request", request
+            );
+        }
+    }
+
     /**
      * Service-owned citation validation: all required citations from guardrails must
      * be present among the explanation's citations. Empty required list implies no requirement.

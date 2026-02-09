@@ -33,7 +33,7 @@ class MbieGenerationQuarterlyControllerTest {
         List<MbieGenerationQuarterlyRecordDto> payload = List.of(
                 new MbieGenerationQuarterlyRecordDto(2024, 3, "WIND", "Wind", new BigDecimal("980.1"), relId)
         );
-        when(readService.find(any(), any(), any(), any())).thenReturn(payload);
+        when(readService.find(any(), any(), any(), any(), any())).thenReturn(payload);
 
         mockMvc.perform(get("/api/v1/mbie/generation/quarterly")
                         .accept(MediaType.APPLICATION_JSON))

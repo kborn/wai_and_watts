@@ -25,12 +25,13 @@ public class MbieGenerationAnnualController {
     public ResponseEntity<?> getGenerationAnnual(
             @RequestParam(value = "fromYear", required = false) Integer fromYear,
             @RequestParam(value = "toYear", required = false) Integer toYear,
-            @RequestParam(value = "source", required = false) String source
+            @RequestParam(value = "source", required = false) String source,
+            @RequestParam(value = "fuelType", required = false) String fuelType
     ) {
         if (fromYear != null && toYear != null && fromYear > toYear) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "fromYear must be <= toYear"));
         }
-        List<MbieGenerationAnnualRecordDto> out = readService.find(fromYear, toYear, source);
+        List<MbieGenerationAnnualRecordDto> out = readService.find(fromYear, toYear, source, fuelType);
         return ResponseEntity.ok(out);
     }
 

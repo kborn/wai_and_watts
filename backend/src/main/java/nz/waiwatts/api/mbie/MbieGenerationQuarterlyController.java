@@ -26,7 +26,8 @@ public class MbieGenerationQuarterlyController {
             @RequestParam(value = "fromYear", required = false) Integer fromYear,
             @RequestParam(value = "toYear", required = false) Integer toYear,
             @RequestParam(value = "quarter", required = false) Integer quarter,
-            @RequestParam(value = "source", required = false) String source
+            @RequestParam(value = "source", required = false) String source,
+            @RequestParam(value = "fuelType", required = false) String fuelType
     ) {
         if (fromYear != null && toYear != null && fromYear > toYear) {
             return ResponseEntity.badRequest().body(Map.of("error", "fromYear must be <= toYear"));
@@ -34,7 +35,7 @@ public class MbieGenerationQuarterlyController {
         if (quarter != null && (quarter < 1 || quarter > 4)) {
             return ResponseEntity.badRequest().body(Map.of("error", "quarter must be between 1 and 4"));
         }
-        List<MbieGenerationQuarterlyRecordDto> out = readService.find(fromYear, toYear, quarter, source);
+        List<MbieGenerationQuarterlyRecordDto> out = readService.find(fromYear, toYear, quarter, source, fuelType);
         return ResponseEntity.ok(out);
     }
 }

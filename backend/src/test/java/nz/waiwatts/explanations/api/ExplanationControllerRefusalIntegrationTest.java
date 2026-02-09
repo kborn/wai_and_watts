@@ -58,7 +58,7 @@ class ExplanationControllerRefusalIntegrationTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        mockMvc.perform(post("/api/explanations")
+        mockMvc.perform(post("/api/v1/explanations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -81,7 +81,7 @@ class ExplanationControllerRefusalIntegrationTest {
             Map.of("datasetSource", "nonexistent.source")
         );
 
-        mockMvc.perform(post("/api/explanations")
+        mockMvc.perform(post("/api/v1/explanations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -101,7 +101,7 @@ class ExplanationControllerRefusalIntegrationTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        mockMvc.perform(post("/api/explanations")
+        mockMvc.perform(post("/api/v1/explanations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -111,7 +111,7 @@ class ExplanationControllerRefusalIntegrationTest {
 
     @Test
     void testSupportedQuestionTypesEndpoint() throws Exception {
-        mockMvc.perform(get("/api/explanations/question-types"))
+        mockMvc.perform(get("/api/v1/explanations/capabilities"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.supportedQuestionTypes").exists())
                 .andExpect(jsonPath("$.supportedQuestionTypes.renewable_generation_trend").exists())
@@ -126,7 +126,7 @@ class ExplanationControllerRefusalIntegrationTest {
 
     @Test
     void testHealthCheck() throws Exception {
-        mockMvc.perform(get("/api/explanations/health"))
+        mockMvc.perform(get("/api/v1/explanations/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("healthy"))
                 .andExpect(jsonPath("$.service").value("explanation-api"))
@@ -148,7 +148,7 @@ class ExplanationControllerRefusalIntegrationTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        mockMvc.perform(post("/api/explanations")
+        mockMvc.perform(post("/api/v1/explanations")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

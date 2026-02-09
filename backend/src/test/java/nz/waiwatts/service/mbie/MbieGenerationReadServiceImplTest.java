@@ -48,7 +48,7 @@ class MbieGenerationReadServiceImplTest {
 
     @Test
     void find_noFilters_returnsAllMapped() {
-        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, null);
+        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, null, null);
         assertThat(out).hasSize(2);
         assertThat(out.get(0).getSource()).isEqualTo("HYDRO");
         assertThat(out.get(0).getSourceRaw()).isEqualTo("Hydro");
@@ -60,14 +60,14 @@ class MbieGenerationReadServiceImplTest {
 
     @Test
     void find_withFromYear_filtersLowerBound() {
-        List<MbieGenerationAnnualRecordDto> out = service.find(2023, null, null);
+        List<MbieGenerationAnnualRecordDto> out = service.find(2023, null, null, null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getPeriodYear()).isEqualTo(2024);
     }
 
     @Test
     void find_withSource_caseInsensitiveMatch() {
-        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, "hydro");
+        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, "hydro", null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getSource()).isEqualTo("HYDRO");
     }

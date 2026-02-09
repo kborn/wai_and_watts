@@ -25,4 +25,12 @@ public interface ExplanationService {
      * @return an Explanation with citations or a refusal
      */
     Explanation generateExplanation(ExplanationRequest request);
+
+    /**
+     * Builds and returns the full FactPack for debugging purposes.
+     * 
+     * @param request the explanation request with question_type and filters
+     * @return the full FactPack JSON for verification/debugging
+     */
+    Object buildFactPack(ExplanationRequest request);
 }
