@@ -426,6 +426,15 @@ Notes:
 - Explanations must be tied to persisted DB rows and explicit fact pack fields.
 - The LLM explains; the database remains source of truth.
 
+### Links
+- PR: [feat(LLM): Core Data Models and Interfaces for LLM integration](https://github.com/kborn/wai_and_watts/pull/34)
+- PR: [feat(LLM): First Vertical Slice - MBIE Annual Implementation + Core Tests](https://github.com/kborn/wai_and_watts/pull/35)
+- PR: [feat(LLM): API Layer + Structured Interface + Refusal Test for LLM integration](https://github.com/kborn/wai_and_watts/pull/36)
+- PR: [feat(LLM): Comprehensive Testing Suite](https://github.com/kborn/wai_and_watts/pull/37)
+- PR: [feat(LLM): Documentation and Polish](https://github.com/kborn/wai_and_watts/pull/38)
+- PR: [chore(Phase 11) Improvements based on SE PR feedback](https://github.com/kborn/wai_and_watts/pull/39)
+- PR: [feat(explanations): implement missing explanation functionality for 3 datasets](https://github.com/kborn/wai_and_watts/pull/40)
+
 ---
 ## Phase 12 — Natural Language Query Interface ✅
 
