@@ -538,6 +538,8 @@ User NL Question
 Goal: Deliver a production-credible client surface over the existing backend, with clean boundaries and room to grow.
 
 Canonical requirements:
+- PR Guideline: ../PHASE_13_PR_EXECUTION_GUIDELINE.md
+  - This phase must be broken out in PRs according to the phase 13 guideline doc
 - Product Slice: docs/product/phase-13-product-slice.md
 - SE Constraints: docs/design/phase-13-se-design-constraints.md
 
