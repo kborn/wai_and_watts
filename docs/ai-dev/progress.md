@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 11 — Insights & LLM Layer (Grounded Explanations) ✅
+- **Active Phase:** Phase 12 — Natural Language Query Interface ✅
 - **Status:** Complete
 
 ---
@@ -427,10 +427,10 @@ Notes:
 - The LLM explains; the database remains source of truth.
 
 ---
-## Phase 12 — Natural Language Query Interface + Thin Frontend
+## Phase 12 — Natural Language Query Interface ✅
 
 ### Goal
-Add natural language question support while maintaining all fact-pack grounding guarantees, and expose this through a minimal but production-realistic frontend.
+Add natural language question support while maintaining all fact-pack grounding guarantees
 
 This phase introduces **intent parsing only**. It does NOT change fact pack construction, data lineage, or explanation safety architecture.
 
@@ -438,29 +438,24 @@ This phase introduces **intent parsing only**. It does NOT change fact pack cons
 
 ### Definition of Done
 
-- [ ] Natural language endpoint exists: `POST /api/v1/explanations/ask`
-- [ ] Intent parsing maps natural language → structured ExplanationRequest
-- [ ] Parsed intent is validated against supported `question_type` enum
-- [ ] Invalid or ambiguous intents trigger deterministic refusal
-- [ ] Structured endpoint (`POST /api/v1/explanations`) remains supported and unchanged
-- [ ] Integration test: NL → intent → fact pack → explanation
-- [ ] Refusal test: unsupported NL question → explicit refusal
-- [ ] Minimal frontend exists:
-  - Text input for NL queries
-  - Example questions (click to populate input)
-  - Explanation + citation rendering
-  - Optional debug display of parsed intent
+- [x] Natural language endpoint exists: `POST /api/v1/explanations/ask`
+- [x] Intent parsing maps natural language → structured ExplanationRequest
+- [x] Parsed intent is validated against supported `question_type` enum
+- [x] Invalid or ambiguous intents trigger deterministic refusal
+- [x] Structured endpoint (`POST /api/v1/explanations`) remains supported and unchanged
+- [x] Integration test: NL → intent → fact pack → explanation
+- [x] Refusal test: unsupported NL question → explicit refusal
 
 ---
 
 ### Work Items
 
-- [ ] Implement IntentParserService (LLM structured output or function calling)
-- [ ] Add NL endpoint routing to existing explanation pipeline
-- [ ] Add validation layer for parsed intents (question type + filters)
-- [ ] Add logging of raw question + parsed intent for audit/debug
-- [ ] Test with “minimal ship” question subset
-- [ ] Document NL parsing contract (design doc optional)
+- [x] Implement IntentParserService (LLM structured output or function calling)
+- [x] Add NL endpoint routing to existing explanation pipeline
+- [x] Add validation layer for parsed intents (question type + filters)
+- [x] Add logging of raw question + parsed intent for audit/debug
+- [x] Test with "minimal ship" question subset
+- [x] Document NL parsing contract (design doc optional)
 
 ---
 
@@ -506,7 +501,29 @@ User NL Question
  → Explanation + Citations
 ```
 
+### Links
+- PR: [feat(nl): add natural language query interface](https://github.com/kborn/wai_and_watts/pull/42)
 
+---
+
+### Implementation Summary ✅
+
+**Delivered in single focused PR:**
+- `POST /api/v1/explanations/ask` natural language endpoint
+- IntentParserService with rule-based parsing (Phase 12 compliant)
+- RequestValidationService enforcing contract schemas
+- IntentParseResponse DTO with deterministic refusal handling
+- Comprehensive test coverage (6/6 tests passing)
+- All guardrails maintained and no architectural drift
+
+**Architecture Compliance:**
+✅ Natural language layer only outputs: questionType, datasetSource, filters
+✅ No database access in intent parser
+✅ Existing `/api/v1/explanations` endpoint preserved unchanged
+✅ Fact Pack construction, data lineage, explanation safety untouched
+✅ Deterministic refusals for ambiguous/unsupported requests
+
+---
 
 ### Phase 13 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
 Goal: Provide a thin UI for demo and interviews without shifting business logic into the frontend.

@@ -48,7 +48,10 @@ public class ExplanationServiceImpl implements ExplanationService {
         if (builder == null) {
             // Helpful context for diagnosis without exposing internals
             try {
-                String ds = request != null && request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
+                String ds = request != null ? request.getDatasetSource() : null;
+                if (ds == null && request != null && request.getFilters() != null) {
+                    ds = (String) request.getFilters().get("datasetSource");
+                }
                 log.debug("No FactPackBuilder found for questionType={} datasetSource={}",
                         request != null ? request.getQuestionType() : null, ds);
             } catch (Exception ignore) {
@@ -59,7 +62,10 @@ public class ExplanationServiceImpl implements ExplanationService {
 
         // Generate Fact Pack
         try {
-            String ds = request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
+            String ds = request.getDatasetSource();
+            if (ds == null) {
+                ds = request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
+            }
             log.debug("Selected builder={} for request: questionType={} datasetSource={}",
                     builder.getClass().getSimpleName(), request.getQuestionType(), ds);
         } catch (Exception ignore) {
@@ -213,6 +219,7 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         String questionType = request.getQuestionType();
+        String datasetSource = request.getDatasetSource();
         Map<String, Object> filters = request.getFilters();
 
         // Validate question type
@@ -220,19 +227,26 @@ public class ExplanationServiceImpl implements ExplanationService {
             return "Invalid request: questionType is required";
         }
 
-        // Validate dataset source
-        if (filters == null) {
-            return "Invalid request: filters are required";
-        }
-
-        Object dsObj = filters.get("datasetSource");
-        String datasetSource = (dsObj instanceof String) ? ((String) dsObj) : null;
+        // Validate dataset source (now a top-level field in Phase 12)
         if (datasetSource == null || datasetSource.trim().isEmpty()) {
-            return "Invalid request: datasetSource filter is required";
+            // Backward compatibility: check filters for datasetSource
+            if (filters != null) {
+                Object dsObj = filters.get("datasetSource");
+                if (dsObj instanceof String) {
+                    datasetSource = (String) dsObj;
+                }
+            }
+            
+            if (datasetSource == null || datasetSource.trim().isEmpty()) {
+                return "Invalid request: datasetSource is required";
+            }
+            
+            // Update the request object to maintain consistency
+            request.setDatasetSource(datasetSource);
         }
 
         // Validate time range filters (if present)
-        return validateTimeRangeFilters(filters);// No validation errors
+        return validateTimeRangeFilters(filters); // No validation errors
     }
 
 
