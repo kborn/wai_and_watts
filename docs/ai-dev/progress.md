@@ -535,24 +535,41 @@ User NL Question
 ---
 
 ### Phase 13 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
-Goal: Provide a thin UI for demo and interviews without shifting business logic into the frontend.
+Goal: Deliver a production-credible client surface over the existing backend, with clean boundaries and room to grow.
+
+Canonical requirements:
+- Product Slice: docs/product/phase-13-product-slice.md
+- SE Constraints: docs/design/phase-13-se-design-constraints.md
 
 Definition of Done:
-- [ ] Frontend skeleton exists (framework TBD)
-- [ ] Minimal views for:
-  - MBIE generation (annual + quarterly toggle)
-  - LAWA state/trend browse view
-  - “Explain this” call to explanation endpoint
-- [ ] No business logic in frontend (frontend is a client only)
-- [ ] README/DEMO docs updated with how to run frontend + backend together
+- [ ] React + TypeScript + Vite frontend scaffold
+- [ ] TanStack Query used for server state
+- [ ] Tailwind used for styling
+- [ ] React Router configured
+- [ ] Ask flow implemented (NL question → explanation OR refusal)
+- [ ] Results view implemented (explanation + citations + refusal variants)
+- [ ] Browse views implemented (table-first):
+  - [ ] MBIE generation: annual/quarterly toggle (+ optional fuelType filter)
+  - [ ] LAWA water quality: state/trend toggle (+ optional region/indicator filters)
+  - [ ] “Explain this” entry point from browse views
+- [ ] Frontend contains ZERO domain/explanation logic (backend remains authoritative)
+- [ ] Playwright smoke tests implemented:
+  - [ ] Ask success → explanation + citations render
+  - [ ] Ask refusal → refusal UI renders
+- [ ] README updated with frontend + backend run instructions
 
 Work Items:
-- [ ] Choose minimal frontend approach (React/Vite or Next.js; defer decision until Phase 10 starts)
-- [ ] Implement 2–3 simple pages + API wiring
-- [ ] Add screenshots for README (optional)
+- [ ] Scaffold Vite + React + TS
+- [ ] Implement typed API client layer
+- [ ] Implement routes: Ask, Results, Browse (MBIE, LAWA)
+- [ ] Implement “Explain this” using existing endpoints (no new backend computation)
+- [ ] Add Playwright harness + 2 smoke tests
+- [ ] Optional: simple charts if time permits (must be purely presentational; table view remains primary)
 
 Notes:
-- Frontend is for demoability, not product completeness.
+- Frontend is a production-credible client surface; scope is intentionally constrained to keep iteration fast and boundaries clean.
+- Progress.md is the execution checklist; page behaviors and UX expectations live in the [Product Slice](../../docs/product/phase_13_product_slice.md) doc.
+
 ---
 
 ### Phase 14 — Polish & Presentation (Portfolio-Ready)

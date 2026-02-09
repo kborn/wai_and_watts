@@ -862,3 +862,31 @@ Both endpoints are intentionally permanent to enforce separation of concerns bet
 - Confidence scoring may be introduced
 - UI may optionally expose parsed intent for transparency
 - Provider abstraction should remain intact for future LLM vendor flexibility
+
+
+# Wai & Watts --- Engineering Decisions Log (Additions)
+
+### Phase 13 Frontend Stack Selection
+
+Date: 2026-02-09
+
+Decision: Frontend stack is locked to: React, TypeScript, Vite, React
+Router, TanStack Query, Tailwind, Vitest, Playwright
+
+Rationale: Strong NZ job market alignment and fast iteration for demo
+UI.
+
+Implications: No SSR in Phase 13. Server state handled via TanStack
+Query.
+
+------------------------------------------------------------------------
+
+### Phase 13 Testing Strategy
+
+Date: 2026-02-09
+
+Decision: Phase 13 includes Playwright smoke tests. Phase 14 expands
+coverage.
+
+Rationale: Ensures demo reliability and prevents "testing later"
+ambiguity.
