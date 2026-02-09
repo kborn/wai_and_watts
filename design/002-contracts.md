@@ -42,17 +42,16 @@ This document defines the external and internal “interfaces”:
 
 ### 1.4 Endpoints (MVP)
 
-#### Health
-- `GET /api/v1/health` — service health (and DB connectivity)
+#### Health & System
+- `GET /api/v1/health` — global app health check
+- `GET /api/v1/insights` — returns Insights.md content as markdown
 
 #### Dataset metadata
-- `GET /api/v1/datasets` — list dataset sources + latest imported release
-- `GET /api/v1/datasets/{sourceId}/releases` — list releases + status
+- `GET /api/v1/datasets/sources` — list dataset sources + latest imported release
+- `GET /api/v1/datasets/sources/{id}/releases` — list releases + status
 
-#### Ingestion (local-only)
-- `POST /api/v1/ingest/lawa/state-trend`
-- `POST /api/v1/ingest/mbie/electricity`
-- `POST /api/v1/ingest/mbie/renewables`
+#### Ingestion (dev-only, profile-guarded)
+- `POST /api/v1/internal/ingest` — manual data ingestion
 
 Request body:
 ```json
@@ -71,14 +70,19 @@ Response body:
 }
 ```
 
-#### LAWA query
-- `GET /api/v1/lawa/sites?q=&region=&page=&size=`
-- `GET /api/v1/lawa/indicators`
-- `GET /api/v1/lawa/assessments?indicator=&windowYears=&trend=&region=&page=&size=`
+#### MBIE electricity generation data
+- `GET /api/v1/mbie/generation/annual` — annual generation data (supports fuelType filter)
+- `GET /api/v1/mbie/generation/quarterly` — quarterly generation data (supports fuelType filter)
 
-#### MBIE query
-- `GET /api/v1/energy/generation?from=&to=&fuel=&page=&size=`
-- `GET /api/v1/energy/renewable-share?from=&to=`
+Query parameters (both endpoints):
+- `fromYear` (optional) — filter from year
+- `toYear` (optional) — filter to year  
+- `source` (optional) — filter by fuel source
+- `fuelType` (optional) — filter by fuel type
+
+#### LAWA water quality data
+- `GET /api/v1/lawa/water-quality/state/multiyear` — water quality state assessments
+- `GET /api/v1/lawa/water-quality/trend/multiyear` — water quality trend analyses
 
 #### Insights (fact-pack-first)
 - `GET /api/v1/insights/overview?from=&to=&region=&indicator=&windowYears=`

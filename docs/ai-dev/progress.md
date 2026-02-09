@@ -482,6 +482,7 @@ This phase introduces **intent parsing only**. It does NOT change fact pack cons
 - UI is single-turn and stateless: 
   - each submission is evaluated independently; 
   - no conversation history, no follow-up context, no multi-turn flows.
+- IntentParser may only emit existing question_type enum values.
 
 ---
 
