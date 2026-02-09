@@ -49,7 +49,7 @@ class MbieGenerationQuarterlyReadServiceImplTest {
 
     @Test
     void find_noFilters_returnsAllMapped() {
-        List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, null, null);
+        List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, null, null, null);
         assertThat(out).hasSize(2);
         assertThat(out.get(0).getSource()).isEqualTo("HYDRO");
         assertThat(out.get(1).getPeriodYear()).isEqualTo(2024);
@@ -60,21 +60,21 @@ class MbieGenerationQuarterlyReadServiceImplTest {
 
     @Test
     void find_withFromYear_filtersLowerBound() {
-        List<MbieGenerationQuarterlyRecordDto> out = service.find(2024, null, null, null);
+        List<MbieGenerationQuarterlyRecordDto> out = service.find(2024, null, null, null, null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getPeriodYear()).isEqualTo(2024);
     }
 
     @Test
     void find_withQuarter_filtersSpecificQuarter() {
-        List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, 4, null);
+        List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, 4, null, null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getPeriodQuarter()).isEqualTo(4);
     }
 
     @Test
     void find_withSource_caseInsensitiveMatch() {
-        List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, null, "wind");
+        List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, null, "wind", null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getSource()).isEqualTo("WIND");
     }

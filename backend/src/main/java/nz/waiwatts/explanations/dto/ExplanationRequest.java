@@ -1,5 +1,6 @@
 package nz.waiwatts.explanations.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 /**
@@ -9,6 +10,7 @@ import java.util.Map;
  * and prevent freeform chat prompts.
  */
 public class ExplanationRequest {
+    @JsonProperty("question_type")
     private String questionType;
     private Map<String, Object> filters;
 

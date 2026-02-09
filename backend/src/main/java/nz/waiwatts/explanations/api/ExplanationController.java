@@ -15,7 +15,7 @@ import java.util.Map;
  * Only accepts question_type from supported classes and structured filters.
  */
 @RestController
-@RequestMapping("/api/explanations")
+@RequestMapping("/api/v1/explanations")
 public class ExplanationController {
 
     private final ExplanationService explanationService;
@@ -41,7 +41,7 @@ public class ExplanationController {
      * 
      * @return supported and unsupported question classes with filter requirements
      */
-    @GetMapping("/question-types")
+    @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
         Map<String, Object> supportedTypes = Map.of(
             "supportedQuestionTypes", Map.of(
@@ -102,5 +102,17 @@ public class ExplanationController {
             "service", "explanation-api",
             "phase", "11"
         ));
+    }
+
+    /**
+     * Debug endpoint to build and return full FactPack for verification.
+     * 
+     * @param request same request structure as /api/v1/explanations
+     * @return full FactPack JSON for debugging
+     */
+    @PostMapping("/fact-pack")
+    public ResponseEntity<Object> buildFactPack(@RequestBody ExplanationRequest request) {
+        Object factPack = explanationService.buildFactPack(request);
+        return ResponseEntity.ok(factPack);
     }
 }

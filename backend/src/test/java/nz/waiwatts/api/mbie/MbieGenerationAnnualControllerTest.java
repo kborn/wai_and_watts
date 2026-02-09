@@ -35,7 +35,7 @@ class MbieGenerationAnnualControllerTest {
         List<MbieGenerationAnnualRecordDto> payload = List.of(
                 new MbieGenerationAnnualRecordDto(2024, "WIND", "Wind", new BigDecimal("3918.6"), relId)
         );
-        when(readService.find(any(), any(), any())).thenReturn(payload);
+        when(readService.find(any(), any(), any(), any())).thenReturn(payload);
 
         mockMvc.perform(get("/api/v1/mbie/generation/annual")
                         .accept(MediaType.APPLICATION_JSON))
@@ -50,7 +50,7 @@ class MbieGenerationAnnualControllerTest {
 
     @Test
     void getGeneration_validatesFromTo() throws Exception {
-        when(readService.find(anyInt(), anyInt(), anyString())).thenReturn(List.of());
+        when(readService.find(anyInt(), anyInt(), anyString(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/mbie/generation/annual")
                         .param("fromYear", "2025")
