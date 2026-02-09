@@ -42,3 +42,7 @@ replay_pid*
 /transforms/
 
 .DS_Store
+
+/frontend/.vite/
+/frontend/dist/
+/frontend/node_modules/
