@@ -501,6 +501,9 @@ User NL Question
  → Explanation + Citations
 ```
 
+### Links
+- PR: [feat(nl): add natural language query interface](https://github.com/kborn/wai_and_watts/pull/42)
+
 ---
 
 ### Implementation Summary ✅
