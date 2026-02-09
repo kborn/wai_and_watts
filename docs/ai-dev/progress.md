@@ -427,10 +427,10 @@ Notes:
 - The LLM explains; the database remains source of truth.
 
 ---
-## Phase 12 — Natural Language Query Interface + Thin Frontend
+## Phase 12 — Natural Language Query Interface
 
 ### Goal
-Add natural language question support while maintaining all fact-pack grounding guarantees, and expose this through a minimal but production-realistic frontend.
+Add natural language question support while maintaining all fact-pack grounding guarantees
 
 This phase introduces **intent parsing only**. It does NOT change fact pack construction, data lineage, or explanation safety architecture.
 
@@ -445,11 +445,6 @@ This phase introduces **intent parsing only**. It does NOT change fact pack cons
 - [ ] Structured endpoint (`POST /api/v1/explanations`) remains supported and unchanged
 - [ ] Integration test: NL → intent → fact pack → explanation
 - [ ] Refusal test: unsupported NL question → explicit refusal
-- [ ] Minimal frontend exists:
-  - Text input for NL queries
-  - Example questions (click to populate input)
-  - Explanation + citation rendering
-  - Optional debug display of parsed intent
 
 ---
 
