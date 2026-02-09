@@ -2,7 +2,12 @@ package nz.waiwatts.explanations.api;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
+import nz.waiwatts.explanations.dto.IntentParseResponse;
 import nz.waiwatts.explanations.service.ExplanationService;
+import nz.waiwatts.explanations.service.IntentParserService;
+import nz.waiwatts.explanations.service.RequestValidationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,21 +23,83 @@ import java.util.Map;
 @RequestMapping("/api/v1/explanations")
 public class ExplanationController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExplanationController.class);
+    
     private final ExplanationService explanationService;
+    private final IntentParserService intentParserService;
+    private final RequestValidationService validationService;
 
-    public ExplanationController(ExplanationService explanationService) {
+    public ExplanationController(
+        ExplanationService explanationService,
+        IntentParserService intentParserService,
+        RequestValidationService validationService
+    ) {
         this.explanationService = explanationService;
+        this.intentParserService = intentParserService;
+        this.validationService = validationService;
     }
 
     /**
      * Generate an explanation for a supported question type.
      * 
-     * @param request structured request with question_type and filters
+     * @param request structured request with questionType, datasetSource, and filters
      * @return explanation with citations or refusal
      */
     @PostMapping
     public ResponseEntity<Explanation> generateExplanation(@RequestBody ExplanationRequest request) {
         Explanation explanation = explanationService.generateExplanation(request);
+        return ResponseEntity.ok(explanation);
+    }
+
+    /**
+     * Process a natural language question and generate an explanation.
+     * 
+     * Phase 12 endpoint: Parses natural language → validates → generates explanation.
+     * Follows same refusal behavior as structured endpoint.
+     * 
+     * @param body request containing natural language question
+     * @return explanation with citations or refusal
+     */
+    @PostMapping("/ask")
+    public ResponseEntity<Explanation> askQuestion(@RequestBody Map<String, String> body) {
+        String question = body.get("question");
+        if (question == null || question.trim().isEmpty()) {
+            Explanation explanation = Explanation.refusal("INVALID_FILTERS");
+            explanation.setRefusalReason("Question is required");
+            return ResponseEntity.badRequest().body(explanation);
+        }
+
+        logger.info("Processing natural language question: {}", question);
+
+        // Parse natural language to structured request
+        IntentParseResponse parseResponse = intentParserService.parseQuestion(question);
+        
+        if (!parseResponse.isOk()) {
+            logger.warn("Intent parsing failed: {} - {}", 
+                parseResponse.getRefusal().getCategory(), 
+                parseResponse.getRefusal().getMessage());
+            
+            Explanation explanation = Explanation.refusal(parseResponse.getRefusal().getCategory());
+            explanation.setRefusalReason(parseResponse.getRefusal().getMessage());
+            return ResponseEntity.ok(explanation);
+        }
+
+        // Validate the parsed request
+        ExplanationRequest parsedRequest = parseResponse.getRequest();
+        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(parsedRequest);
+        
+        if (!validationResult.isValid()) {
+            logger.warn("Request validation failed: {} - {}", 
+                validationResult.getRefusalCategory(), 
+                validationResult.getRefusalMessage());
+            
+            Explanation explanation = Explanation.refusal(validationResult.getRefusalCategory());
+            explanation.setRefusalReason(validationResult.getRefusalMessage());
+            return ResponseEntity.ok(explanation);
+        }
+
+        // Generate explanation using existing pipeline
+        Explanation explanation = explanationService.generateExplanation(parsedRequest);
         return ResponseEntity.ok(explanation);
     }
 
