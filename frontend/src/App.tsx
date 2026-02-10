@@ -1,11 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Layout from './components/Layout';
-import HomePage from './features/home/HomePage';
-import AskPage from './features/ask/AskPage';
-import ResultsPage from './features/results/ResultsPage';
-import MbieBrowsePage from './features/browse-mbie/MbieBrowsePage';
-import LawaBrowsePage from './features/browse-lawa/LawaBrowsePage';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import Layout from './components/Layout'
+import HomePage from './features/home/HomePage'
+import AskPage from './features/ask/AskPage'
+import ResultsPage from './features/results/ResultsPage'
+import MbieBrowsePage from './features/browse-mbie/MbieBrowsePage'
+import LawaBrowsePage from './features/browse-lawa/LawaBrowsePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,7 +14,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
     },
   },
-});
+})
 
 function App() {
   return (
@@ -31,7 +31,8 @@ function App() {
         </Layout>
       </Router>
     </QueryClientProvider>
-  );
+  )
 }
 
-export default App;
+export default App
+// Test change

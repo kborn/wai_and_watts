@@ -43,7 +43,14 @@ replay_pid*
 
 .DS_Store
 
+# Frontend
 /frontend/.vite/
 /frontend/dist/
 /frontend/node_modules/
+/frontend/.env*
+/frontend/coverage/
+/frontend/test-results/
+/frontend/playwright-report/
+/frontend/blob-report/
+/frontend/playwright/.cache/
 **/*.tsbuildinfo

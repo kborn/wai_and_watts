@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Navigate to frontend directory
+cd "$(dirname "$0")/.."
+
+# TypeScript compilation check
+echo "🔍 Running TypeScript compilation check..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript compilation failed. Please fix build errors before committing."
+  exit 1
+fi
+
+# Run lint-staged for all staged files
+echo "🔧 Running lint-staged..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ Lint-staged failed. Please fix linting/formatting errors before committing."
+  exit 1
+fi
+
+# Full repo formatting check (excluding build files)
+echo "🎨 Running Prettier formatting check..."
+npx prettier --check . --ignore-path ../.gitignore
+if [ $? -ne 0 ]; then
+  echo "❌ Prettier check failed. Some files are not properly formatted."
+  echo "💡 Run 'npx prettier --write . --ignore-path .gitignore' to fix formatting."
+  exit 1
+fi
+
+echo "✅ Pre-commit checks passed"
