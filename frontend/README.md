@@ -10,7 +10,7 @@ This frontend implements Phase 13 - Thin Storytelling Client with all Definition
 
 - **React 19** with TypeScript
 - **Vite** for build tooling
-- **React Router** for navigation  
+- **React Router** for navigation
 - **TanStack Query** for server state management
 - **Tailwind CSS** for styling
 - **Vitest** for unit testing
@@ -19,6 +19,7 @@ This frontend implements Phase 13 - Thin Storytelling Client with all Definition
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - Backend server running on `http://localhost:8080`
 
@@ -35,6 +36,24 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:5173`
+
+### Pre-commit Quality Checks
+
+This project uses **Husky** + **lint-staged** for automated pre-commit checks:
+
+- ✅ **TypeScript compilation** - Prevents build errors
+- ✅ **ESLint** - Code quality and consistency
+- ✅ **Prettier** - Automatic formatting
+- ✅ **Tests** - Runs relevant unit tests for changed files
+
+### Pre-commit Setup (one-time)
+
+```bash
+npm install
+npm run prepare
+```
+
+This installs the git hooks automatically. Future commits will run quality checks automatically.
 
 ### Build
 
@@ -66,18 +85,23 @@ npm run test:e2e
 ## Pages
 
 ### Home Page (`/`)
+
 Platform overview with navigation to Ask and Browse flows
 
 ### Ask Page (`/ask`)
+
 Natural language question interface with example questions and error handling
 
 ### Results View (`/results`)
+
 Explanation display with citations and refusal UI variants
 
 ### MBIE Browse (`/browse/mbie`)
+
 Table-first MBIE electricity generation data with annual/quarterly toggle and fuel type filtering
 
-### LAWA Browse (`/browse/lawa`)  
+### LAWA Browse (`/browse/lawa`)
+
 Table-first LAWA water quality data with state/trend toggle and region/indicator filtering
 
 ## API Integration
@@ -107,6 +131,7 @@ VITE_API_BASE_URL=http://localhost:8080
 ## Phase 13 Success Criteria
 
 ✅ All Definition of Done criteria met:
+
 - [x] React + TypeScript + Vite frontend scaffold
 - [x] TanStack Query used for server state
 - [x] Tailwind used for styling
