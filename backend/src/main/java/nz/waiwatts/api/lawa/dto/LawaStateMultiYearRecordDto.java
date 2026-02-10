@@ -1,12 +1,14 @@
 package nz.waiwatts.api.lawa.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class LawaStateMultiYearRecordDto {
 
     private String lawaSiteId;
-    private String siteName;
+    @JsonProperty("site")
+    private String site;
     private String region;
     private BigDecimal latitude;
     private BigDecimal longitude;
@@ -27,9 +29,9 @@ public class LawaStateMultiYearRecordDto {
     public LawaStateMultiYearRecordDto() {
     }
 
-    public LawaStateMultiYearRecordDto(String lawaSiteId, String siteName, String region, BigDecimal latitude, BigDecimal longitude, String indicatorRaw, String indicatorNorm, String units, String attributeBand, String stateNorm, BigDecimal median, BigDecimal p95, BigDecimal recHealthExceed260Pct, BigDecimal recHealthExceed540Pct, String periodType, int periodStartYear, int periodEndYear, UUID releaseId) {
+    public LawaStateMultiYearRecordDto(String lawaSiteId, String site, String region, BigDecimal latitude, BigDecimal longitude, String indicatorRaw, String indicatorNorm, String units, String attributeBand, String stateNorm, BigDecimal median, BigDecimal p95, BigDecimal recHealthExceed260Pct, BigDecimal recHealthExceed540Pct, String periodType, int periodStartYear, int periodEndYear, UUID releaseId) {
         this.lawaSiteId = lawaSiteId;
-        this.siteName = siteName;
+        this.site = site;
         this.region = region;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -56,12 +58,13 @@ public class LawaStateMultiYearRecordDto {
         this.lawaSiteId = lawaSiteId;
     }
 
-    public String getSiteName() {
-        return siteName;
+    @JsonProperty("site")
+    public String getSite() {
+        return site;
     }
 
-    public void setSiteName(String siteName) {
-        this.siteName = siteName;
+    public void setSite(String site) {
+        this.site = site;
     }
 
     public String getRegion() {

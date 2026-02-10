@@ -51,7 +51,7 @@ class MbieGenerationQuarterlyReadServiceImplTest {
     void find_noFilters_returnsAllMapped() {
         List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, null, null, null);
         assertThat(out).hasSize(2);
-        assertThat(out.get(0).getSource()).isEqualTo("HYDRO");
+        assertThat(out.get(0).getFuelTypeNorm()).isEqualTo("HYDRO");
         assertThat(out.get(1).getPeriodYear()).isEqualTo(2024);
         assertThat(out.get(1).getPeriodQuarter()).isEqualTo(3);
         assertThat(out.get(1).getGenerationGwh()).isEqualByComparingTo("980.1");
@@ -76,6 +76,6 @@ class MbieGenerationQuarterlyReadServiceImplTest {
     void find_withSource_caseInsensitiveMatch() {
         List<MbieGenerationQuarterlyRecordDto> out = service.find(null, null, null, "wind", null);
         assertThat(out).hasSize(1);
-        assertThat(out.getFirst().getSource()).isEqualTo("WIND");
+        assertThat(out.getFirst().getFuelTypeNorm()).isEqualTo("WIND");
     }
 }
