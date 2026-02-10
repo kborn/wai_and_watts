@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/mbie")
 public class MbieGenerationQuarterlyController {
 
+    private static final Logger logger = LoggerFactory.getLogger(MbieGenerationQuarterlyController.class);
     private final MbieGenerationQuarterlyReadService readService;
 
     public MbieGenerationQuarterlyController(MbieGenerationQuarterlyReadService readService) {
@@ -29,13 +32,23 @@ public class MbieGenerationQuarterlyController {
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "fuelType", required = false) String fuelType
     ) {
+        long startTime = System.currentTimeMillis();
+        
         if (fromYear != null && toYear != null && fromYear > toYear) {
+            logger.warn("Invalid parameters: fromYear ({}) must be <= toYear ({})", fromYear, toYear);
             return ResponseEntity.badRequest().body(Map.of("error", "fromYear must be <= toYear"));
         }
         if (quarter != null && (quarter < 1 || quarter > 4)) {
+            logger.warn("Invalid parameters: quarter ({}) must be between 1 and 4", quarter);
             return ResponseEntity.badRequest().body(Map.of("error", "quarter must be between 1 and 4"));
         }
+        
         List<MbieGenerationQuarterlyRecordDto> out = readService.find(fromYear, toYear, quarter, source, fuelType);
+        long duration = System.currentTimeMillis() - startTime;
+        
+        logger.info("Dataset query: mbie.generation.quarterly - filters: fromYear={}, toYear={}, quarter={}, source={}, fuelType={} - rowCount: {}, duration: {}ms",
+            fromYear, toYear, quarter, source, fuelType, out.size(), duration);
+        
         return ResponseEntity.ok(out);
     }
 }

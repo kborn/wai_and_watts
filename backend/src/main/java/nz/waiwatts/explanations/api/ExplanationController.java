@@ -39,6 +39,19 @@ public class ExplanationController {
         this.validationService = validationService;
     }
 
+    private String summarizeFilters(ExplanationRequest request) {
+        if (request.getFilters() == null || request.getFilters().isEmpty()) {
+            return "none";
+        }
+        
+        StringBuilder summary = new StringBuilder();
+        request.getFilters().forEach((key, value) -> {
+            if (!summary.isEmpty()) summary.append(", ");
+            summary.append(key).append("=").append(value);
+        });
+        return summary.toString();
+    }
+
     /**
      * Generate an explanation for a supported question type.
      * 
@@ -62,20 +75,24 @@ public class ExplanationController {
      */
     @PostMapping("/ask")
     public ResponseEntity<Explanation> askQuestion(@RequestBody Map<String, String> body) {
+        logger.info("Received /ask request body: {}", body);
+        
         String question = body.get("question");
         if (question == null || question.trim().isEmpty()) {
+            logger.warn("Question is null or empty in request body: {}", body);
             Explanation explanation = Explanation.refusal("INVALID_FILTERS");
             explanation.setRefusalReason("Question is required");
             return ResponseEntity.badRequest().body(explanation);
         }
 
-        logger.info("Processing natural language question: {}", question);
+        logger.info("Processing natural language question (length: {})", question.length());
 
-        // Parse natural language to structured request
-        IntentParseResponse parseResponse = intentParserService.parseQuestion(question);
+        try {
+            // Parse natural language to structured request
+            IntentParseResponse parseResponse = intentParserService.parseQuestion(question);
         
         if (!parseResponse.isOk()) {
-            logger.warn("Intent parsing failed: {} - {}", 
+            logger.info("Intent parse result: refusal - category: {}, message: {}", 
                 parseResponse.getRefusal().getCategory(), 
                 parseResponse.getRefusal().getMessage());
             
@@ -84,12 +101,18 @@ public class ExplanationController {
             return ResponseEntity.ok(explanation);
         }
 
-        // Validate the parsed request
+        // Log successful intent parse
         ExplanationRequest parsedRequest = parseResponse.getRequest();
+        logger.info("Intent parse result: ok - questionType: {}, datasetSource: {}, filters: {}", 
+            parsedRequest.getQuestionType(),
+            parsedRequest.getDatasetSource(),
+            summarizeFilters(parsedRequest));
+
+        // Validate the parsed request
         RequestValidationService.ValidationResult validationResult = validationService.validateRequest(parsedRequest);
         
         if (!validationResult.isValid()) {
-            logger.warn("Request validation failed: {} - {}", 
+            logger.info("Validation result: refusal - category: {}, message: {}", 
                 validationResult.getRefusalCategory(), 
                 validationResult.getRefusalMessage());
             
@@ -98,9 +121,23 @@ public class ExplanationController {
             return ResponseEntity.ok(explanation);
         }
 
+        logger.info("Validation result: ok - request valid");
+
         // Generate explanation using existing pipeline
         Explanation explanation = explanationService.generateExplanation(parsedRequest);
+        
+        if (explanation.isRefusal()) {
+            logger.info("Final result: refusal - category: {}, reason: {}", 
+                "EXPLANATION_FAILED", explanation.getRefusalReason());
+        } else {
+            logger.info("Final result: ok - explanation generated");
+        }
+        
         return ResponseEntity.ok(explanation);
+        } catch (Exception e) {
+            logger.error("Exception in /ask endpoint: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
