@@ -1,76 +1,96 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useLawaStateMultiYear, useLawaTrendMultiYear } from '../../api/hooks';
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useLawaStateMultiYear, useLawaTrendMultiYear } from '../../api/hooks'
 
 const LawaBrowsePage: React.FC = () => {
-  const [viewType, setViewType] = useState<'state' | 'trend'>('state');
-  const [region, setRegion] = useState('');
-  const [indicator, setIndicator] = useState('');
-  const navigate = useNavigate();
+  const [viewType, setViewType] = useState<'state' | 'trend'>('state')
+  const [region, setRegion] = useState('')
+  const [indicator, setIndicator] = useState('')
+  const navigate = useNavigate()
 
-  const stateData = useLawaStateMultiYear({ region: region || undefined, indicator: indicator || undefined });
-  const trendData = useLawaTrendMultiYear({ region: region || undefined, indicator: indicator || undefined });
-  
-  const data = viewType === 'state' ? stateData.data : trendData.data;
-  const isLoading = viewType === 'state' ? stateData.isLoading : trendData.isLoading;
-  const error = viewType === 'state' ? stateData.error : trendData.error;
+  const stateData = useLawaStateMultiYear({
+    region: region || undefined,
+    indicator: indicator || undefined,
+  })
+  const trendData = useLawaTrendMultiYear({
+    region: region || undefined,
+    indicator: indicator || undefined,
+  })
+
+  const data = viewType === 'state' ? stateData.data : trendData.data
+  const isLoading =
+    viewType === 'state' ? stateData.isLoading : trendData.isLoading
+  const error = viewType === 'state' ? stateData.error : trendData.error
 
   const handleExplainThis = () => {
-    const context = viewType === 'state' 
-      ? "Explain water quality state data"
-      : "Explain water quality trend data";
-    
-    const filters = [];
-    if (region) filters.push(`in ${region}`);
-    if (indicator) filters.push(`for ${indicator}`);
-    
-    const question = filters.length > 0 
-      ? `${context} ${filters.join(' ')}`
-      : context;
-    
-    navigate('/ask', { state: { prefill: question } });
-  };
+    const context =
+      viewType === 'state'
+        ? 'Explain water quality state data'
+        : 'Explain water quality trend data'
+
+    const filters = []
+    if (region) filters.push(`in ${region}`)
+    if (indicator) filters.push(`for ${indicator}`)
+
+    const question =
+      filters.length > 0 ? `${context} ${filters.join(' ')}` : context
+
+    navigate('/ask', { state: { prefill: question } })
+  }
 
   const getStateBadgeClass = (stateNorm: string) => {
     switch (stateNorm) {
-      case 'EXCELLENT': return 'bg-green-100 text-green-800';
-      case 'GOOD': return 'bg-blue-100 text-blue-800';
-      case 'FAIR': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'EXCELLENT':
+        return 'bg-green-100 text-green-800'
+      case 'GOOD':
+        return 'bg-blue-100 text-blue-800'
+      case 'FAIR':
+        return 'bg-yellow-100 text-yellow-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
-  };
+  }
 
   const getTrendBadgeClass = (trendNorm: string) => {
     switch (trendNorm) {
-      case 'IMPROVING': return 'bg-green-100 text-green-800';
-      case 'DEGRADING': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'IMPROVING':
+        return 'bg-green-100 text-green-800'
+      case 'DEGRADING':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
-  };
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">LAWA Water Quality Data</h1>
-        
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+          LAWA Water Quality Data
+        </h1>
+
         <div className="flex flex-wrap gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">View Type</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              View Type
+            </label>
             <select
               value={viewType}
-              onChange={(e) => setViewType(e.target.value as 'state' | 'trend')}
+              onChange={e => setViewType(e.target.value as 'state' | 'trend')}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="state">State</option>
               <option value="trend">Trend</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Region
+            </label>
             <select
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
+              onChange={e => setRegion(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">All</option>
@@ -81,10 +101,12 @@ const LawaBrowsePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Indicator</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Indicator
+            </label>
             <select
               value={indicator}
-              onChange={(e) => setIndicator(e.target.value)}
+              onChange={e => setIndicator(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">All</option>
@@ -129,30 +151,40 @@ const LawaBrowsePage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Loading data...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-red-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-red-500"
+                  >
                     Error loading data: {error?.message || 'Unknown error'}
                   </td>
                 </tr>
               ) : !data || data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No data available
                   </td>
                 </tr>
               ) : (
-                data.map((row) => (
+                data.map(row => (
                   <tr key={row.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {viewType === 'state' 
+                      {viewType === 'state'
                         ? `${row.periodStartYear}-${row.periodEndYear}`
-                        : 'asOfYear' in row ? `${row.asOfYear} (${row.periodStartYear}-${row.periodEndYear})` : `${row.periodStartYear}-${row.periodEndYear}`
-                      }
+                        : 'asOfYear' in row
+                          ? `${row.asOfYear} (${row.periodStartYear}-${row.periodEndYear})`
+                          : `${row.periodStartYear}-${row.periodEndYear}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {row.region}
@@ -164,13 +196,21 @@ const LawaBrowsePage: React.FC = () => {
                       {row.indicatorRaw}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        viewType === 'state' && 'stateNorm' in row ? getStateBadgeClass(row.stateNorm) : 
-                        viewType === 'trend' && 'trendNorm' in row ? getTrendBadgeClass(row.trendNorm) : 
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {viewType === 'state' && 'stateNorm' in row ? row.stateNorm : 
-                         viewType === 'trend' && 'trendNorm' in row ? row.trendNorm : 'UNKNOWN'}
+                      <span
+                        className={`px-2 py-1 text-xs rounded-full ${
+                          viewType === 'state' && 'stateNorm' in row
+                            ? getStateBadgeClass(row.stateNorm)
+                            : viewType === 'trend' &&
+                                'trendNorm' in row
+                              ? getTrendBadgeClass(row.trendNorm)
+                              : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {viewType === 'state' && 'stateNorm' in row
+                          ? row.stateNorm
+                          : viewType === 'trend' && 'trendNorm' in row
+                            ? row.trendNorm
+                            : 'UNKNOWN'}
                       </span>
                     </td>
                   </tr>
@@ -181,13 +221,15 @@ const LawaBrowsePage: React.FC = () => {
         </div>
 
         <div className="mt-4 text-sm text-gray-600">
-          {isLoading ? 'Loading data from backend...' : 
-           error ? 'Failed to load data from backend.' : 
-           `Showing ${data?.length || 0} records.`}
+          {isLoading
+            ? 'Loading data from backend...'
+            : error
+              ? 'Failed to load data from backend.'
+              : `Showing ${data?.length || 0} records.`}
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default LawaBrowsePage;
+export default LawaBrowsePage

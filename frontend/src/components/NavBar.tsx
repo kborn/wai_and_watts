@@ -1,11 +1,11 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import type { NavBarProps } from '../types';
+import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import type { NavBarProps } from '../types'
 
 const NavBar: React.FC<NavBarProps> = () => {
-  const location = useLocation();
+  const location = useLocation()
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path
 
   return (
     <nav className="bg-blue-600 text-white shadow-lg">
@@ -61,7 +61,7 @@ const NavBar: React.FC<NavBarProps> = () => {
         </div>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default NavBar;
+export default NavBar
