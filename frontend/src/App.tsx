@@ -5,7 +5,7 @@ import HomePage from './features/home/HomePage';
 import AskPage from './features/ask/AskPage';
 import ResultsPage from './features/results/ResultsPage';
 import MbieBrowsePage from './features/browse-mbie/MbieBrowsePage';
-// import LawaBrowsePage from './features/browse-lawa/LawaBrowsePage';
+import LawaBrowsePage from './features/browse-lawa/LawaBrowsePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +26,7 @@ function App() {
             <Route path="/ask" element={<AskPage />} />
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/browse/mbie" element={<MbieBrowsePage />} />
-            {/*<Route path="/browse/lawa" element={<LawaBrowsePage />} />*/}
+            <Route path="/browse/lawa" element={<LawaBrowsePage />} />
           </Routes>
         </Layout>
       </Router>
