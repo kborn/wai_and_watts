@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 12 — Natural Language Query Interface ✅
-- **Status:** Complete
+- **Active Phase:** Phase 14 — Polish & Presentation (Portfolio-Ready) 🔄
+- **Status:** Not started
 
 ---
 
@@ -534,44 +534,55 @@ User NL Question
 
 ---
 
-### Phase 13 — Frontend (Thin Storytelling Client) [Intentionally Minimal]
+### Phase 13 — Frontend (Thin Storytelling Client) ✅
 Goal: Deliver a production-credible client surface over the existing backend, with clean boundaries and room to grow.
 
 Canonical requirements:
 - PR Guideline: ../PHASE_13_PR_EXECUTION_GUIDELINE.md
   - This phase must be broken out in PRs according to the phase 13 guideline doc
-- Product Slice: docs/product/phase-13-product-slice.md
-- SE Constraints: docs/design/phase-13-se-design-constraints.md
+- Product Slice: docs/product/phase_13_product_slice.md
+- SE Constraints: design/p014_-frontend_design_constraints.md
 
 Definition of Done:
-- [ ] React + TypeScript + Vite frontend scaffold
-- [ ] TanStack Query used for server state
-- [ ] Tailwind used for styling
-- [ ] React Router configured
-- [ ] Ask flow implemented (NL question → explanation OR refusal)
-- [ ] Results view implemented (explanation + citations + refusal variants)
-- [ ] Browse views implemented (table-first):
-  - [ ] MBIE generation: annual/quarterly toggle (+ optional fuelType filter)
-  - [ ] LAWA water quality: state/trend toggle (+ optional region/indicator filters)
-  - [ ] “Explain this” entry point from browse views
-- [ ] Frontend contains ZERO domain/explanation logic (backend remains authoritative)
-- [ ] Playwright smoke tests implemented:
-  - [ ] Ask success → explanation + citations render
-  - [ ] Ask refusal → refusal UI renders
-- [ ] README updated with frontend + backend run instructions
+- [x] React + TypeScript + Vite frontend scaffold
+- [x] TanStack Query used for server state
+- [x] Tailwind used for styling
+- [x] React Router configured
+- [x] Ask flow implemented (NL question → explanation OR refusal)
+- [x] Results view implemented (explanation + citations + refusal variants)
+- [x] Browse views implemented (table-first):
+  - [x] MBIE generation: annual/quarterly toggle (+ optional fuelType filter)
+  - [x] LAWA water quality: state/trend toggle (+ optional region/indicator filters)
+  - [x] "Explain this" entry point from browse views
+- [x] Frontend contains ZERO domain/explanation logic (backend remains authoritative)
+- [x] Playwright smoke tests implemented:
+  - [x] Ask success → explanation + citations render
+  - [x] Ask refusal → refusal UI renders
+- [x] README updated with frontend + backend run instructions
 
 Work Items:
-- [ ] Scaffold Vite + React + TS
-- [ ] Implement typed API client layer
-- [ ] Implement routes: Ask, Results, Browse (MBIE, LAWA)
-- [ ] Implement “Explain this” using existing endpoints (no new backend computation)
-- [ ] Add Playwright harness + 2 smoke tests
-- [ ] Optional: simple charts if time permits (must be purely presentational; table view remains primary)
+- [x] Scaffold Vite + React + TS
+- [x] Implement typed API client layer
+- [x] Implement routes: Ask, Results, Browse (MBIE, LAWA)
+- [x] Implement "Explain this" using existing endpoints (no new backend computation)
+- [x] Add Playwright harness + 2 smoke tests
+- [x] Optional: simple charts if time permits (must be purely presentational; table view remains primary)
 
 Notes:
 - Frontend is a production-credible client surface; scope is intentionally constrained to keep iteration fast and boundaries clean.
 - Progress.md is the execution checklist; page behaviors and UX expectations live in the [Product Slice](../../docs/product/phase_13_product_slice.md) doc.
 
+
+### Links
+- PR: [feat(frontend): Vite + React + TypeScript core scaffold](https://github.com/kborn/wai_and_watts/pull/43)
+- PR: [feat(frontend): Add React Router + Layout shell](https://github.com/kborn/wai_and_watts/pull/44)
+- PR: [feat(frontend): Add API client + TanStack Query integration](https://github.com/kborn/wai_and_watts/pull/45)
+- PR: [feat(frontend): Add Ask page component](https://github.com/kborn/wai_and_watts/pull/46)
+- PR: [feat(frontend): Add Results view component](https://github.com/kborn/wai_and_watts/pull/47)
+- PR: [feat(frontend): Add MBIE browse view](https://github.com/kborn/wai_and_watts/pull/48)
+- PR: [feat(frontend): Add LAWA browse view](https://github.com/kborn/wai_and_watts/pull/49)
+- PR: [feat(frontend): Add testing setup](https://github.com/kborn/wai_and_watts/pull/50)
+- PR: [feat(frontend): Add cleanup and documentation](https://github.com/kborn/wai_and_watts/pull/51)
 ---
 
 ### Phase 14 — Polish & Presentation (Portfolio-Ready)
