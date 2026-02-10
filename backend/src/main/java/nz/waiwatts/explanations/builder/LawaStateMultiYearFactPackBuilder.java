@@ -88,10 +88,20 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
     @Override
     public boolean canHandle(ExplanationRequest request) {
+        // Check top-level datasetSource field (Phase 12+)
+        String ds = request.getDatasetSource();
+        if (ds != null) {
+            return "lawa.water_quality.state.multi_year".equals(ds);
+        }
+        
+        // Backward compatibility: check filters
         Map<String, Object> filters = request.getFilters();
-        if (filters == null) return false;
-        Object ds = filters.get("datasetSource");
-        return "lawa.water_quality.state.multi_year".equals(String.valueOf(ds));
+        if (filters != null) {
+            Object dsFilter = filters.get("datasetSource");
+            return "lawa.water_quality.state.multi_year".equals(String.valueOf(dsFilter));
+        }
+        
+        return false;
     }
 
     @Override

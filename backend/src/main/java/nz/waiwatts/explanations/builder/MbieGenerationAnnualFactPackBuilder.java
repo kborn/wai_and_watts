@@ -79,10 +79,20 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
     @Override
     public boolean canHandle(ExplanationRequest request) {
+        // Check top-level datasetSource field (Phase 12+)
+        String ds = request.getDatasetSource();
+        if (ds != null) {
+            return "mbie.generation.annual".equals(ds);
+        }
+        
+        // Backward compatibility: check filters
         Map<String, Object> filters = request.getFilters();
-        if (filters == null) return false;
-        Object ds = filters.get("datasetSource");
-        return "mbie.generation.annual".equals(String.valueOf(ds));
+        if (filters != null) {
+            Object dsFilter = filters.get("datasetSource");
+            return "mbie.generation.annual".equals(String.valueOf(dsFilter));
+        }
+        
+        return false;
     }
 
     @Override
