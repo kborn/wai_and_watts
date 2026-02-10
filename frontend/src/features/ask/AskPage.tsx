@@ -22,10 +22,15 @@ const AskPage: React.FC = () => {
 
     try {
       const request: AskRequest = { question: question.trim() }
-      await askQuestion.mutateAsync(request)
+      const result = await askQuestion.mutateAsync(request)
 
-      // Navigate to results page (will be implemented in PR 5)
-      navigate('/results')
+      // Navigate to results page with response data
+      navigate('/results', {
+        state: {
+          question: question.trim(),
+          explanation: result,
+        },
+      })
     } catch {
       setError('Failed to process question. Please try again.')
     }

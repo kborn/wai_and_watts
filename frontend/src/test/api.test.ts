@@ -16,33 +16,41 @@ describe('API Client', () => {
 
   describe('askQuestion', () => {
     it('should make a POST request to /api/v1/explanations/ask', async () => {
-      const mockResponse = {
+      // Mock backend DTO response
+      const mockBackendResponse = {
+        explanationText: 'Test explanation',
+        citations: ['test'],
+        isRefusal: false,
+      }
+
+      // Expected frontend interface after mapping
+      const expectedFrontendResponse = {
         explanation: 'Test explanation',
-        citations: [
-          { dataset: 'test', field: 'test', value: 'test', source: 'test' },
-        ],
+        citations: [{ dataset: 'test' }],
+        refusalCategory: undefined,
+        refusalReason: undefined,
       }
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: vi.fn().mockResolvedValueOnce(mockResponse),
+        json: vi.fn().mockResolvedValueOnce(mockBackendResponse),
       } as unknown as Response)
 
       const request: AskRequest = { question: 'Test question' }
       const result = await apiClient.askQuestion(request)
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:8080/api/v1/explanations/ask',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'X-Request-Id': expect.any(String),
-          }),
-          body: JSON.stringify(request),
-        })
+          'http://localhost:8080/api/v1/explanations/ask',
+          expect.objectContaining({
+            method: 'POST',
+            headers: expect.objectContaining({
+              'Content-Type': 'application/json',
+              'X-Request-Id': expect.any(String),
+            }),
+            body: JSON.stringify(request),
+          })
       )
-      expect(result).toEqual(mockResponse)
+      expect(result).toEqual(expectedFrontendResponse)
     })
 
     it('should throw error when request fails', async () => {
@@ -55,7 +63,10 @@ describe('API Client', () => {
       const request: AskRequest = { question: 'Test question' }
 
       await expect(apiClient.askQuestion(request)).rejects.toThrow(
-        'API Error: 500 Internal Server Error'
+          expect.objectContaining({
+            message: expect.stringContaining('500 Internal Server Error'),
+            name: 'HttpError',
+          })
       )
     })
   })
