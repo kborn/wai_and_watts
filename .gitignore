@@ -46,3 +46,4 @@ replay_pid*
 /frontend/.vite/
 /frontend/dist/
 /frontend/node_modules/
+**/*.tsbuildinfo
