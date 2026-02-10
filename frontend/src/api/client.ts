@@ -7,30 +7,93 @@ import type {
   Explanation,
   CapabilitiesResponse,
 } from '../types'
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+import { logger } from '../utils/logger'
+import { addDiagnostic } from '../utils/diagnostics'
+import {
+  API_BASE_URL,
+  generateRequestId,
+  classifyError,
+  getErrorResponseSnippet,
+} from '../utils/apiUtils'
 
 class ApiClient {
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
+    const requestId = generateRequestId()
     const url = `${API_BASE_URL}${endpoint}`
+    const method = options.method || 'GET'
+    const startTime = Date.now()
 
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    })
+    logger.info(`API Request: ${requestId} ${method} ${endpoint}`)
 
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Request-Id': requestId,
+          ...options.headers,
+        },
+        ...options,
+      })
+
+      const duration = Date.now() - startTime
+
+      if (!response.ok) {
+        const errorInfo = classifyError(response)
+        const snippet = await getErrorResponseSnippet(response)
+
+        addDiagnostic({
+          requestId,
+          endpoint,
+          method,
+          status: response.status,
+          errorType: errorInfo.type,
+          errorMessage: errorInfo.message,
+          duration,
+        })
+
+        logger.error(
+          `API Error: ${requestId} ${endpoint} - ${errorInfo.type} - ${errorInfo.message} - snippet: ${snippet}`
+        )
+
+        throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      }
+
+      addDiagnostic({
+        requestId,
+        endpoint,
+        method,
+        status: response.status,
+        duration,
+      })
+
+      logger.info(
+        `API Success: ${requestId} ${endpoint} - ${response.status} - ${duration}ms`
+      )
+
+      return response.json()
+    } catch (error) {
+      const duration = Date.now() - startTime
+      const errorInfo = classifyError(error as Error)
+
+      addDiagnostic({
+        requestId,
+        endpoint,
+        method,
+        errorType: errorInfo.type,
+        errorMessage: errorInfo.message,
+        duration,
+      })
+
+      logger.error(
+        `API Failure: ${requestId} ${endpoint} - ${errorInfo.type} - ${duration}ms`,
+        error
+      )
+
+      throw error
     }
-
-    return response.json()
   }
 
   // Explanation endpoints

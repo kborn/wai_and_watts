@@ -33,13 +33,14 @@ describe('API Client', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'http://localhost:8080/api/v1/explanations/ask',
-        {
+        expect.objectContaining({
           method: 'POST',
-          headers: {
+          headers: expect.objectContaining({
             'Content-Type': 'application/json',
-          },
+            'X-Request-Id': expect.any(String),
+          }),
           body: JSON.stringify(request),
-        }
+        })
       )
       expect(result).toEqual(mockResponse)
     })
