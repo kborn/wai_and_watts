@@ -7,6 +7,14 @@ import type {
   Explanation,
   CapabilitiesResponse,
 } from '../types'
+
+// Backend response DTO (matches Java Explanation class)
+interface BackendExplanationResponse {
+  explanationText?: string
+  citations?: string[]
+  isRefusal: boolean
+  refusalReason?: string
+}
 import { logger } from '../utils/logger'
 import { addDiagnostic } from '../utils/diagnostics'
 import {
@@ -15,6 +23,28 @@ import {
   classifyError,
   getErrorResponseSnippet,
 } from '../utils/apiUtils'
+
+// Custom error class for HTTP errors to distinguish from network failures
+export class HttpError extends Error {
+  public readonly status: number
+  public readonly statusText: string
+  public readonly errorInfo: { type: string; message: string }
+  public readonly snippet?: string
+
+  constructor(
+    status: number,
+    statusText: string,
+    errorInfo: { type: string; message: string },
+    snippet?: string
+  ) {
+    super(`HTTP Error: ${status} ${statusText}`)
+    this.name = 'HttpError'
+    this.status = status
+    this.statusText = statusText
+    this.errorInfo = errorInfo
+    this.snippet = snippet
+  }
+}
 
 class ApiClient {
   private async request<T>(
@@ -28,8 +58,11 @@ class ApiClient {
 
     logger.info(`API Request: ${requestId} ${method} ${endpoint}`)
 
+    let response: Response
+    let duration: number
+
     try {
-      const response = await fetch(url, {
+      response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           'X-Request-Id': requestId,
@@ -37,45 +70,10 @@ class ApiClient {
         },
         ...options,
       })
-
-      const duration = Date.now() - startTime
-
-      if (!response.ok) {
-        const errorInfo = classifyError(response)
-        const snippet = await getErrorResponseSnippet(response)
-
-        addDiagnostic({
-          requestId,
-          endpoint,
-          method,
-          status: response.status,
-          errorType: errorInfo.type,
-          errorMessage: errorInfo.message,
-          duration,
-        })
-
-        logger.error(
-          `API Error: ${requestId} ${endpoint} - ${errorInfo.type} - ${errorInfo.message} - snippet: ${snippet}`
-        )
-
-        throw new Error(`API Error: ${response.status} ${response.statusText}`)
-      }
-
-      addDiagnostic({
-        requestId,
-        endpoint,
-        method,
-        status: response.status,
-        duration,
-      })
-
-      logger.info(
-        `API Success: ${requestId} ${endpoint} - ${response.status} - ${duration}ms`
-      )
-
-      return response.json()
+      duration = Date.now() - startTime
     } catch (error) {
-      const duration = Date.now() - startTime
+      // Network/fetch errors only
+      duration = Date.now() - startTime
       const errorInfo = classifyError(error as Error)
 
       addDiagnostic({
@@ -94,14 +92,75 @@ class ApiClient {
 
       throw error
     }
+
+    // Handle HTTP errors (separate from network errors)
+    if (!response.ok) {
+      const errorInfo = classifyError(response)
+      const snippet = await getErrorResponseSnippet(response)
+
+      addDiagnostic({
+        requestId,
+        endpoint,
+        method,
+        status: response.status,
+        errorType: errorInfo.type,
+        errorMessage: errorInfo.message,
+        duration,
+      })
+
+      logger.error(
+        `API Error: ${requestId} ${endpoint} - ${errorInfo.type} - ${errorInfo.message} - snippet: ${snippet}`
+      )
+
+      throw new HttpError(
+        response.status,
+        response.statusText,
+        errorInfo,
+        snippet
+      )
+    }
+
+    // Success path - parse JSON
+    addDiagnostic({
+      requestId,
+      endpoint,
+      method,
+      status: response.status,
+      duration,
+    })
+
+    logger.info(
+      `API Success: ${requestId} ${endpoint} - ${response.status} - ${duration}ms`
+    )
+
+    try {
+      return await response.json()
+    } catch (parseError) {
+      logger.error(
+        `JSON Parse Error: ${requestId} ${endpoint} - Failed to parse response body`,
+        parseError
+      )
+      throw new Error(`Invalid JSON response from ${endpoint}`)
+    }
   }
 
   // Explanation endpoints
   async askQuestion(request: AskRequest): Promise<Explanation> {
-    return this.request<Explanation>('/api/v1/explanations/ask', {
-      method: 'POST',
-      body: JSON.stringify(request),
-    })
+    const response = await this.request<BackendExplanationResponse>(
+      '/api/v1/explanations/ask',
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      }
+    )
+
+    // Map backend fields to frontend interface
+    return {
+      explanation: response.explanationText,
+      citations: response.citations?.map((c: string) => ({ dataset: c })) || [],
+      refusalCategory: response.isRefusal ? 'EXPLANATION_FAILED' : undefined,
+      refusalReason: response.refusalReason,
+    }
   }
 
   async getCapabilities(): Promise<CapabilitiesResponse> {
