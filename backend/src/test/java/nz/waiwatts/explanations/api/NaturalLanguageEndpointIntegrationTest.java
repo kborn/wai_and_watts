@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Integration tests for Phase 12 Natural Language endpoint.
- * 
+ *
  * Tests NL → intent parsing → validation → explanation pipeline.
  */
 @SpringBootTest
@@ -67,23 +67,23 @@ class NaturalLanguageEndpointIntegrationTest {
 
         // Mock successful parsing and validation
         ExplanationRequest parsedRequest = new ExplanationRequest(
-            "renewable_generation_trend", 
-            "mbie.generation.annual", 
-            Map.of("startYear", 2018, "endYear", 2024)
+                "renewable_generation_trend",
+                "mbie.generation.annual",
+                Map.of("startYear", 2018, "endYear", 2024)
         );
-        
+
         IntentParseResponse parseResponse = IntentParseResponse.success(parsedRequest);
         RequestValidationService.ValidationResult validationResult = RequestValidationService.ValidationResult.success();
-        
+
         Explanation mockExplanation = new Explanation("Renewable generation increased from X to Y", List.of("fact1", "fact2"));
-        
+
         when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
         when(validationService.validateRequest(any())).thenReturn(validationResult);
         when(explanationService.generateExplanation(any())).thenReturn(mockExplanation);
 
         mockMvc.perform(post("/api/v1/explanations/ask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.explanationText").value("Renewable generation increased from X to Y"))
                 .andExpect(jsonPath("$.citations").isArray())
@@ -99,14 +99,14 @@ class NaturalLanguageEndpointIntegrationTest {
             """;
 
         // Mock parsing failure
-        IntentParseResponse parseResponse = IntentParseResponse.refusal("AMBIGUOUS_INTENT", 
-            "I can't confidently map this question to a supported explanation type.");
-        
+        IntentParseResponse parseResponse = IntentParseResponse.refusal("AMBIGUOUS_INTENT",
+                "I can't confidently map this question to a supported explanation type.");
+
         when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
 
         mockMvc.perform(post("/api/v1/explanations/ask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isRefusal").value(true))
                 .andExpect(jsonPath("$.refusalReason").exists()); // Just check it exists, content may vary
@@ -122,21 +122,21 @@ class NaturalLanguageEndpointIntegrationTest {
 
         // Mock successful parsing but validation failure
         ExplanationRequest parsedRequest = new ExplanationRequest(
-            "renewable_generation_trend", 
-            "mbie.generation.annual", 
-            Map.of("startYear", 2025, "endYear", 2020)
+                "renewable_generation_trend",
+                "mbie.generation.annual",
+                Map.of("startYear", 2025, "endYear", 2020)
         );
-        
+
         IntentParseResponse parseResponse = IntentParseResponse.success(parsedRequest);
-        RequestValidationService.ValidationResult validationResult = 
-            RequestValidationService.ValidationResult.failure("INVALID_FILTERS", "startYear must be <= endYear");
-        
+        RequestValidationService.ValidationResult validationResult =
+                RequestValidationService.ValidationResult.failure("INVALID_FILTERS", "startYear must be <= endYear");
+
         when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
         when(validationService.validateRequest(any())).thenReturn(validationResult);
 
         mockMvc.perform(post("/api/v1/explanations/ask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isRefusal").value(true))
                 .andExpect(jsonPath("$.refusalReason").exists()); // Just check it exists, content may vary
@@ -151,8 +151,8 @@ class NaturalLanguageEndpointIntegrationTest {
             """;
 
         mockMvc.perform(post("/api/v1/explanations/ask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
 
@@ -165,8 +165,8 @@ class NaturalLanguageEndpointIntegrationTest {
             """;
 
         mockMvc.perform(post("/api/v1/explanations/ask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
 
@@ -179,8 +179,8 @@ class NaturalLanguageEndpointIntegrationTest {
             """;
 
         mockMvc.perform(post("/api/v1/explanations/ask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
 }

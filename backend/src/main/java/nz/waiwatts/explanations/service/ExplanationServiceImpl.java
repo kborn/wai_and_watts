@@ -52,7 +52,7 @@ public class ExplanationServiceImpl implements ExplanationService {
                 if (ds == null && request != null && request.getFilters() != null) {
                     ds = (String) request.getFilters().get("datasetSource");
                 }
-                log.debug("No FactPackBuilder found for questionType={} datasetSource={}",
+                log.info("FactPackBuilder selection: none found for questionType={} datasetSource={}",
                         request != null ? request.getQuestionType() : null, ds);
             } catch (Exception ignore) {
                 // avoid impacting user flow
@@ -66,7 +66,7 @@ public class ExplanationServiceImpl implements ExplanationService {
             if (ds == null) {
                 ds = request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
             }
-            log.debug("Selected builder={} for request: questionType={} datasetSource={}",
+            log.info("FactPackBuilder selected: {} for questionType={} datasetSource={}",
                     builder.getClass().getSimpleName(), request.getQuestionType(), ds);
         } catch (Exception ignore) {
             // do not fail due to logging
@@ -75,8 +75,12 @@ public class ExplanationServiceImpl implements ExplanationService {
 
         // Handle null Fact Pack from builder → refuse rather than crash
         if (factPack == null) {
+            log.info("FactPack result: null - unable to build FactPack");
             return Explanation.refusal("Unable to build FactPack for the requested question");
         }
+
+        // Log fact pack shape at debug level
+        logFactPackShape(factPack);
 
         // Pre-provider safety gates
         if (factPack.getGuardrails() == null) {
@@ -262,8 +266,11 @@ public class ExplanationServiceImpl implements ExplanationService {
                 int start = Integer.parseInt(startYear.toString());
                 int end = Integer.parseInt(endYear.toString());
 
-                if (start >= end) {
-                    return String.format("Invalid time range: startYear (%d) must be before endYear (%d)", start, end);
+                if (start > end) {
+                    log.info("Auto-swapping time range: startYear ({}) > endYear ({}), swapping", start, end);
+                    int temp = start;
+                    start = end;
+                    end = temp;
                 }
 
                 // Validate reasonable bounds (e.g., no future data, reasonable historical range)
@@ -290,5 +297,38 @@ public class ExplanationServiceImpl implements ExplanationService {
             .filter(builder -> builder.canHandle(request))
             .findFirst()
             .orElse(null);
+    }
+
+    private void logFactPackShape(FactPack factPack) {
+        if (!log.isDebugEnabled()) {
+            return;
+        }
+
+        try {
+            int timeSeriesCount = 0;
+            int metricsCount = 0;
+            int comparisonsCount = 0;
+            int classificationsCount = 0;
+
+            if (factPack.getFacts() != null) {
+                if (factPack.getFacts().getTimeSeries() != null) {
+                    timeSeriesCount = factPack.getFacts().getTimeSeries().size();
+                }
+                if (factPack.getFacts().getMetrics() != null) {
+                    metricsCount = factPack.getFacts().getMetrics().size();
+                }
+                if (factPack.getFacts().getComparisons() != null) {
+                    comparisonsCount = factPack.getFacts().getComparisons().size();
+                }
+                if (factPack.getFacts().getClassifications() != null) {
+                    classificationsCount = factPack.getFacts().getClassifications().size();
+                }
+            }
+
+            log.debug("FactPack shape: timeSeries={}, metrics={}, comparisons={}, classifications={}",
+                timeSeriesCount, metricsCount, comparisonsCount, classificationsCount);
+        } catch (Exception e) {
+            log.debug("Failed to log FactPack shape: {}", e.getMessage());
+        }
     }
 }
