@@ -28,7 +28,6 @@ public class MbieGenerationAnnualController {
     public ResponseEntity<?> getGenerationAnnual(
             @RequestParam(value = "fromYear", required = false) Integer fromYear,
             @RequestParam(value = "toYear", required = false) Integer toYear,
-            @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "fuelType", required = false) String fuelType
     ) {
         long startTime = System.currentTimeMillis();
@@ -38,11 +37,11 @@ public class MbieGenerationAnnualController {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "fromYear must be <= toYear"));
         }
         
-        List<MbieGenerationAnnualRecordDto> out = readService.find(fromYear, toYear, source, fuelType);
+        List<MbieGenerationAnnualRecordDto> out = readService.find(fromYear, toYear, fuelType);
         long duration = System.currentTimeMillis() - startTime;
         
-        logger.info("Dataset query: mbie.generation.annual - filters: fromYear={}, toYear={}, source={}, fuelType={} - rowCount: {}, duration: {}ms",
-            fromYear, toYear, source, fuelType, out.size(), duration);
+        logger.info("Dataset query: mbie.generation.annual - filters: fromYear={}, toYear={}, fuelType={} - rowCount: {}, duration: {}ms",
+            fromYear, toYear, fuelType, out.size(), duration);
         
         return ResponseEntity.ok(out);
     }

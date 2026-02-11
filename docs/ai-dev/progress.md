@@ -175,7 +175,7 @@ Notes:
 
 API sketch (non-binding, to reduce micro-decisions later):
 - Endpoint: `GET /api/v1/mbie/generation`
-- DTO: `MbieGenerationRecordDto { period (YYYY-MM), source (normalized), sourceRaw (original), generationMwh }`
+- DTO: `MbieGenerationRecordDto { period (YYYY-MM), fuelType (normalized), fuelTypeRaw (original), generationMwh }`
 
 Links:
 - Commit: [docs(progress, decisions): refine Phase 6 MBIE plan — fixture-first contract, normalization, API sketch](https://github.com/kborn/wai_and_watts/commit/2334bafaf238353a70d866302088e30619ff7fd4)

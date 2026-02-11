@@ -33,7 +33,7 @@ class MbieGenerationQuarterlyControllerTest {
         List<MbieGenerationQuarterlyRecordDto> payload = List.of(
                 new MbieGenerationQuarterlyRecordDto(2024, 3, "WIND", "Wind", new BigDecimal("980.1"), relId)
         );
-        when(readService.find(any(), any(), any(), any(), any())).thenReturn(payload);
+        when(readService.find(any(), any(), any(), any())).thenReturn(payload);
 
         mockMvc.perform(get("/api/v1/mbie/generation/quarterly")
                         .accept(MediaType.APPLICATION_JSON))
@@ -41,8 +41,8 @@ class MbieGenerationQuarterlyControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].periodYear").value(2024))
                 .andExpect(jsonPath("$[0].periodQuarter").value(3))
-                .andExpect(jsonPath("$[0].source").value("WIND"))
-                .andExpect(jsonPath("$[0].sourceRaw").value("Wind"))
+                .andExpect(jsonPath("$[0].fuelType").value("WIND"))
+                .andExpect(jsonPath("$[0].fuelTypeRaw").value("Wind"))
                 .andExpect(jsonPath("$[0].generationGwh").value(980.1))
                 .andExpect(jsonPath("$[0].releaseId").value(relId.toString()));
     }

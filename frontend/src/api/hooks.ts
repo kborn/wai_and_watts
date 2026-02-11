@@ -20,7 +20,6 @@ export const useCapabilities = () => {
 export const useMbieGenerationAnnual = (params?: {
   fromYear?: number
   toYear?: number
-  source?: string
   fuelType?: string
 }) => {
   return useQuery({
@@ -32,7 +31,6 @@ export const useMbieGenerationAnnual = (params?: {
 export const useMbieGenerationQuarterly = (params?: {
   fromYear?: number
   toYear?: number
-  source?: string
   fuelType?: string
 }) => {
   return useQuery({

@@ -77,7 +77,9 @@ const MbieBrowsePage: React.FC = () => {
               <option value="">All</option>
               <option value="HYDRO">Hydro</option>
               <option value="WIND">Wind</option>
+              <option value="SOLAR">Solar</option>
               <option value="GEOTHERMAL">Geothermal</option>
+              <option value="OTHER">Other</option>
               <option value="GAS">Gas</option>
               <option value="COAL">Coal</option>
             </select>
