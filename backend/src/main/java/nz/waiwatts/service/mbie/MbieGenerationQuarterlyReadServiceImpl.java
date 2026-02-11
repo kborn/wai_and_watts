@@ -20,6 +20,11 @@ public class MbieGenerationQuarterlyReadServiceImpl implements MbieGenerationQua
     }
 
     @Override
+    public List<String> getFuelTypes(){
+        return repository.findDistinctFuelTypeNormOrderByFuelTypeNorm();
+    }
+
+    @Override
     public List<MbieGenerationQuarterlyRecordDto> find(Integer fromYear,
                                                        Integer toYear,
                                                        Integer quarter,

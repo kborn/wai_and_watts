@@ -1,5 +1,6 @@
 package nz.waiwatts.api.mbie;
 
+import nz.waiwatts.api.mbie.dto.MbieFuelTypesResponseDto;
 import nz.waiwatts.api.mbie.dto.MbieGenerationQuarterlyRecordDto;
 import nz.waiwatts.service.mbie.MbieGenerationQuarterlyReadService;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,13 @@ public class MbieGenerationQuarterlyController {
 
     public MbieGenerationQuarterlyController(MbieGenerationQuarterlyReadService readService) {
         this.readService = readService;
+    }
+
+    @GetMapping("/generation/quarterly/fuel-types")
+    public ResponseEntity<MbieFuelTypesResponseDto> getFuelTypes(){
+        List<String> fuelTypes = readService.getFuelTypes();
+        logger.info("Found {} unique fuel types in the MBIE quarterly data set", fuelTypes.size());
+        return ResponseEntity.ok(new MbieFuelTypesResponseDto(fuelTypes));
     }
 
     @GetMapping("/generation/quarterly")
