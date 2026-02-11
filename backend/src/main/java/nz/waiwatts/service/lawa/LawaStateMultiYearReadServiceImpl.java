@@ -73,4 +73,14 @@ public class LawaStateMultiYearReadServiceImpl implements LawaStateMultiYearRead
         );
     }
 
+    @Override
+    public List<String> getRegions() {
+        return repository.findDistinctRegionOrderByRegion();
+    }
+
+    @Override
+    public List<String> getIndicators() {
+        return repository.findDistinctIndicatorNormOrderByIndicatorNorm();
+    }
+
 }

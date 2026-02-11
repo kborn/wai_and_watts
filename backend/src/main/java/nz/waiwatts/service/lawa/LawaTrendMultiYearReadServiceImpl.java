@@ -62,4 +62,15 @@ public class LawaTrendMultiYearReadServiceImpl implements LawaTrendMultiYearRead
                 releaseId
         );
     }
+
+    @Override
+    public List<String> getRegions() {
+        return repository.findDistinctRegionOrderByRegion();
+    }
+
+    @Override
+    public List<String> getIndicators() {
+        return repository.findDistinctIndicatorNormOrderByIndicatorNorm();
+    }
+
 }
