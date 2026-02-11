@@ -1,6 +1,7 @@
 package nz.waiwatts.api.mbie;
 
 import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
+import nz.waiwatts.api.mbie.dto.MbieFuelTypesResponseDto;
 import nz.waiwatts.service.mbie.MbieGenerationAnnualReadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,13 @@ public class MbieGenerationAnnualController {
 
     public MbieGenerationAnnualController(MbieGenerationAnnualReadService readService) {
         this.readService = readService;
+    }
+
+    @GetMapping("/generation/annual/fuel-types")
+    public ResponseEntity<MbieFuelTypesResponseDto> getFuelTypes(){
+        List<String> fuelTypes = readService.getFuelTypes();
+        logger.info("Found {} unique fuel types in the MBIE annual data set", fuelTypes.size());
+        return ResponseEntity.ok(new MbieFuelTypesResponseDto(fuelTypes));
     }
 
     // Canonical variant-specific endpoint
