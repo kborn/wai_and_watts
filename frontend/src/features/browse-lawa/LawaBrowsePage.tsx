@@ -200,8 +200,7 @@ const LawaBrowsePage: React.FC = () => {
                         className={`px-2 py-1 text-xs rounded-full ${
                           viewType === 'state' && 'stateNorm' in row
                             ? getStateBadgeClass(row.stateNorm)
-                            : viewType === 'trend' &&
-                                'trendNorm' in row
+                            : viewType === 'trend' && 'trendNorm' in row
                               ? getTrendBadgeClass(row.trendNorm)
                               : 'bg-gray-100 text-gray-800'
                         }`}
