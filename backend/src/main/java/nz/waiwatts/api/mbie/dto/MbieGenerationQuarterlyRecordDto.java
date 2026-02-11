@@ -1,26 +1,23 @@
 package nz.waiwatts.api.mbie.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class MbieGenerationQuarterlyRecordDto {
     private int periodYear;
     private int periodQuarter;
-    @JsonProperty("fuelTypeNorm")
-    private String fuelTypeNorm; // normalized fuel type
-    @JsonProperty("fuelTypeRaw")
-    private String fuelTypeRaw;
+    private String source; // normalized fuel type
+    private String sourceRaw;
     private BigDecimal generationGwh;
     private UUID releaseId;
 
     public MbieGenerationQuarterlyRecordDto() {}
 
-    public MbieGenerationQuarterlyRecordDto(int periodYear, int periodQuarter, String fuelTypeNorm, String fuelTypeRaw, BigDecimal generationGwh, UUID releaseId) {
+    public MbieGenerationQuarterlyRecordDto(int periodYear, int periodQuarter, String source, String sourceRaw, BigDecimal generationGwh, UUID releaseId) {
         this.periodYear = periodYear;
         this.periodQuarter = periodQuarter;
-        this.fuelTypeNorm = fuelTypeNorm;
-        this.fuelTypeRaw = fuelTypeRaw;
+        this.source = source;
+        this.sourceRaw = sourceRaw;
         this.generationGwh = generationGwh;
         this.releaseId = releaseId;
     }
@@ -31,13 +28,11 @@ public class MbieGenerationQuarterlyRecordDto {
     public int getPeriodQuarter() { return periodQuarter; }
     public void setPeriodQuarter(int periodQuarter) { this.periodQuarter = periodQuarter; }
 
-    @JsonProperty("fuelTypeNorm")
-    public String getFuelTypeNorm() { return fuelTypeNorm; }
-    public void setFuelTypeNorm(String fuelTypeNorm) { this.fuelTypeNorm = fuelTypeNorm; }
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 
-    @JsonProperty("fuelTypeRaw")
-    public String getFuelTypeRaw() { return fuelTypeRaw; }
-    public void setFuelTypeRaw(String fuelTypeRaw) { this.fuelTypeRaw = fuelTypeRaw; }
+    public String getSourceRaw() { return sourceRaw; }
+    public void setSourceRaw(String sourceRaw) { this.sourceRaw = sourceRaw; }
 
     public BigDecimal getGenerationGwh() { return generationGwh; }
     public void setGenerationGwh(BigDecimal generationGwh) { this.generationGwh = generationGwh; }

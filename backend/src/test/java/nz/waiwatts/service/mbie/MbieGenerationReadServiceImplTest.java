@@ -50,9 +50,9 @@ class MbieGenerationReadServiceImplTest {
     void find_noFilters_returnsAllMapped() {
         List<MbieGenerationAnnualRecordDto> out = service.find(null, null, null, null);
         assertThat(out).hasSize(2);
-        assertThat(out.get(0).getFuelTypeNorm()).isEqualTo("HYDRO");
-        assertThat(out.get(0).getFuelTypeRaw()).isEqualTo("Hydro");
-        assertThat(out.get(1).getFuelTypeNorm()).isEqualTo("WIND");
+        assertThat(out.get(0).getSource()).isEqualTo("HYDRO");
+        assertThat(out.get(0).getSourceRaw()).isEqualTo("Hydro");
+        assertThat(out.get(1).getSource()).isEqualTo("WIND");
         assertThat(out.get(1).getPeriodYear()).isEqualTo(2024);
         assertThat(out.get(1).getGenerationGwh()).isEqualByComparingTo("3918.6");
         assertThat(out.get(0).getReleaseId()).isNotNull();
@@ -69,6 +69,6 @@ class MbieGenerationReadServiceImplTest {
     void find_withSource_caseInsensitiveMatch() {
         List<MbieGenerationAnnualRecordDto> out = service.find(null, null, "hydro", null);
         assertThat(out).hasSize(1);
-        assertThat(out.getFirst().getFuelTypeNorm()).isEqualTo("HYDRO");
+        assertThat(out.getFirst().getSource()).isEqualTo("HYDRO");
     }
 }

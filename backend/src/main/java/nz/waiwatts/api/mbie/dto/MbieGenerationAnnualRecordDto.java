@@ -1,24 +1,21 @@
 package nz.waiwatts.api.mbie.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public class MbieGenerationAnnualRecordDto {
     private int periodYear;
-    @JsonProperty("fuelTypeNorm")
-    private String fuelTypeNorm; // normalized fuel type
-    @JsonProperty("fuelTypeRaw")
-    private String fuelTypeRaw;
+    private String source; // normalized fuel type
+    private String sourceRaw;
     private BigDecimal generationGwh;
     private UUID releaseId;
 
     public MbieGenerationAnnualRecordDto() {}
 
-    public MbieGenerationAnnualRecordDto(int periodYear, String fuelTypeNorm, String fuelTypeRaw, BigDecimal generationGwh, UUID releaseId) {
+    public MbieGenerationAnnualRecordDto(int periodYear, String source, String sourceRaw, BigDecimal generationGwh, UUID releaseId) {
         this.periodYear = periodYear;
-        this.fuelTypeNorm = fuelTypeNorm;
-        this.fuelTypeRaw = fuelTypeRaw;
+        this.source = source;
+        this.sourceRaw = sourceRaw;
         this.generationGwh = generationGwh;
         this.releaseId = releaseId;
     }
@@ -31,22 +28,20 @@ public class MbieGenerationAnnualRecordDto {
         this.periodYear = periodYear;
     }
 
-    @JsonProperty("fuelTypeNorm")
-    public String getFuelTypeNorm() {
-        return fuelTypeNorm;
+    public String getSource() {
+        return source;
     }
 
-    public void setFuelTypeNorm(String fuelTypeNorm) {
-        this.fuelTypeNorm = fuelTypeNorm;
+    public void setSource(String source) {
+        this.source = source;
     }
 
-    @JsonProperty("fuelTypeRaw")
-    public String getFuelTypeRaw() {
-        return fuelTypeRaw;
+    public String getSourceRaw() {
+        return sourceRaw;
     }
 
-    public void setFuelTypeRaw(String fuelTypeRaw) {
-        this.fuelTypeRaw = fuelTypeRaw;
+    public void setSourceRaw(String sourceRaw) {
+        this.sourceRaw = sourceRaw;
     }
 
     public BigDecimal getGenerationGwh() {
