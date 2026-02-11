@@ -59,3 +59,67 @@ download → transform → ingest (CLI) → start backend → validate APIs
 - `mbie.generation.quarterly`
 - `lawa.water_quality.state.multi_year`
 - `lawa.water_quality.trend.multi_year`
+
+## Development
+
+### Running the Backend
+
+**Normal mode:**
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+**Debug mode:**
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+```
+
+### Debugging with IntelliJ
+
+**Option A: Create Remote Debug Configuration**
+1. **Run → Edit Configurations → Add → Remote JVM Debug**
+2. **Configure:**
+   - Name: `Wai & Watts Debug`
+   - Host: `localhost`
+   - Port: `5005`
+   - Transport: `Socket`
+   - Debugger mode: `Attach`
+3. **Click "Debug"** to connect
+
+**Option B: Attach to Running Process**
+1. **Run → Attach to Process**
+2. **Select the Wai & Watts Java process**
+3. **Click "Attach"**
+
+**Debug startup modes:**
+- `suspend=n` - Backend starts immediately, debug port available
+- `suspend=y` - Backend waits for debugger connection before starting
+
+### Frontend Development
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Access frontend at http://localhost:5173 (or next available port).
+
+### Full Stack Development
+
+1. **Start backend:**
+   ```bash
+   cd backend && mvn spring-boot:run
+   ```
+
+2. **Start frontend:**
+   ```bash
+   cd frontend && npm run dev
+   ```
+
+3. **Access application:**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:8080
+   - API docs: http://localhost:8080/swagger-ui.html
