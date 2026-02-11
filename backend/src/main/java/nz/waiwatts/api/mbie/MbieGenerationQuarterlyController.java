@@ -29,7 +29,6 @@ public class MbieGenerationQuarterlyController {
             @RequestParam(value = "fromYear", required = false) Integer fromYear,
             @RequestParam(value = "toYear", required = false) Integer toYear,
             @RequestParam(value = "quarter", required = false) Integer quarter,
-            @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "fuelType", required = false) String fuelType
     ) {
         long startTime = System.currentTimeMillis();
@@ -43,11 +42,11 @@ public class MbieGenerationQuarterlyController {
             return ResponseEntity.badRequest().body(Map.of("error", "quarter must be between 1 and 4"));
         }
         
-        List<MbieGenerationQuarterlyRecordDto> out = readService.find(fromYear, toYear, quarter, source, fuelType);
+        List<MbieGenerationQuarterlyRecordDto> out = readService.find(fromYear, toYear, quarter, fuelType);
         long duration = System.currentTimeMillis() - startTime;
         
-        logger.info("Dataset query: mbie.generation.quarterly - filters: fromYear={}, toYear={}, quarter={}, source={}, fuelType={} - rowCount: {}, duration: {}ms",
-            fromYear, toYear, quarter, source, fuelType, out.size(), duration);
+        logger.info("Dataset query: mbie.generation.quarterly - filters: fromYear={}, toYear={}, quarter={}, fuelType={} - rowCount: {}, duration: {}ms",
+            fromYear, toYear, quarter, fuelType, out.size(), duration);
         
         return ResponseEntity.ok(out);
     }

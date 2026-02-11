@@ -15,7 +15,6 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -35,22 +34,22 @@ class MbieGenerationAnnualControllerTest {
         List<MbieGenerationAnnualRecordDto> payload = List.of(
                 new MbieGenerationAnnualRecordDto(2024, "WIND", "Wind", new BigDecimal("3918.6"), relId)
         );
-        when(readService.find(any(), any(), any(), any())).thenReturn(payload);
+        when(readService.find(any(), any(), any())).thenReturn(payload);
 
         mockMvc.perform(get("/api/v1/mbie/generation/annual")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$[0].periodYear").value(2024))
-                .andExpect(jsonPath("$[0].source").value("WIND"))
-                .andExpect(jsonPath("$[0].sourceRaw").value("Wind"))
+                .andExpect(jsonPath("$[0].fuelType").value("WIND"))
+                .andExpect(jsonPath("$[0].fuelTypeRaw").value("Wind"))
                 .andExpect(jsonPath("$[0].generationGwh").value(3918.6))
                 .andExpect(jsonPath("$[0].releaseId").value(relId.toString()));
     }
 
     @Test
     void getGeneration_validatesFromTo() throws Exception {
-        when(readService.find(anyInt(), anyInt(), anyString(), any())).thenReturn(List.of());
+        when(readService.find(anyInt(), anyInt(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/mbie/generation/annual")
                         .param("fromYear", "2025")

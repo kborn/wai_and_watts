@@ -23,17 +23,14 @@ public class MbieGenerationQuarterlyReadServiceImpl implements MbieGenerationQua
     public List<MbieGenerationQuarterlyRecordDto> find(Integer fromYear,
                                                        Integer toYear,
                                                        Integer quarter,
-                                                       String source,
                                                        String fuelType) {
         int from = fromYear != null ? fromYear : Integer.MIN_VALUE;
         int to = toYear != null ? toYear : Integer.MAX_VALUE;
-        String sourceNorm = source != null ? source.trim().toUpperCase(Locale.ROOT) : null;
         String fuelTypeNorm = fuelType != null ? fuelType.trim().toUpperCase(Locale.ROOT) : null;
 
         return repository.findAll().stream()
                 .filter(r -> r.getPeriodYear() >= from && r.getPeriodYear() <= to)
                 .filter(r -> quarter == null || r.getPeriodQuarter() == quarter)
-                .filter(r -> sourceNorm == null || sourceNorm.equalsIgnoreCase(nullToEmpty(r.getFuelTypeNorm())))
                 .filter(r -> fuelTypeNorm == null || fuelTypeNorm.equalsIgnoreCase(nullToEmpty(r.getFuelTypeNorm())))
                 .map(MbieGenerationQuarterlyReadServiceImpl::toDto)
                 .collect(Collectors.toList());

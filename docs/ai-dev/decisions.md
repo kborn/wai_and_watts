@@ -378,7 +378,7 @@ period_year,fuel_type_raw,fuel_type_norm,generation_gwh
 
 Read API (non-binding sketch for Phase 6)
 - Endpoint: `GET /api/v1/mbie/generation`
-- DTO: `MbieGenerationRecordDto { period (YEAR for Phase 6), source (fuel_type_norm), sourceRaw (fuel_type_raw), generationMwh }`
+- DTO: `MbieGenerationRecordDto { period (YEAR for Phase 6), fuelType, fuelTypeRaw, generationMwh }`
 
 Out of Scope (Phase 6)
 - Quarterly ingestion

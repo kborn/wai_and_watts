@@ -9,6 +9,5 @@ public interface MbieGenerationQuarterlyReadService {
     List<MbieGenerationQuarterlyRecordDto> find(@Nullable Integer fromYear,
                                                 @Nullable Integer toYear,
                                                 @Nullable Integer quarter,
-                                                @Nullable String source,
                                                 @Nullable String fuelType);
 }

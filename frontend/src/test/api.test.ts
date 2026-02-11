@@ -55,7 +55,10 @@ describe('API Client', () => {
       const request: AskRequest = { question: 'Test question' }
 
       await expect(apiClient.askQuestion(request)).rejects.toThrow(
-        'API Error: 500 Internal Server Error'
+        expect.objectContaining({
+          message: expect.stringContaining('500 Internal Server Error'),
+          name: 'HttpError',
+        })
       )
     })
   })

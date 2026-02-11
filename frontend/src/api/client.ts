@@ -173,14 +173,12 @@ class ApiClient {
   async getMbieGenerationAnnual(params?: {
     fromYear?: number
     toYear?: number
-    source?: string
     fuelType?: string
   }): Promise<MbieGenerationAnnualRecord[]> {
     const searchParams = new URLSearchParams()
     if (params?.fromYear)
       searchParams.append('fromYear', params.fromYear.toString())
     if (params?.toYear) searchParams.append('toYear', params.toYear.toString())
-    if (params?.source) searchParams.append('source', params.source)
     if (params?.fuelType) searchParams.append('fuelType', params.fuelType)
 
     const query = searchParams.toString()
@@ -192,14 +190,12 @@ class ApiClient {
   async getMbieGenerationQuarterly(params?: {
     fromYear?: number
     toYear?: number
-    source?: string
     fuelType?: string
   }): Promise<MbieGenerationQuarterlyRecord[]> {
     const searchParams = new URLSearchParams()
     if (params?.fromYear)
       searchParams.append('fromYear', params.fromYear.toString())
     if (params?.toYear) searchParams.append('toYear', params.toYear.toString())
-    if (params?.source) searchParams.append('source', params.source)
     if (params?.fuelType) searchParams.append('fuelType', params.fuelType)
 
     const query = searchParams.toString()

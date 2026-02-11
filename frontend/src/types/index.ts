@@ -45,6 +45,7 @@ export interface MbieGenerationAnnualRecord {
   fuelTypeRaw: string
   fuelTypeNorm: string
   generationGwh: number
+  releaseId: string
 }
 
 export interface MbieGenerationQuarterlyRecord {
@@ -54,6 +55,7 @@ export interface MbieGenerationQuarterlyRecord {
   fuelTypeRaw: string
   fuelTypeNorm: string
   generationGwh: number
+  releaseId: string
 }
 
 // LAWA Types

@@ -8,6 +8,5 @@ import org.springframework.lang.Nullable;
 public interface MbieGenerationAnnualReadService {
     List<MbieGenerationAnnualRecordDto> find(@Nullable Integer fromYear,
                                              @Nullable Integer toYear,
-                                             @Nullable String source,
                                              @Nullable String fuelType);
 }

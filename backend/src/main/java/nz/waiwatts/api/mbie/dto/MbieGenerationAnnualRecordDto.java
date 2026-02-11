@@ -5,17 +5,17 @@ import java.util.UUID;
 
 public class MbieGenerationAnnualRecordDto {
     private int periodYear;
-    private String source; // normalized fuel type
-    private String sourceRaw;
+    private String fuelType; // normalized fuel type (was source)
+    private String fuelTypeRaw;
     private BigDecimal generationGwh;
     private UUID releaseId;
 
     public MbieGenerationAnnualRecordDto() {}
 
-    public MbieGenerationAnnualRecordDto(int periodYear, String source, String sourceRaw, BigDecimal generationGwh, UUID releaseId) {
+    public MbieGenerationAnnualRecordDto(int periodYear, String fuelType, String fuelTypeRaw, BigDecimal generationGwh, UUID releaseId) {
         this.periodYear = periodYear;
-        this.source = source;
-        this.sourceRaw = sourceRaw;
+        this.fuelType = fuelType;
+        this.fuelTypeRaw = fuelTypeRaw;
         this.generationGwh = generationGwh;
         this.releaseId = releaseId;
     }
@@ -28,20 +28,20 @@ public class MbieGenerationAnnualRecordDto {
         this.periodYear = periodYear;
     }
 
-    public String getSource() {
-        return source;
+    public String getFuelType() {
+        return fuelType;
     }
 
-    public void setSource(String source) {
-        this.source = source;
+    public void setFuelType(String fuelType) {
+        this.fuelType = fuelType;
     }
 
-    public String getSourceRaw() {
-        return sourceRaw;
+    public String getFuelTypeRaw() {
+        return fuelTypeRaw;
     }
 
-    public void setSourceRaw(String sourceRaw) {
-        this.sourceRaw = sourceRaw;
+    public void setFuelTypeRaw(String fuelTypeRaw) {
+        this.fuelTypeRaw = fuelTypeRaw;
     }
 
     public BigDecimal getGenerationGwh() {

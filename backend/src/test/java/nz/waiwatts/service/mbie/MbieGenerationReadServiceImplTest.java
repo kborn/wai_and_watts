@@ -48,11 +48,11 @@ class MbieGenerationReadServiceImplTest {
 
     @Test
     void find_noFilters_returnsAllMapped() {
-        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, null, null);
+        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, null);
         assertThat(out).hasSize(2);
-        assertThat(out.get(0).getSource()).isEqualTo("HYDRO");
-        assertThat(out.get(0).getSourceRaw()).isEqualTo("Hydro");
-        assertThat(out.get(1).getSource()).isEqualTo("WIND");
+        assertThat(out.get(0).getFuelType()).isEqualTo("HYDRO");
+        assertThat(out.get(0).getFuelTypeRaw()).isEqualTo("Hydro");
+        assertThat(out.get(1).getFuelType()).isEqualTo("WIND");
         assertThat(out.get(1).getPeriodYear()).isEqualTo(2024);
         assertThat(out.get(1).getGenerationGwh()).isEqualByComparingTo("3918.6");
         assertThat(out.get(0).getReleaseId()).isNotNull();
@@ -60,15 +60,15 @@ class MbieGenerationReadServiceImplTest {
 
     @Test
     void find_withFromYear_filtersLowerBound() {
-        List<MbieGenerationAnnualRecordDto> out = service.find(2023, null, null, null);
+        List<MbieGenerationAnnualRecordDto> out = service.find(2023, null, null);
         assertThat(out).hasSize(1);
         assertThat(out.getFirst().getPeriodYear()).isEqualTo(2024);
     }
 
     @Test
-    void find_withSource_caseInsensitiveMatch() {
-        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, "hydro", null);
+    void find_withFuelType_caseInsensitiveMatch() {
+        List<MbieGenerationAnnualRecordDto> out = service.find(null, null, "hydro");
         assertThat(out).hasSize(1);
-        assertThat(out.getFirst().getSource()).isEqualTo("HYDRO");
+        assertThat(out.getFirst().getFuelType()).isEqualTo("HYDRO");
     }
 }
