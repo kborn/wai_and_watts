@@ -50,6 +50,7 @@ replay_pid*
 /frontend/.env*
 /frontend/coverage/
 /frontend/test-results/
+/frontend/test-results/.last-run.json
 /frontend/playwright-report/
 /frontend/blob-report/
 /frontend/playwright/.cache/
