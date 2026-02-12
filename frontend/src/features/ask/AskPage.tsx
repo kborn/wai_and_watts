@@ -36,18 +36,33 @@ const AskPage: React.FC = () => {
     }
   }
 
+  const exampleQuestions = [
+    'Explain renewable generation trends between 2020 and 2023',
+    'What are the main sources of electricity generation in New Zealand?',
+    'How has wind energy generation changed over the last 5 years?',
+    'Compare hydro and geothermal generation patterns',
+  ]
+
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+    <div className="section-container">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-h2 font-semibold text-neutral-900 mb-3">
           Ask About Environmental Data
         </h1>
+        <p className="text-body text-neutral-600 max-w-2xl mx-auto">
+          Get insights about New Zealand's electricity generation and water
+          quality data from authoritative sources.
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Main Form */}
+      <div className="content-card">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
               htmlFor="question"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              className="block text-sm font-medium text-neutral-700 mb-2"
             >
               Your Question
             </label>
@@ -55,26 +70,49 @@ const AskPage: React.FC = () => {
               id="question"
               value={question}
               onChange={e => setQuestion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="input-base resize-none"
               rows={4}
               placeholder="e.g., Explain renewable generation trends between 2020 and 2023"
             />
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
+          {error && <div className="callout-error">{error}</div>}
 
           <button
             type="submit"
             disabled={askQuestion.isPending}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {askQuestion.isPending ? 'Processing...' : 'Ask Question'}
+            {askQuestion.isPending ? (
+              <>
+                <div className="spinner w-4 h-4"></div>
+                Processing...
+              </>
+            ) : (
+              'Ask Question'
+            )}
           </button>
         </form>
+      </div>
+
+      {/* Example Questions */}
+      <div className="mt-8">
+        <h3 className="text-lg font-medium text-neutral-900 mb-4">
+          Example Questions
+        </h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {exampleQuestions.map((example, index) => (
+            <button
+              key={index}
+              onClick={() => setQuestion(example)}
+              className="text-left p-4 border border-neutral-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 group"
+            >
+              <p className="text-sm text-neutral-700 group-hover:text-primary-700">
+                {example}
+              </p>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

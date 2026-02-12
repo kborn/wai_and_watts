@@ -8,9 +8,7 @@ test.describe('Loading States Validation', () => {
   })
 
   test('shows loading state during API calls', async ({ page }) => {
-    await page.goto('/browse/lawa')
-
-    // Mock slow API response to trigger loading
+    // Mock slow API response BEFORE navigating to trigger loading
     await page.route(
       '**/api/v1/lawa/water-quality/state/multiyear/regions',
       route => {
@@ -25,6 +23,8 @@ test.describe('Loading States Validation', () => {
       }
     )
 
+    await page.goto('/browse/lawa')
+
     // Should show loading text
     const loadingText = page.getByText('Loading regions...')
     await expect(loadingText).toBeVisible({ timeout: 5000 })
@@ -38,9 +38,7 @@ test.describe('Loading States Validation', () => {
   })
 
   test('shows loading for fuel types', async ({ page }) => {
-    await page.goto('/browse/mbie')
-
-    // Mock slow fuel types API
+    // Mock slow fuel types API BEFORE navigating
     await page.route('**/api/v1/mbie/generation/annual/fuel-types', route => {
       setTimeout(() => {
         route.fulfill({
@@ -50,6 +48,8 @@ test.describe('Loading States Validation', () => {
         })
       }, 1500)
     })
+
+    await page.goto('/browse/mbie')
 
     // Should show loading
     await expect(page.getByText('Loading fuel types...')).toBeVisible({
@@ -65,9 +65,7 @@ test.describe('Loading States Validation', () => {
   })
 
   test('handles API error gracefully', async ({ page }) => {
-    await page.goto('/browse/mbie')
-
-    // Mock API error
+    // Mock API error BEFORE navigating
     await page.route('**/api/v1/mbie/generation/annual/fuel-types', route => {
       return route.fulfill({
         status: 500,
@@ -75,6 +73,8 @@ test.describe('Loading States Validation', () => {
         body: JSON.stringify({ error: 'Internal server error' }),
       })
     })
+
+    await page.goto('/browse/mbie')
 
     // Should handle error gracefully
     await page.waitForTimeout(2000)
