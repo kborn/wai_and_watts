@@ -4,6 +4,21 @@
 @theme {
   --font-sans:
     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Custom colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Custom shadows */
+  --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px 0 rgb(0 0 0 / 0.06);
 }
 
 body {
@@ -14,6 +29,16 @@ body {
     'Segoe UI',
     Roboto,
     sans-serif;
+}
+
+/* Typography utilities */
+.text-h2 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+.text-body {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 /* Component styles */
@@ -34,7 +59,6 @@ body {
   transition: all 0.2s;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
-
 .btn-primary:hover {
   background-color: #1d4ed8;
 }
@@ -50,7 +74,6 @@ body {
   transition: all 0.2s;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
-
 .btn-secondary:hover {
   background-color: #f9fafb;
   border-color: #9ca3af;
@@ -66,11 +89,9 @@ body {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   transition: all 0.2s;
 }
-
 .input-base:focus {
   outline: none;
-  ring: 2px;
-  ring-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
   border-color: transparent;
 }
 
@@ -92,14 +113,12 @@ body {
   padding-left: 1rem;
   padding-right: 1rem;
 }
-
 @media (min-width: 640px) {
   .page-container {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
   }
 }
-
 @media (min-width: 1024px) {
   .page-container {
     padding-left: 2rem;
@@ -131,13 +150,11 @@ body {
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   overflow: hidden;
 }
-
 .table-base {
   width: 100%;
   font-size: 0.875rem;
   text-align: left;
 }
-
 .table-header {
   background-color: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
@@ -147,15 +164,12 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 .table-row {
   border-bottom: 1px solid #f3f4f6;
 }
-
 .table-row:hover {
   background-color: #f9fafb;
 }
-
 .table-cell {
   padding: 1rem 1.5rem;
   white-space: nowrap;
