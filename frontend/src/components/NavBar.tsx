@@ -5,48 +5,53 @@ import type { NavBarProps } from '../types'
 const NavBar: React.FC<NavBarProps> = () => {
   const location = useLocation()
 
-  const isActive = (path: string) => location.pathname === path
+  const isActive = (path: string) => {
+    if (path === '/' && location.pathname === '/') return true
+    if (path !== '/' && location.pathname.startsWith(path)) return true
+    return false
+  }
+
+  const navigation = [
+    { name: 'Home', href: '/' },
+    { name: 'Ask', href: '/ask' },
+    { name: 'MBIE Data', href: '/browse/mbie' },
+    { name: 'LAWA Data', href: '/browse/lawa' },
+  ]
 
   return (
-    <nav className="bg-blue-600 text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white/95 backdrop-blur-sm border-b border-neutral-200 shadow-soft sticky top-0 z-50">
+      <div className="page-container">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-xl font-bold">Wai & Watts</h1>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link
-                to="/"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isActive('/')
-                    ? 'border-white text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                }`}
-              >
-                Home
-              </Link>
-              <Link
-                to="/browse/mbie"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isActive('/browse/mbie')
-                    ? 'border-white text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                }`}
-              >
-                MBIE Data
-              </Link>
-              <Link
-                to="/browse/lawa"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isActive('/browse/lawa')
-                    ? 'border-white text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                }`}
-              >
-                LAWA Data
+              <Link to="/" className="group">
+                <h1 className="text-xl font-bold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">
+                  Wai & Watts
+                </h1>
+                <p className="text-xs text-neutral-500 caption">
+                  Environmental Data Insights
+                </p>
               </Link>
             </div>
+          </div>
+
+          <div className="hidden sm:ml-8 sm:flex sm:items-center sm:space-x-1">
+            {navigation.map(item => {
+              const active = isActive(item.href)
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? 'bg-primary-50 text-primary-700 border-l-2 border-primary-600'
+                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              )
+            })}
           </div>
         </div>
       </div>
