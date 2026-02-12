@@ -19,16 +19,16 @@ const NavBar: React.FC<NavBarProps> = () => {
   ]
 
   return (
-    <nav className="bg-white/95 backdrop-blur-sm border-b border-neutral-200 shadow-soft sticky top-0 z-50">
+    <nav className="bg-white/95 backdrop-blur-sm border-b border-neutral-200 shadow-sm sticky top-0 z-50">
       <div className="page-container">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="group">
-                <h1 className="text-xl font-bold text-neutral-900 group-hover:text-primary-600 transition-colors duration-200">
+                <h1 className="text-xl font-bold text-neutral-900 group-hover:text-blue-600 transition-colors duration-200">
                   Wai & Watts
                 </h1>
-                <p className="text-xs text-neutral-500 caption">
+                <p className="text-xs text-neutral-500">
                   Environmental Data Insights
                 </p>
               </Link>
@@ -44,7 +44,7 @@ const NavBar: React.FC<NavBarProps> = () => {
                   to={item.href}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     active
-                      ? 'bg-primary-50 text-primary-700 border-l-2 border-primary-600'
+                      ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600'
                       : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
                   }`}
                 >

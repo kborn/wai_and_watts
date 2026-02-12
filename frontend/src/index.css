@@ -1,7 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --shadow-soft:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-soft-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  --animate-fade-in: fadeIn 0.5s ease-in-out;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+}
 
 /* Base Styles */
 @layer base {
@@ -10,90 +29,64 @@
   }
 
   body {
-    @apply font-body text-neutral-800 bg-neutral-50 antialiased;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
+    @apply bg-neutral-50 text-neutral-800 antialiased;
     margin: 0;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Typography Scale */
   h1 {
-    @apply text-h1 font-semibold text-neutral-900 tracking-tight;
+    @apply text-3xl font-semibold text-neutral-900 tracking-tight;
   }
 
   h2 {
-    @apply text-h2 font-semibold text-neutral-900 tracking-tight;
+    @apply text-2xl font-semibold text-neutral-900 tracking-tight;
   }
 
   h3 {
     @apply text-lg font-semibold text-neutral-900;
   }
 
-  h4 {
-    @apply text-base font-semibold text-neutral-900;
-  }
-
   p {
-    @apply text-body text-neutral-700 leading-relaxed;
-  }
-
-  small,
-  .caption {
-    @apply text-caption text-neutral-500;
+    @apply text-neutral-700 leading-relaxed;
   }
 }
 
 /* Component Primitives */
 @layer components {
-  /* Card surfaces */
   .card {
-    @apply bg-white rounded-xl border border-neutral-200 shadow-soft;
+    @apply bg-white rounded-xl border border-neutral-200 shadow-sm;
   }
 
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-soft-md hover:border-neutral-300;
+    @apply transition-all duration-200 hover:shadow-md hover:border-neutral-300;
   }
 
-  /* Button primitives */
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 shadow-soft;
+    @apply bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-sm;
   }
 
   .btn-secondary {
-    @apply bg-white text-neutral-700 px-4 py-2 rounded-lg font-medium text-sm border border-neutral-300 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 shadow-soft;
+    @apply bg-white text-neutral-700 px-4 py-2 rounded-lg font-medium text-sm border border-neutral-300 transition-all duration-200 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 shadow-sm;
   }
 
-  .btn-ghost {
-    @apply bg-transparent text-neutral-600 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 hover:bg-neutral-100 hover:text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2;
-  }
-
-  /* Input primitives */
   .input-base {
-    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm placeholder-neutral-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white shadow-soft;
+    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm placeholder-neutral-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm;
   }
 
   .select-base {
-    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white shadow-soft;
-  }
-
-  /* Callout primitives */
-  .callout-info {
-    @apply bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg;
-  }
-
-  .callout-success {
-    @apply bg-success-50 border border-success-200 text-success-800 px-4 py-3 rounded-lg;
-  }
-
-  .callout-warning {
-    @apply bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg;
+    @apply w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm;
   }
 
   .callout-error {
-    @apply bg-error-50 border border-error-200 text-error-800 px-4 py-3 rounded-lg;
+    @apply bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg;
   }
 
-  /* Layout primitives */
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
@@ -103,12 +96,11 @@
   }
 
   .content-card {
-    @apply card p-6 space-y-4;
+    @apply bg-white rounded-xl border border-neutral-200 shadow-sm p-6 space-y-4;
   }
 
-  /* Table primitives */
   .table-container {
-    @apply bg-white rounded-xl border border-neutral-200 shadow-soft overflow-hidden;
+    @apply bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden;
   }
 
   .table-base {
@@ -124,16 +116,11 @@
   }
 
   .table-cell {
-    @apply px-6 py-4 whitespace-nowrap text-body text-neutral-700;
-  }
-
-  /* Loading states */
-  .skeleton {
-    @apply bg-neutral-200 rounded animate-pulse;
+    @apply px-6 py-4 whitespace-nowrap text-sm text-neutral-700;
   }
 
   .spinner {
-    @apply animate-spin rounded-full border-2 border-neutral-300 border-t-primary-600;
+    @apply animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600;
   }
 }
 
@@ -141,14 +128,5 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
   }
 }
