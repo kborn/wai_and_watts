@@ -890,3 +890,34 @@ coverage.
 
 Rationale: Ensures demo reliability and prevents "testing later"
 ambiguity.
+
+------------------------------------------------------------------------
+
+### Intent Parsing Interface Seam
+
+Date: 2026-02-11
+
+Decision: Intent parsing now sits behind an interface with a
+deterministic stub implementation. This enables future LLM-backed
+parsing without changing public API contracts.
+
+Rationale: Maintains deterministic Phase 12 / 13 behavior while enabling
+safe LLM evolution later.
+
+Implications: Future LLM implementation must preserve request schema and
+refusal taxonomy.
+
+------------------------------------------------------------------------
+
+### Dynamic Filter Options via Backend Unique-Value Endpoints
+
+Date: 2026-02-11
+
+Decision: Frontend filter dropdowns are populated using backend
+endpoints returning unique fuel types, regions, and indicators.
+
+Rationale: Avoids duplication and drift between backend domain data and
+frontend UI options.
+
+Implications: These endpoints are part of the stable API surface and
+should remain backward compatible.

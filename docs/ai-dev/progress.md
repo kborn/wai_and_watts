@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 14 — Polish & Presentation (Portfolio-Ready) 🔄
+- **Active Phase:** Phase 14 --- UI / UX Styling (Portfolio-Ready UI) 🔄
 - **Status:** Not started
 
 ---
@@ -585,7 +585,34 @@ Notes:
 - PR: [feat(frontend): Add cleanup and documentation](https://github.com/kborn/wai_and_watts/pull/51)
 ---
 
-### Phase 14 — Polish & Presentation (Portfolio-Ready)
+### Phase 14 — UI / UX Styling (Portfolio-Ready UI) 🔄
+
+Goal: Make the UI feel like a real product surface (clean, modern, consistent) while keeping frontend architecture thin and backend-authoritative.
+
+Definition of Done:
+- [ ] Global layout + typography polished
+- [ ] Navigation styled with clear active states
+- [ ] Form controls styled consistently
+- [ ] Loading states upgraded (skeletons/spinners)
+- [ ] Error + refusal states upgraded (cards/callouts)
+- [ ] Tables styled with empty states + scroll handling
+- [ ] MBIE + LAWA pages include charts based on selected filters (table remains primary)
+- [ ] Basic responsive pass complete
+- [ ] Screenshots added to README (optional)
+
+Work Items:
+- [ ] Establish Tailwind layout + spacing + typography tokens
+- [ ] Build reusable UI components (Button, Select, Card, Table, Callout)
+- [ ] Upgrade Ask + Results page styling
+- [ ] Upgrade MBIE + LAWA page styling
+- [ ] Add presentational charts using existing data (no new backend computation)
+- [ ] Optional light/dark mode
+
+Notes:
+- Phase is intentionally iterative — expect multiple small PRs
+- Charts must be presentational only
+
+### Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 
 Definition of Done:
