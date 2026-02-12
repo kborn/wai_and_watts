@@ -27,16 +27,6 @@ const NavBar: React.FC<NavBarProps> = () => {
                 Home
               </Link>
               <Link
-                to="/ask"
-                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isActive('/ask')
-                    ? 'border-white text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                }`}
-              >
-                Ask
-              </Link>
-              <Link
                 to="/browse/mbie"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                   isActive('/browse/mbie')
