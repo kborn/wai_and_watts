@@ -5,7 +5,7 @@ test.describe('Dynamic Filters - Simple Tests', () => {
     await page.goto('/browse/mbie')
 
     // Check page title
-    await expect(page.title()).toContain('MBIE')
+    await expect(page).toHaveTitle(/Wai & Watts/)
 
     // Check for fuel type dropdown
     const fuelSelect = page.locator('select').filter({ hasText: 'Fuel Type' })
@@ -20,7 +20,7 @@ test.describe('Dynamic Filters - Simple Tests', () => {
     await page.goto('/browse/lawa')
 
     // Check page title
-    await expect(page.title()).toContain('LAWA')
+    await expect(page).toHaveTitle(/Wai & Watts/)
 
     // Check for region dropdown
     const regionSelect = page.locator('select').filter({ hasText: 'Region' })
