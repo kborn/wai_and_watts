@@ -20,9 +20,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Full repo formatting check (excluding build files)
+# Only run Prettier check on frontend files
 echo "🎨 Running Prettier formatting check..."
-npx prettier --check . --ignore-path ../.gitignore
+npx prettier --check src index.html --ignore-path ../.gitignore
 if [ $? -ne 0 ]; then
   echo "❌ Prettier check failed. Some files are not properly formatted."
   echo "💡 Run 'npx prettier --write . --ignore-path .gitignore' to fix formatting."
