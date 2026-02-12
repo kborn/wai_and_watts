@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useLawaStateMultiYear,
@@ -8,7 +8,7 @@ import {
   useLawaTrendRegions,
   useLawaTrendIndicators,
 } from '../../api/hooks'
-import { Card, CardContent, Button } from '../../components/ui'
+import { Card, CardContent, Button, BarChart } from '../../components/ui'
 
 const LawaBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'state' | 'trend'>('state')
@@ -51,6 +51,24 @@ const LawaBrowsePage: React.FC = () => {
 
     navigate('/ask', { state: { prefill: question } })
   }
+
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return []
+
+    const grouped = data.reduce(
+      (acc, row) => {
+        const key = row.region
+        acc[key] = (acc[key] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    return Object.entries(grouped)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+      .map(([label, value]) => ({ label, value }))
+  }, [data])
 
   const getStateBadgeClass = (stateNorm: string) => {
     switch (stateNorm) {
@@ -175,6 +193,13 @@ const LawaBrowsePage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Chart */}
+      {!isLoading && chartData.length > 0 && (
+        <div className="mb-6">
+          <BarChart data={chartData} title="Sites by Region" />
+        </div>
+      )}
 
       {/* Table */}
       <div className="table-container overflow-x-auto">
