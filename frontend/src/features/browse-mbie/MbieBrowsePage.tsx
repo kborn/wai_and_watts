@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import {
   useMbieGenerationAnnual,
   useMbieGenerationQuarterly,
+  useMbieGenerationAnnualFuelTypes,
+  useMbieGenerationQuarterlyFuelTypes,
 } from '../../api/hooks'
 import type {
   MbieGenerationAnnualRecord,
@@ -13,6 +15,10 @@ const MbieBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'annual' | 'quarterly'>('annual')
   const [fuelType, setFuelType] = useState('')
   const navigate = useNavigate()
+
+  // Dynamic fuel type options
+  const annualFuelTypes = useMbieGenerationAnnualFuelTypes()
+  const quarterlyFuelTypes = useMbieGenerationQuarterlyFuelTypes()
 
   const annualData = useMbieGenerationAnnual({
     fuelType: fuelType || undefined,
@@ -73,16 +79,29 @@ const MbieBrowsePage: React.FC = () => {
               value={fuelType}
               onChange={e => setFuelType(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={
+                viewType === 'annual'
+                  ? annualFuelTypes.isLoading
+                  : quarterlyFuelTypes.isLoading
+              }
             >
               <option value="">All</option>
-              <option value="HYDRO">Hydro</option>
-              <option value="WIND">Wind</option>
-              <option value="SOLAR">Solar</option>
-              <option value="GEOTHERMAL">Geothermal</option>
-              <option value="OTHER">Other</option>
-              <option value="GAS">Gas</option>
-              <option value="COAL">Coal</option>
+              {(viewType === 'annual'
+                ? annualFuelTypes.data
+                : quarterlyFuelTypes.data
+              )?.map(fuel => (
+                <option key={fuel} value={fuel}>
+                  {fuel.charAt(0) + fuel.slice(1).toLowerCase()}
+                </option>
+              ))}
             </select>
+            {(viewType === 'annual'
+              ? annualFuelTypes.isLoading
+              : quarterlyFuelTypes.isLoading) && (
+              <div className="text-sm text-gray-500 mt-1">
+                Loading fuel types...
+              </div>
+            )}
           </div>
 
           <div className="flex items-end">
