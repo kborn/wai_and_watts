@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 14 --- UI / UX Styling (Portfolio-Ready UI) 🔄
-- **Status:** Not started
+- **Active Phase:** Phase 14 --- UI / UX Styling (Portfolio-Ready UI) ✅
+- **Status:** Complete
 
 ---
 
@@ -585,32 +585,44 @@ Notes:
 - PR: [feat(frontend): Add cleanup and documentation](https://github.com/kborn/wai_and_watts/pull/51)
 ---
 
-### Phase 14 — UI / UX Styling (Portfolio-Ready UI) 🔄
+### Phase 14 — UI / UX Styling (Portfolio-Ready UI) ✅
 
 Goal: Make the UI feel like a real product surface (clean, modern, consistent) while keeping frontend architecture thin and backend-authoritative.
 
 Definition of Done:
-- [ ] Global layout + typography polished
-- [ ] Navigation styled with clear active states
-- [ ] Form controls styled consistently
-- [ ] Loading states upgraded (skeletons/spinners)
-- [ ] Error + refusal states upgraded (cards/callouts)
-- [ ] Tables styled with empty states + scroll handling
-- [ ] MBIE + LAWA pages include charts based on selected filters (table remains primary)
-- [ ] Basic responsive pass complete
+- [x] Global layout + typography polished
+- [x] Navigation styled with clear active states
+- [x] Form controls styled consistently
+- [x] Loading states upgraded (skeletons/spinners)
+- [x] Error + refusal states upgraded (cards/callouts)
+- [x] Tables styled with empty states + scroll handling
+- [x] MBIE + LAWA pages include charts based on selected filters (table remains primary)
+- [x] Basic responsive pass complete
 - [ ] Screenshots added to README (optional)
 
 Work Items:
-- [ ] Establish Tailwind layout + spacing + typography tokens
-- [ ] Build reusable UI components (Button, Select, Card, Table, Callout)
-- [ ] Upgrade Ask + Results page styling
-- [ ] Upgrade MBIE + LAWA page styling
-- [ ] Add presentational charts using existing data (no new backend computation)
+- [x] Establish Tailwind layout + spacing + typography tokens
+- [x] Build reusable UI components (Button, Select, Card, Table, Callout)
+- [x] Upgrade Ask + Results page styling
+- [x] Upgrade MBIE + LAWA page styling
+- [x] Add presentational charts using existing data (no new backend computation)
 - [ ] Optional light/dark mode
 
 Notes:
-- Phase is intentionally iterative — expect multiple small PRs
-- Charts must be presentational only
+- Phase completed across 5 PRs:
+  - PR 14.1: Styling foundation + layout shell
+  - PR 14.2: Core reusable UI components
+  - PR 14.3: Ask + Results polish
+  - PR 14.4: LAWA browse page polish
+  - PR 14.5: Charts (presentational)
+- Charts are presentational only, table remains primary
+
+### Links
+- PR: [style(frontend): Styling foundation + layout shell](https://github.com/kborn/wai_and_watts/pull/58)
+- PR: [style(frontend): Core reusable UI components](https://github.com/kborn/wai_and_watts/pull/59)
+- PR: [style(frontend): PR 14.3 - Ask + Results polish ](https://github.com/kborn/wai_and_watts/pull/60)
+- PR: [style(frontend): LAWA browse page polish](https://github.com/kborn/wai_and_watts/pull/61)
+- PR: [style(frontend): LAW/MBIE page charts](https://github.com/kborn/wai_and_watts/pull/62)
 
 ### Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
