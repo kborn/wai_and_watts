@@ -1,12 +1,25 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useLawaStateMultiYear, useLawaTrendMultiYear } from '../../api/hooks'
+import {
+  useLawaStateMultiYear,
+  useLawaTrendMultiYear,
+  useLawaStateRegions,
+  useLawaStateIndicators,
+  useLawaTrendRegions,
+  useLawaTrendIndicators,
+} from '../../api/hooks'
 
 const LawaBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'state' | 'trend'>('state')
   const [region, setRegion] = useState('')
   const [indicator, setIndicator] = useState('')
   const navigate = useNavigate()
+
+  // Dynamic filter options
+  const stateRegions = useLawaStateRegions()
+  const stateIndicators = useLawaStateIndicators()
+  const trendRegions = useLawaTrendRegions()
+  const trendIndicators = useLawaTrendIndicators()
 
   const stateData = useLawaStateMultiYear({
     region: region || undefined,
@@ -92,12 +105,29 @@ const LawaBrowsePage: React.FC = () => {
               value={region}
               onChange={e => setRegion(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={
+                viewType === 'state'
+                  ? stateRegions.isLoading
+                  : trendRegions.isLoading
+              }
             >
               <option value="">All</option>
-              <option value="Canterbury">Canterbury</option>
-              <option value="Otago">Otago</option>
-              <option value="Waikato">Waikato</option>
+              {(viewType === 'state'
+                ? stateRegions.data
+                : trendRegions.data
+              )?.map(region => (
+                <option key={region} value={region}>
+                  {region}
+                </option>
+              ))}
             </select>
+            {(viewType === 'state'
+              ? stateRegions.isLoading
+              : trendRegions.isLoading) && (
+              <div className="text-sm text-gray-500 mt-1">
+                Loading regions...
+              </div>
+            )}
           </div>
 
           <div>
@@ -108,12 +138,29 @@ const LawaBrowsePage: React.FC = () => {
               value={indicator}
               onChange={e => setIndicator(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={
+                viewType === 'state'
+                  ? stateIndicators.isLoading
+                  : trendIndicators.isLoading
+              }
             >
               <option value="">All</option>
-              <option value="ECOLI">E. coli</option>
-              <option value="NITROGEN">Nitrogen</option>
-              <option value="PHOSPHORUS">Phosphorus</option>
+              {(viewType === 'state'
+                ? stateIndicators.data
+                : trendIndicators.data
+              )?.map(indicator => (
+                <option key={indicator} value={indicator}>
+                  {indicator}
+                </option>
+              ))}
             </select>
+            {(viewType === 'state'
+              ? stateIndicators.isLoading
+              : trendIndicators.isLoading) && (
+              <div className="text-sm text-gray-500 mt-1">
+                Loading indicators...
+              </div>
+            )}
           </div>
 
           <div className="flex items-end">

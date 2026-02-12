@@ -10,4 +10,20 @@ public interface LawaTrendMultiYearReadService {
                                            @Nullable Integer toYear,
                                            @Nullable String indicator,
                                            @Nullable String region);
+    
+    /**
+     * Returns all distinct regions available in LAWA trend data.
+     * Results are sorted alphabetically for consistent UI ordering.
+     *
+     * @return List of unique, sorted region names
+     */
+    List<String> getRegions();
+    
+    /**
+     * Returns all distinct indicators available in LAWA trend data.
+     * Results are sorted alphabetically for consistent UI ordering.
+     *
+     * @return List of unique, sorted indicator codes
+     */
+    List<String> getIndicators();
 }

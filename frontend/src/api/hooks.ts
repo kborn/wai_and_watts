@@ -60,3 +60,47 @@ export const useLawaTrendMultiYear = (params?: {
     queryFn: () => apiClient.getLawaTrendMultiYear(params),
   })
 }
+
+// Fuel type hooks
+export const useMbieGenerationAnnualFuelTypes = () => {
+  return useQuery({
+    queryKey: ['mbie-generation-annual-fuel-types'],
+    queryFn: () => apiClient.getMbieGenerationAnnualFuelTypes(),
+  })
+}
+
+export const useMbieGenerationQuarterlyFuelTypes = () => {
+  return useQuery({
+    queryKey: ['mbie-generation-quarterly-fuel-types'],
+    queryFn: () => apiClient.getMbieGenerationQuarterlyFuelTypes(),
+  })
+}
+
+// LAWA filter hooks
+export const useLawaStateRegions = () => {
+  return useQuery({
+    queryKey: ['lawa-state-regions'],
+    queryFn: () => apiClient.getLawaStateRegions(),
+  })
+}
+
+export const useLawaStateIndicators = () => {
+  return useQuery({
+    queryKey: ['lawa-state-indicators'],
+    queryFn: () => apiClient.getLawaStateIndicators(),
+  })
+}
+
+export const useLawaTrendRegions = () => {
+  return useQuery({
+    queryKey: ['lawa-trend-regions'],
+    queryFn: () => apiClient.getLawaTrendRegions(),
+  })
+}
+
+export const useLawaTrendIndicators = () => {
+  return useQuery({
+    queryKey: ['lawa-trend-indicators'],
+    queryFn: () => apiClient.getLawaTrendIndicators(),
+  })
+}

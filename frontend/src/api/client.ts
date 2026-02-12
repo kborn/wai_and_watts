@@ -204,6 +204,20 @@ class ApiClient {
     )
   }
 
+  async getMbieGenerationAnnualFuelTypes(): Promise<string[]> {
+    const response = await this.request<{ fuelTypes: string[] }>(
+      '/api/v1/mbie/generation/annual/fuel-types'
+    )
+    return response.fuelTypes
+  }
+
+  async getMbieGenerationQuarterlyFuelTypes(): Promise<string[]> {
+    const response = await this.request<{ fuelTypes: string[] }>(
+      '/api/v1/mbie/generation/quarterly/fuel-types'
+    )
+    return response.fuelTypes
+  }
+
   // LAWA endpoints
   async getLawaStateMultiYear(params?: {
     region?: string
@@ -233,6 +247,34 @@ class ApiClient {
     return this.request<LawaTrendMultiYearRecord[]>(
       `/api/v1/lawa/water-quality/trend/multiyear${query ? `?${query}` : ''}`
     )
+  }
+
+  async getLawaStateRegions(): Promise<string[]> {
+    const response = await this.request<{ regions: string[] }>(
+      '/api/v1/lawa/water-quality/state/multiyear/regions'
+    )
+    return response.regions
+  }
+
+  async getLawaStateIndicators(): Promise<string[]> {
+    const response = await this.request<{ indicators: string[] }>(
+      '/api/v1/lawa/water-quality/state/multiyear/indicators'
+    )
+    return response.indicators
+  }
+
+  async getLawaTrendRegions(): Promise<string[]> {
+    const response = await this.request<{ regions: string[] }>(
+      '/api/v1/lawa/water-quality/trend/multiyear/regions'
+    )
+    return response.regions
+  }
+
+  async getLawaTrendIndicators(): Promise<string[]> {
+    const response = await this.request<{ indicators: string[] }>(
+      '/api/v1/lawa/water-quality/trend/multiyear/indicators'
+    )
+    return response.indicators
   }
 }
 

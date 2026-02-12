@@ -1,7 +1,11 @@
 package nz.waiwatts.api.lawa;
 
 import nz.waiwatts.api.lawa.dto.LawaTrendMultiYearRecordDto;
+import nz.waiwatts.api.lawa.dto.LawaRegionsResponseDto;
+import nz.waiwatts.api.lawa.dto.LawaIndicatorsResponseDto;
 import nz.waiwatts.service.lawa.LawaTrendMultiYearReadService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +18,7 @@ import java.util.List;
 @RequestMapping("/api/v1/lawa/water-quality")
 public class LawaTrendMultiYearController {
 
+    private static final Logger logger = LoggerFactory.getLogger(LawaTrendMultiYearController.class);
     private final LawaTrendMultiYearReadService readService;
 
     public LawaTrendMultiYearController(LawaTrendMultiYearReadService readService) {
@@ -33,4 +38,19 @@ public class LawaTrendMultiYearController {
         List<LawaTrendMultiYearRecordDto> out = readService.find(fromYear, toYear, indicator, region);
         return ResponseEntity.ok(out);
     }
+
+    @GetMapping("/trend/multiyear/regions")
+    public ResponseEntity<LawaRegionsResponseDto> getRegions(){
+        List<String> regions = readService.getRegions();
+        logger.info("Found {} unique regions in LAWA trend data set", regions.size());
+        return ResponseEntity.ok(new LawaRegionsResponseDto(regions));
+    }
+
+    @GetMapping("/trend/multiyear/indicators")
+    public ResponseEntity<LawaIndicatorsResponseDto> getIndicators(){
+        List<String> indicators = readService.getIndicators();
+        logger.info("Found {} unique indicators in LAWA trend data set", indicators.size());
+        return ResponseEntity.ok(new LawaIndicatorsResponseDto(indicators));
+    }
+
 }

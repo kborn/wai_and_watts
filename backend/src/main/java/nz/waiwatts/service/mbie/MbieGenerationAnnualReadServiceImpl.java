@@ -20,6 +20,13 @@ public class MbieGenerationAnnualReadServiceImpl implements MbieGenerationAnnual
     }
 
     @Override
+    public List<String> getFuelTypes(){
+        return repository.findDistinctFuelTypeNormOrderByFuelTypeNorm();
+    }
+
+
+
+    @Override
     public List<MbieGenerationAnnualRecordDto> find(Integer fromYear,
                                                     Integer toYear,
                                                     String fuelType) {
