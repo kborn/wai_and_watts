@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   useMbieGenerationAnnual,
@@ -10,6 +10,7 @@ import type {
   MbieGenerationAnnualRecord,
   MbieGenerationQuarterlyRecord,
 } from '../../types'
+import { BarChart } from '../../components/ui'
 
 const MbieBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'annual' | 'quarterly'>('annual')
@@ -46,6 +47,27 @@ const MbieBrowsePage: React.FC = () => {
       navigate('/ask', { state: { prefill: context } })
     }
   }
+
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) return []
+
+    const grouped = data.reduce(
+      (acc, row) => {
+        const key =
+          viewType === 'annual'
+            ? String(row.periodYear)
+            : `Q${(row as MbieGenerationQuarterlyRecord).periodQuarter} ${row.periodYear}`
+        acc[key] = (acc[key] || 0) + row.generationGwh
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    return Object.entries(grouped)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-10)
+      .map(([label, value]) => ({ label, value }))
+  }, [data, viewType])
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -113,6 +135,13 @@ const MbieBrowsePage: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Chart */}
+        {!isLoading && chartData.length > 0 && (
+          <div className="mb-6">
+            <BarChart data={chartData} title="Generation by Period (GWh)" />
+          </div>
+        )}
 
         {/* Table */}
         <div className="overflow-x-auto">
