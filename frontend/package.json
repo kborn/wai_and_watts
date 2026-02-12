@@ -17,7 +17,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install",
-    "prepare": "cd .. && husky install frontend/.husky"
+    "prepare": "husky install .husky"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
