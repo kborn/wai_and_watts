@@ -8,19 +8,41 @@ test.describe('Dynamic Filter Basic Validation', () => {
     })
   })
 
-  test('MBIE page loads with dropdown elements', async ({ page }) => {
+  test('MBIE page shows fuel type checkboxes', async ({ page }) => {
     // Navigate to MBIE page
     await page.goto('/browse/mbie')
 
-    // Wait for page to load
-    await page.waitForTimeout(1000)
+    // Wait for loading or error to appear first
+    const loadingOrError = page.getByText(
+      /Loading data from backend...|Failed to load data/
+    )
+    await expect(loadingOrError).toBeVisible({ timeout: 15000 })
 
-    // Verify dropdown elements exist (second select is Fuel Type)
-    const fuelTypeSelect = page.locator('select').nth(1)
-    await expect(fuelTypeSelect).toBeVisible()
+    // Wait for loading to disappear (gives us final state)
+    await expect(
+      page.getByText('Loading data from backend...')
+    ).not.toBeVisible({ timeout: 15000 })
 
-    // Should have at least "All" option
-    await expect(fuelTypeSelect).toContainText('All')
+    // Small buffer for render
+    await page.waitForTimeout(500)
+
+    // Verify Fuel Types container exists
+    const fuelContainer = page.locator(
+      'xpath=//div[label[normalize-space()="Fuel Types"]]'
+    )
+    await expect(fuelContainer).toBeVisible()
+
+    // Check if there was an error
+    const hasError = await page
+      .getByText('Failed to load data from backend.')
+      .isVisible()
+      .catch(() => false)
+
+    // If no error, checkboxes should exist; if error, container should be empty but visible
+    if (!hasError) {
+      const fuelCheckboxes = fuelContainer.locator('input[type="checkbox"]')
+      await expect(fuelCheckboxes.first()).toBeVisible()
+    }
   })
 
   test('LAWA state view loads with dropdown elements', async ({ page }) => {

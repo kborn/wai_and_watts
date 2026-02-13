@@ -51,17 +51,28 @@ test.describe('Loading States Validation', () => {
 
     await page.goto('/browse/mbie')
 
-    // Should show loading
-    await expect(page.getByText('Loading fuel types...')).toBeVisible({
+    const fuelSection = page.locator('div', {
+      has: page.getByText('Fuel Types'),
+    })
+    const fuelCheckboxes = fuelSection.locator('input[type="checkbox"]')
+
+    // During loading, the page indicates backend loading
+    await expect(page.getByText('Loading data from backend...')).toBeVisible({
       timeout: 5000,
     })
 
     // Wait for completion
     await page.waitForTimeout(3000)
 
-    // Loading should disappear, options should appear
-    await expect(page.getByText('Loading fuel types...')).not.toBeVisible()
-    await expect(page.locator('select').nth(1)).toContainText('All')
+    // Options should appear after the API resolves — ensure mocked labels are present
+    await expect(fuelCheckboxes.first()).toBeVisible({ timeout: 5000 })
+    // Verify labels within the Fuel Types container to avoid matching chart text
+    await expect(
+      fuelSection.locator('label', { hasText: 'HYDRO' })
+    ).toBeVisible()
+    await expect(
+      fuelSection.locator('label', { hasText: 'WIND' })
+    ).toBeVisible()
   })
 
   test('handles API error gracefully', async ({ page }) => {
@@ -76,11 +87,19 @@ test.describe('Loading States Validation', () => {
 
     await page.goto('/browse/mbie')
 
-    // Should handle error gracefully
-    await page.waitForTimeout(2000)
+    // Wait for loading to complete (either success or error)
+    await expect(
+      page.getByText('Loading data from backend...')
+    ).not.toBeVisible({
+      timeout: 10000,
+    })
 
-    // Should show error state or fallback
-    const fuelSelect = page.locator('select').nth(1)
-    await expect(fuelSelect).toBeVisible() // Should still show selector
+    // Keep Fuel Types section visible; it should be empty or unchanged but not crash the page
+    const fuelContainer = page.locator(
+      'xpath=//div[label[normalize-space()="Fuel Types"]]'
+    )
+    await expect(fuelContainer).toBeVisible()
+    const fuelCheckboxes = fuelContainer.locator('input[type="checkbox"]')
+    await expect(fuelCheckboxes).toHaveCount(0)
   })
 })

@@ -31,6 +31,11 @@ const MbieBrowsePage: React.FC = () => {
   const annualFuelTypes = useMbieGenerationAnnualFuelTypes()
   const quarterlyFuelTypes = useMbieGenerationQuarterlyFuelTypes()
 
+  const fuelTypesLoading =
+    viewType === 'annual'
+      ? annualFuelTypes.isLoading
+      : quarterlyFuelTypes.isLoading
+
   const allFuelTypes = useMemo(
     () =>
       (viewType === 'annual'
@@ -221,33 +226,44 @@ const MbieBrowsePage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Fuel Types
             </label>
-            <div className="text-xs text-gray-500 mb-1">
-              <button
-                onClick={handleSelectAll}
-                className="text-blue-600 hover:underline"
-              >
-                {effectiveSelectedFuels.length === allFuelTypes.length &&
-                allFuelTypes.length > 0
-                  ? 'Deselect All'
-                  : 'Select All'}
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto border rounded p-2">
-              {allFuelTypes.map(fuel => {
-                const isSelected = effectiveSelectedFuels.includes(fuel)
-                return (
-                  <label key={fuel} className="flex items-center gap-1 text-xs">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleFuelToggle(fuel)}
-                      className="rounded"
-                    />
-                    {fuel}
-                  </label>
-                )
-              })}
-            </div>
+            {fuelTypesLoading ? (
+              <div className="text-xs text-gray-500 py-2">
+                Loading fuel types...
+              </div>
+            ) : (
+              <>
+                <div className="text-xs text-gray-500 mb-1">
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {effectiveSelectedFuels.length === allFuelTypes.length &&
+                    allFuelTypes.length > 0
+                      ? 'Deselect All'
+                      : 'Select All'}
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto border rounded p-2">
+                  {allFuelTypes.map(fuel => {
+                    const isSelected = effectiveSelectedFuels.includes(fuel)
+                    return (
+                      <label
+                        key={fuel}
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleFuelToggle(fuel)}
+                          className="rounded"
+                        />
+                        {fuel}
+                      </label>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -366,7 +382,7 @@ const MbieBrowsePage: React.FC = () => {
         )}
 
         <div className="mt-4 text-sm text-gray-600 text-right">
-          {isLoading
+          {isLoading || fuelTypesLoading
             ? 'Loading data from backend...'
             : error
               ? 'Failed to load data from backend.'
