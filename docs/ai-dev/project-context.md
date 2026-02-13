@@ -83,6 +83,35 @@ If a document does not fit one of these categories, it should not be added.
 
 ---
 
+## Phase Numbering Convention
+
+### Phase Structure
+
+Phase N → Original milestone delivery\
+N.x → Implementation step inside milestone\
+N\[A-Z\] → Post-phase capability expansion\
+N\[A-Z\].x → Implementation step inside expansion
+
+
+### Example
+
+Phase 14 → Original UI milestone\
+14.1 → Original phase implementation step\
+14A → MBIE timeline capability expansion\
+14A.1 → MBIE expansion implementation step\
+14B → LAWA visualization expansion\
+14B.1 → LAWA expansion implementation step
+
+
+### Rules
+
+-   `.x` always indicates implementation step.
+-   Lettered phases represent feature expansions.
+-   Never mix `14.A` and `14A` --- only use letter-adjacent format.
+
+
+---
+
 ## Final Note
 This document is intentionally stable.
 If it changes often, something else is missing.

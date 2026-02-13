@@ -1089,3 +1089,89 @@ Implications:
 - Chart aggregates records by (period, normalized fuel type)
 - Tooltip renders per-series raw contributions
 - Table continues to show raw fuel types without aggregation
+
+
+### Decision --- Phase Expansion Numbering Convention
+
+Date: 2026-02-13
+
+Decision: Post-phase feature expansions will use lettered phase
+extensions (e.g., 14A, 14B).
+
+Rationale: - Preserves historical numeric step structure (e.g., 14.1,
+14.2). - Allows major feature expansions without introducing new
+numbered phases. - Maintains consistent `.n` step semantics.
+
+Implications: - Numeric substeps remain implementation-level. - Lettered
+phases represent product capability expansions.
+
+# Decision --- LAWA Table Must Be Semantically Complete
+
+Date: 2026-02-13
+
+## Decision
+
+LAWA browse tables must include sufficient fields to interpret the
+environmental meaning of each row.
+
+## Rationale
+
+-   LAWA results are published interpretations, not raw telemetry.
+-   Minimal tables (period, region, site) do not communicate
+    environmental meaning.
+-   Table must support explanation verification and auditability.
+
+## Implications
+
+### Common Fields
+
+-   Period (human readable)
+-   Region
+-   Site
+-   Indicator (raw + normalized when available)
+
+### State Dataset Fields
+
+-   Published state classification
+-   Normalized state label
+-   Numeric values (if present in DTO)
+-   Units (if present)
+
+### Trend Dataset Fields
+
+-   Published trend classification
+-   Window length (if present)
+-   Numeric values (if present)
+-   Units (if present)
+
+Frontend must never invent missing semantic fields.
+
+
+# Decision --- LAWA Visualization Philosophy: Faithful Interpretation Display
+
+Date: 2026-02-13
+
+## Decision
+
+LAWA visualizations prioritize faithful display of published
+environmental interpretations rather than exploratory analytics or
+distribution visualizations.
+
+## Rationale
+
+-   LAWA datasets contain published interpreted environmental results
+    (state bands, trend classifications).
+-   Distribution-style charts (counts by region, rankings, etc.) obscure
+    environmental meaning.
+-   Visualization must support explanation workflows, not exploratory
+    data science workflows.
+
+## Implications
+
+-   Primary visualization is time-slice timeline of filtered dataset.
+-   Visualization represents dataset slice semantics, not population
+    distribution.
+-   Frontend must not compute environmental meaning, classifications, or
+    derived analytics.
+-   Table remains canonical semantic surface for interpreting row
+    meaning.

@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 14 --- UI / UX Styling (Portfolio-Ready UI) ✅
+- **Active Phase:** Phase 14A — UI / UX Styling (Portfolio-Ready UI) ✅
 - **Status:** Complete
 
 ---
@@ -534,7 +534,7 @@ User NL Question
 
 ---
 
-### Phase 13 — Frontend (Thin Storytelling Client) ✅
+## Phase 13 — Frontend (Thin Storytelling Client) ✅
 Goal: Deliver a production-credible client surface over the existing backend, with clean boundaries and room to grow.
 
 Canonical requirements:
@@ -585,7 +585,7 @@ Notes:
 - PR: [feat(frontend): Add cleanup and documentation](https://github.com/kborn/wai_and_watts/pull/51)
 ---
 
-### Phase 14 — UI / UX Styling (Portfolio-Ready UI) ✅
+## Phase 14 — UI / UX Styling (Portfolio-Ready UI) ✅
 
 Goal: Make the UI feel like a real product surface (clean, modern, consistent) while keeping frontend architecture thin and backend-authoritative.
 
@@ -626,15 +626,15 @@ Notes:
 
 
 
-### Phase 14.1 — UI / UX Styling (Portfolio-Ready UI) ✅
+## Phase 14A — UI / UX Styling (Portfolio-Ready UI) ✅
 
-- [ ] MBIE timeline visualization upgrade (ECharts)
-  - [ ] Replace MBIE bar chart primary visualization with time-series line chart
-  - [ ] Implement brush zoom interaction with reset to full timeline
-  - [ ] Support multi-fuel line comparison
-  - [ ] Implement optional "Total (sum of displayed fuels)" display-aggregate line
-  - [ ] Move MBIE table to secondary surface (tab / collapse)
-  - [ ] Ensure table reflects page filters AND zoom window
+- [x] MBIE timeline visualization upgrade (ECharts)
+  - [x] Replace MBIE bar chart primary visualization with time-series line chart
+  - [x] Implement brush zoom interaction with reset to full timeline
+  - [x] Support multi-fuel line comparison
+  - [x] Implement optional "Total (sum of displayed fuels)" display-aggregate line
+  - [x] Move MBIE table to secondary surface (tab / collapse)
+  - [x] Ensure table reflects page filters AND zoom window
 
 Notes:
 - MBIE visualization enhancement follows 2026-02-12 decisions:
@@ -642,8 +642,56 @@ Notes:
   - ECharts adopted as interactive charting standard (starting with MBIE)
   - Frontend may compute display-only aggregates derived from already-fetched rows
   - No backend API changes required
-  - 
-### Phase 15 — Polish & Presentation (Portfolio-Ready)
+
+### Links
+- PR: [feat(frontend): MBIE timeline chart with ECharts](https://github.com/kborn/wai_and_watts/pull/64)
+
+## Phase 14B --- LAWA Visualization Simplification
+
+Goal: Align LAWA visualization with dataset semantics by implementing timeline slice visualization and semantically complete data tables.
+
+
+#### Definition of Done
+
+-   [ ] Replace Sites-per-Region chart with timeline chart of filtered
+    dataset slice
+-   [ ] Timeline chart renders:
+  -   Default single series
+  -   Safe multi-series comparison (\<= 4 series)
+-   [ ] Chart uses backend API data only
+-   [ ] No client-derived environmental analytics introduced
+-   [ ] Table moved to secondary surface (toggle / collapse / tab)
+-   [ ] Table reflects:
+  -   Page filters
+  -   Chart time slice (if time slicing introduced)
+-   [ ] Table includes full semantic fields per dataset (State + Trend
+    rules)
+-   [ ] Chart + table remain explanation-entry compatible
+
+------------------------------------------------------------------------
+
+#### Work Items
+
+-   [ ] Remove Sites-per-Region visualization
+-   [ ] Implement LAWA timeline chart component (ECharts)
+-   [ ] Implement safe multi-series guardrail logic
+-   [ ] Implement secondary table surface pattern
+-   [ ] Expand LAWA table columns to semantic completeness contract
+-   [ ] Validate explanation workflow compatibility
+-   [ ] Add Playwright coverage if interaction complexity increases
+
+------------------------------------------------------------------------
+
+#### Notes
+
+-   Mirrors MBIE visualization philosophy but tuned for interpretation
+    datasets.
+-   Thin client rule enforced.
+-   Backend remains authoritative for environmental semantics.
+
+
+
+## Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 
 Definition of Done:
@@ -661,7 +709,7 @@ Work Items:
 
 ---
 
-### Final Polish & Deferred Portfolio Tasks
+## Final Polish & Deferred Portfolio Tasks
 
 These tasks were intentionally deferred to prioritize core engineering velocity.  
 Complete before marking Wai & Watts “portfolio-ready.”
