@@ -624,6 +624,25 @@ Notes:
 - PR: [style(frontend): LAWA browse page polish](https://github.com/kborn/wai_and_watts/pull/61)
 - PR: [style(frontend): LAW/MBIE page charts](https://github.com/kborn/wai_and_watts/pull/62)
 
+
+
+### Phase 14.1 — UI / UX Styling (Portfolio-Ready UI) ✅
+
+- [ ] MBIE timeline visualization upgrade (ECharts)
+  - [ ] Replace MBIE bar chart primary visualization with time-series line chart
+  - [ ] Implement brush zoom interaction with reset to full timeline
+  - [ ] Support multi-fuel line comparison
+  - [ ] Implement optional "Total (sum of displayed fuels)" display-aggregate line
+  - [ ] Move MBIE table to secondary surface (tab / collapse)
+  - [ ] Ensure table reflects page filters AND zoom window
+
+Notes:
+- MBIE visualization enhancement follows 2026-02-12 decisions:
+  - MBIE timeline visualization becomes primary exploration surface
+  - ECharts adopted as interactive charting standard (starting with MBIE)
+  - Frontend may compute display-only aggregates derived from already-fetched rows
+  - No backend API changes required
+  - 
 ### Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 

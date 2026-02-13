@@ -921,3 +921,154 @@ frontend UI options.
 
 Implications: These endpoints are part of the stable API surface and
 should remain backward compatible.
+
+
+# Decision --- MBIE Time-Series Visualization & Table Secondary Role
+
+Date: 2026-02-12
+
+------------------------------------------------------------------------
+
+## Decision
+
+For the MBIE Electricity Generation UI, the primary data exploration
+surface will move from **bar charts + primary data table** to a
+**time-series line chart with interactive time-range zoom**.
+
+The data table will remain available but will be demoted to a
+**secondary, user-toggled or collapsible audit surface** rather than the
+primary data presentation layer.
+
+------------------------------------------------------------------------
+
+## Rationale
+
+### Align Visualization With Dataset Shape
+
+MBIE generation data is fundamentally time-series data. A timeline
+visualization better supports: - Long-term trend comprehension -
+Multi-fuel comparison - Seasonality and macro energy shifts - Natural
+user mental models for electricity generation
+
+Bar charts are useful for categorical comparisons but are less effective
+for long time-range exploration.
+
+------------------------------------------------------------------------
+
+### Improve Product Credibility Without Expanding Domain Logic
+
+A timeline chart with zoom interaction provides a recognizable,
+production-grade data UX pattern (similar to cloud metrics dashboards
+and data platforms) without introducing new backend computation or
+client-side domain logic.
+
+This improves portfolio signal while preserving Wai & Watts
+architectural boundaries.
+
+------------------------------------------------------------------------
+
+### Preserve Deterministic Data Transparency
+
+The data table remains available to: - Provide raw value inspection -
+Support auditability and trust - Reinforce that charts are
+presentational views over persisted data - Assist debugging and
+verification workflows
+
+The table is intentionally not removed.
+
+------------------------------------------------------------------------
+
+## Implementation Direction (High-Level, Non-Binding)
+
+### Chart Type
+
+-   Time-series line chart
+
+### Series Behavior
+
+-   One line per selected fuel type
+-   Optional total generation line
+
+### Interaction Model
+
+-   Click-and-drag time range zoom (brush selection)
+-   Reset to "All Time" control
+-   Hover tooltips with period + value(s)
+
+### Data Rules
+
+-   Charts must be derived only from backend API responses
+-   No client-side metric invention
+-   No forecasting, smoothing, or derived analytics
+-   No client aggregation beyond simple grouping for display
+
+------------------------------------------------------------------------
+
+## Table Role Change
+
+The MBIE data table will: - Remain accessible on the page - Be
+collapsible, toggleable, or placed in a secondary tab - Continue to
+reflect the same filtered dataset used for chart rendering
+
+The table remains the canonical UI representation of raw values.
+
+------------------------------------------------------------------------
+
+## Architectural Boundaries Reinforced
+
+This decision does **not** change: - Backend ownership of domain
+semantics - Fact Pack boundaries - API contract authority - Thin client
+philosophy - Explanation pipeline behavior
+
+------------------------------------------------------------------------
+
+## Non-Goals
+
+This decision does NOT introduce: - Dashboard framework architecture -
+Generic chart engine abstraction - Client-side analytics or derived
+metrics - Additional dataset visualization mandates
+
+------------------------------------------------------------------------
+
+## Implications
+
+### For Frontend Architecture
+
+-   Chart interaction state must remain UI-only
+-   Backend APIs remain unchanged unless explicitly extended later
+
+### For Portfolio Narrative
+
+-   Demonstrates real data-product UX patterns
+-   Shows ability to match visualization type to data semantics
+-   Improves demo storytelling without increasing system complexity
+
+------------------------------------------------------------------------
+
+## Future Considerations (Deferred)
+
+-   Multi-dataset unified timeline views
+-   Cross-dataset comparison charts
+-   Server-side aggregation APIs for visualization optimization
+-   Advanced visualization frameworks
+-   Exportable chart states / saved views
+
+
+### Frontend Charting Standard + Display Aggregation Boundary (MBIE Timeline)
+Date: 2026-02-12
+
+Decision:
+Adopt ECharts as the frontend charting library for interactive visualizations (starting with MBIE).
+Allow frontend "display aggregates" only when they are computed solely from already-fetched API rows for visualization purposes and are clearly labeled as such.
+
+Rationale:
+- MBIE timeline requirements include multi-series time-series rendering, brush zoom, and reset interactions; ECharts provides these reliably without building a bespoke chart framework.
+- Backend remains authoritative for domain truth; frontend remains a thin client.
+- Some chart affordances (pivoting, series shaping, and summing displayed series) are necessary to render interactive visualizations and are not new domain metrics.
+
+Implications:
+- Frontend may reshape/pivot API rows into chart series and compute "Total (sum of displayed fuels)" as a visualization-only series.
+- Frontend must NOT introduce new analytics (smoothing, forecasting, statistical transforms) or present display aggregates as authoritative domain facts.
+- "Total" must be labeled explicitly as a display aggregate (e.g., "Total (sum of displayed fuels)"), not as a published MBIE metric.
+- Chart zoom (brush window) is treated as part of the active view state and must filter the table to reflect the same dataset window shown in the chart.
+- No backend API changes are required for this decision; any proposal to add backend totals or aggregation endpoints requires a new Staff decision entry.
