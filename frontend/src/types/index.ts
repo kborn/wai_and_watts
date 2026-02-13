@@ -42,8 +42,9 @@ export interface AskRequest {
 export interface MbieGenerationAnnualRecord {
   id: string
   periodYear: number
+  fuelType?: string
   fuelTypeRaw: string
-  fuelTypeNorm: string
+  fuelTypeNorm?: string
   generationGwh: number
   releaseId: string
 }
@@ -52,8 +53,9 @@ export interface MbieGenerationQuarterlyRecord {
   id: string
   periodYear: number
   periodQuarter: number
+  fuelType?: string
   fuelTypeRaw: string
-  fuelTypeNorm: string
+  fuelTypeNorm?: string
   generationGwh: number
   releaseId: string
 }
