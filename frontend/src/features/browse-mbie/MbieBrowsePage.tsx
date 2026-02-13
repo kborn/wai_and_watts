@@ -11,27 +11,41 @@ import { MbieTimelineChart } from './MbieTimelineChart'
 
 const MbieBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'annual' | 'quarterly'>('annual')
-  const [fuelType, setFuelType] = useState('')
+  const [selectedFuels, setSelectedFuels] = useState<string[]>([])
   const [showTotal, setShowTotal] = useState(false)
   const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart')
+  const [zoomRange, setZoomRange] = useState<[number, number] | null>(null)
   const navigate = useNavigate()
 
   const annualFuelTypes = useMbieGenerationAnnualFuelTypes()
   const quarterlyFuelTypes = useMbieGenerationQuarterlyFuelTypes()
 
-  const annualData = useMbieGenerationAnnual({
-    fuelType: fuelType || undefined,
-  })
-  const quarterlyData = useMbieGenerationQuarterly({
-    fuelType: fuelType || undefined,
-  })
+  const allFuelTypes = viewType === 'annual' ? annualFuelTypes.data : quarterlyFuelTypes.data
+
+  const annualData = useMbieGenerationAnnual({})
+  const quarterlyData = useMbieGenerationQuarterly({})
 
   const annualRecords = annualData.data || []
   const quarterlyRecords = quarterlyData.data || []
   const data = viewType === 'annual' ? annualRecords : quarterlyRecords
-  const isLoading =
-    viewType === 'annual' ? annualData.isLoading : quarterlyData.isLoading
+  const isLoading = viewType === 'annual' ? annualData.isLoading : quarterlyData.isLoading
   const error = viewType === 'annual' ? annualData.error : quarterlyData.error
+
+  const handleFuelToggle = (fuel: string) => {
+    setSelectedFuels(prev => 
+      prev.includes(fuel) 
+        ? prev.filter(f => f !== fuel)
+        : [...prev, fuel]
+    )
+  }
+
+  const handleSelectAll = () => {
+    if (selectedFuels.length === (allFuelTypes?.length || 0)) {
+      setSelectedFuels([])
+    } else {
+      setSelectedFuels(allFuelTypes || [])
+    }
+  }
 
   const handleExplainThis = () => {
     const context =
@@ -39,40 +53,60 @@ const MbieBrowsePage: React.FC = () => {
         ? 'Explain annual electricity generation data'
         : 'Explain quarterly electricity generation data'
 
-    if (fuelType) {
-      navigate('/ask', { state: { prefill: `${context} for ${fuelType}` } })
+    if (selectedFuels.length > 0) {
+      navigate('/ask', { state: { prefill: `${context} for ${selectedFuels.join(', ')}` } })
     } else {
       navigate('/ask', { state: { prefill: context } })
     }
   }
 
+  const handleZoomChange = (startIndex: number, endIndex: number) => {
+    setZoomRange([startIndex, endIndex])
+  }
+
+  const handleResetZoom = () => {
+    setZoomRange(null)
+  }
+
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return []
 
-    return data
-      .map(row => {
-        const periodValue =
-          viewType === 'annual'
-            ? row.periodYear
-            : (row as MbieGenerationQuarterlyRecord).periodQuarter -
-              1 +
-              row.periodYear * 4
+    return data.map(row => {
+      const periodValue = viewType === 'annual'
+        ? row.periodYear
+        : (row as MbieGenerationQuarterlyRecord).periodQuarter - 1 + row.periodYear * 4
 
-        return {
-          periodLabel:
-            viewType === 'annual'
-              ? String(row.periodYear)
-              : `Q${(row as MbieGenerationQuarterlyRecord).periodQuarter} ${row.periodYear}`,
-          periodValue,
-          fuelType: row.fuelTypeRaw,
-          generationGwh: row.generationGwh,
-        }
-      })
-      .sort((a, b) => a.periodValue - b.periodValue)
+      return {
+        periodLabel: viewType === 'annual'
+          ? String(row.periodYear)
+          : `Q${(row as MbieGenerationQuarterlyRecord).periodQuarter} ${row.periodYear}`,
+        periodValue,
+        fuelType: row.fuelTypeRaw,
+        generationGwh: row.generationGwh,
+      }
+    }).sort((a, b) => a.periodValue - b.periodValue)
   }, [data, viewType])
 
-  const fuelTypes =
-    viewType === 'annual' ? annualFuelTypes.data : quarterlyFuelTypes.data
+  const filteredByFuel = useMemo(() => {
+    if (selectedFuels.length === 0) return chartData
+    return chartData.filter(d => selectedFuels.includes(d.fuelType))
+  }, [chartData, selectedFuels])
+
+  const allPeriods = useMemo(() => {
+    const periods = [...new Set(filteredByFuel.map(d => d.periodValue))].sort((a, b) => a - b)
+    return periods
+  }, [filteredByFuel])
+
+  const filteredData = useMemo(() => {
+    if (!zoomRange) return filteredByFuel
+    
+    const startPeriod = allPeriods[zoomRange[0]]
+    const endPeriod = allPeriods[zoomRange[1]]
+    
+    if (startPeriod === undefined || endPeriod === undefined) return filteredByFuel
+    
+    return filteredByFuel.filter(d => d.periodValue >= startPeriod && d.periodValue <= endPeriod)
+  }, [filteredByFuel, zoomRange, allPeriods])
 
   return (
     <div className="section-container">
@@ -81,8 +115,7 @@ const MbieBrowsePage: React.FC = () => {
           MBIE Electricity Generation
         </h1>
         <p className="text-gray-600">
-          Explore New Zealand's electricity generation data by year and fuel
-          type.
+          Explore New Zealand's electricity generation data by year and fuel type.
         </p>
       </div>
 
@@ -94,9 +127,10 @@ const MbieBrowsePage: React.FC = () => {
             </label>
             <select
               value={viewType}
-              onChange={e =>
+              onChange={e => {
                 setViewType(e.target.value as 'annual' | 'quarterly')
-              }
+                setZoomRange(null)
+              }}
               className="select-base"
             >
               <option value="annual">Annual</option>
@@ -104,27 +138,28 @@ const MbieBrowsePage: React.FC = () => {
             </select>
           </div>
 
-          <div className="min-w-[160px]">
+          <div className="min-w-[200px]">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Fuel Type
+              Fuel Types
             </label>
-            <select
-              value={fuelType}
-              onChange={e => setFuelType(e.target.value)}
-              className="select-base"
-              disabled={
-                viewType === 'annual'
-                  ? annualFuelTypes.isLoading
-                  : quarterlyFuelTypes.isLoading
-              }
-            >
-              <option value="">All</option>
-              {fuelTypes?.map(fuel => (
-                <option key={fuel} value={fuel}>
+            <div className="text-xs text-gray-500 mb-1">
+              <button onClick={handleSelectAll} className="text-blue-600 hover:underline">
+                {selectedFuels.length === (allFuelTypes?.length || 0) ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto border rounded p-2">
+              {allFuelTypes?.map(fuel => (
+                <label key={fuel} className="flex items-center gap-1 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={selectedFuels.length === 0 || selectedFuels.includes(fuel)}
+                    onChange={() => handleFuelToggle(fuel)}
+                    className="rounded"
+                  />
                   {fuel.charAt(0) + fuel.slice(1).toLowerCase()}
-                </option>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
 
           <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -137,10 +172,22 @@ const MbieBrowsePage: React.FC = () => {
             Show Total
           </label>
 
-          <button onClick={handleExplainThis} className="btn-primary">
+          <button
+            onClick={handleExplainThis}
+            className="btn-primary"
+          >
             Explain This Data
           </button>
         </div>
+
+        {zoomRange && (
+          <button
+            onClick={handleResetZoom}
+            className="text-sm text-blue-600 hover:text-blue-800 mb-2"
+          >
+            Reset to All Time
+          </button>
+        )}
 
         <div className="flex gap-2 mb-4 border-b">
           <button
@@ -167,9 +214,10 @@ const MbieBrowsePage: React.FC = () => {
 
         {activeTab === 'chart' && (
           <MbieTimelineChart
-            data={chartData}
+            data={filteredByFuel}
             viewType={viewType}
             showTotal={showTotal}
+            onZoomChange={handleZoomChange}
           />
         )}
 
@@ -199,18 +247,15 @@ const MbieBrowsePage: React.FC = () => {
                       </p>
                     </td>
                   </tr>
-                ) : chartData.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-6 py-8 text-center">
                       <p className="text-gray-500 text-sm">No data available</p>
                     </td>
                   </tr>
                 ) : (
-                  chartData.map(row => (
-                    <tr
-                      key={`${row.periodValue}-${row.fuelType}`}
-                      className="hover:bg-gray-50"
-                    >
+                  filteredData.map(row => (
+                    <tr key={`${row.periodValue}-${row.fuelType}`} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {row.periodLabel}
                       </td>
@@ -233,7 +278,7 @@ const MbieBrowsePage: React.FC = () => {
             ? 'Loading data from backend...'
             : error
               ? 'Failed to load data from backend.'
-              : `Showing ${chartData.length} records.`}
+              : `Showing ${filteredData.length} of ${filteredByFuel.length} records${zoomRange ? ' (filtered by zoom)' : ''}.`}
         </div>
       </div>
     </div>
