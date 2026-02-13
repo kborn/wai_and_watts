@@ -1072,3 +1072,20 @@ Implications:
 - "Total" must be labeled explicitly as a display aggregate (e.g., "Total (sum of displayed fuels)"), not as a published MBIE metric.
 - Chart zoom (brush window) is treated as part of the active view state and must filter the table to reflect the same dataset window shown in the chart.
 - No backend API changes are required for this decision; any proposal to add backend totals or aggregation endpoints requires a new Staff decision entry.
+
+---
+
+### MBIE Chart Uses Normalized Totals With Raw Breakdown Tooltip
+Date: 2026-02-13
+
+Decision: Plot MBIE generation lines by normalized fuel type totals per period; show raw fuel type breakdown in the tooltip, while the table remains raw.
+
+Rationale:
+- Normalized categories are the intended legend semantics
+- Raw fuel types can map to the same normalized bucket (e.g., OTHER), which otherwise creates duplicate series labels
+- Tooltip breakdown preserves transparency without cluttering the chart
+
+Implications:
+- Chart aggregates records by (period, normalized fuel type)
+- Tooltip renders per-series raw contributions
+- Table continues to show raw fuel types without aggregation
