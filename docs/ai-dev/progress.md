@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 14A — UI / UX Styling (Portfolio-Ready UI) ✅
+- **Active Phase:** Phase 14B — LAWA Unified Visualization ✅ (Complete)
 - **Status:** Complete
 
 ---
@@ -646,50 +646,57 @@ Notes:
 ### Links
 - PR: [feat(frontend): MBIE timeline chart with ECharts](https://github.com/kborn/wai_and_watts/pull/64)
 
-## Phase 14B --- LAWA Visualization Simplification
+## Phase 14B --- LAWA Unified Visualization (Trend + State)
 
-Goal: Align LAWA visualization with dataset semantics by implementing timeline slice visualization and semantically complete data tables.
+Goal: Implement unified LAWA visualization model aligned to dataset
+semantics using:
+
+-   Trend: Classification Distribution visualization\
+-   State: State Band Distribution visualization (snapshot condition
+    distribution)
 
 
 #### Definition of Done
 
--   [ ] Replace Sites-per-Region chart with timeline chart of filtered
-    dataset slice
--   [ ] Timeline chart renders:
-  -   Default single series
-  -   Safe multi-series comparison (\<= 4 series)
--   [ ] Chart uses backend API data only
--   [ ] No client-derived environmental analytics introduced
--   [ ] Table moved to secondary surface (toggle / collapse / tab)
--   [ ] Table reflects:
-  -   Page filters
-  -   Chart time slice (if time slicing introduced)
--   [ ] Table includes full semantic fields per dataset (State + Trend
-    rules)
--   [ ] Chart + table remain explanation-entry compatible
+-   [x] Implement filter gating rules
+-   [x] Implement sentinel normalization (-99 → NULL)
+-   [x] Implement Trend classification distribution chart
+-   [x] Implement Trend table required column contract
+-   [x] Implement Trend chart bucket → table filter interaction
+-   [x] Implement State table required column contract
+-   [x] Implement State band distribution chart
+-   [x] Implement State chart band → table filter interaction
+-   [x] Implement table horizontal scroll + dataset column switching
+-   [x] Preserve explanation workflow compatibility
 
-------------------------------------------------------------------------
 
 #### Work Items
 
--   [ ] Remove Sites-per-Region visualization
--   [ ] Implement LAWA timeline chart component (ECharts)
--   [ ] Implement safe multi-series guardrail logic
--   [ ] Implement secondary table surface pattern
--   [ ] Expand LAWA table columns to semantic completeness contract
--   [ ] Validate explanation workflow compatibility
--   [ ] Add Playwright coverage if interaction complexity increases
+-   [x] Add filter gating enforcement (Trend: Indicator; State: Region + Indicator)
+-   [x] Add sentinel normalization layer
+-   [x] Build Trend classification distribution chart
+-   [x] Build Trend table columns and sorting rules
+-   [x] Build Trend chart click-to-filter behavior
+-   [x] Build State table columns
+-   [x] Build State Attribute Band distribution aggregation
+-   [x] Build State band distribution chart
+-   [x] Implement State chart click-to-filter integration
+-   [x] Validate performance and table pagination strategy
 
-------------------------------------------------------------------------
 
 #### Notes
 
--   Mirrors MBIE visualization philosophy but tuned for interpretation
-    datasets.
--   Thin client rule enforced.
--   Backend remains authoritative for environmental semantics.
+-   Trend is ordinal classification, not numeric magnitude
+-   State represents snapshot condition classification, not time-series
+    measurement telemetry
+-   Tables remain canonical audit and explanation surfaces
+-   State chart direction changed per REPLACE_builder_spec_state_chart_14B.md:
+    -   State is snapshot (not time-series)
+    -   Band distribution replaces measurement-over-time
 
 
+### Links
+- PR: [feat(frontend): LAWA visualization upgrade - timeline chart with safe multi-series](https://github.com/kborn/wai_and_watts/pull/65)
 
 ## Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.

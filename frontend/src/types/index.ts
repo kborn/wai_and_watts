@@ -65,8 +65,10 @@ export interface LawaStateMultiYearRecord {
   id: string
   periodStartYear: number
   periodEndYear: number
+  periodType: string
   region: string
   siteName: string
+  lawaSiteId: string
   indicatorRaw: string
   indicatorNorm: string
   attributeBand: string
@@ -74,20 +76,30 @@ export interface LawaStateMultiYearRecord {
   units: string
   latitude: string
   longitude: string
+  median: number | null
+  p95: number | null
+  recHealthExceed260Pct: number | null
+  recHealthExceed540Pct: number | null
 }
 
 export interface LawaTrendMultiYearRecord {
   id: string
-  asOfYear: number
-  periodType: string
   periodStartYear: number
   periodEndYear: number
+  periodType: string
   region: string
   siteName: string
+  lawaSiteId: string
   indicatorRaw: string
   indicatorNorm: string
+  trendRaw: string
   trendNorm: string
-  trendScore?: number
+  trendScore: number | null
+  trendPeriodYears: number
+  trendDataFrequency: string
+  units: string
+  latitude: string
+  longitude: string
 }
 
 // API Capabilities Types

@@ -1175,3 +1175,124 @@ distribution visualizations.
     derived analytics.
 -   Table remains canonical semantic surface for interpreting row
     meaning.
+
+
+# Decision --- LAWA Unified Visualization Model (Trend + State)
+
+Date: 2026-02-14\
+Supersedes: 2026-02-13 version
+
+------------------------------------------------------------------------
+
+## Decision
+
+LAWA visualizations follow a **unified model aligned to dataset
+semantics**.
+
+### Trend
+
+Primary visualization: **Classification Distribution (Site Count by
+Trend Classification)**
+
+TrendScore is treated as **ordinal classification**, not numeric
+magnitude.
+
+------------------------------------------------------------------------
+
+### State
+
+Primary visualization: **State Band Distribution (Site Count by
+Attribute Band)**
+
+State data represents **latest-condition snapshot assessments**, not
+continuous measurement telemetry.
+
+State must NOT be visualized as time series.
+
+------------------------------------------------------------------------
+
+## Trend Visualization Rules
+
+### TrendScore Domain
+
+Allowed values: - -2 - -1 - 0 - +1 - +2
+
+Sentinel: - -99 → Insufficient Data → mapped to NULL for visualization
+
+------------------------------------------------------------------------
+
+### Trend Chart
+
+Type: Classification Distribution Bar Chart
+
+Fixed bucket order: 1. Very Likely Degrading\
+2. Likely Degrading\
+3. Indeterminate\
+4. Likely Improving\
+5. Very Likely Improving\
+6. Insufficient Data (only if present)
+
+------------------------------------------------------------------------
+
+### Trend Forbidden Patterns
+
+-   Site ranking by TrendScore\
+-   Top-N site charts by TrendScore\
+-   Timeline visualization of trend windows
+
+------------------------------------------------------------------------
+
+## State Visualization Rules
+
+### State Chart Type
+
+State Band Distribution
+
+X-axis: Attribute Band (best → worst ordering)
+
+Y-axis: Site count
+
+------------------------------------------------------------------------
+
+### State Chart Gating
+
+Chart renders only when: - Region selected\
+- Indicator selected\
+- Indicator must be single indicator (NOT "All Indicators")
+
+------------------------------------------------------------------------
+
+### State Interaction
+
+Chart bucket click → filters State table by selected band.
+
+------------------------------------------------------------------------
+
+## State Data Semantics
+
+State records represent: - Latest statistical assessment window - Not
+measurement telemetry - Not continuous time series
+
+Time-series visualization is explicitly disallowed.
+
+------------------------------------------------------------------------
+
+## Sentinel Handling
+
+Sentinel values (-99): - Converted to NULL for visualization - Displayed
+as "Insufficient Data" - Never rendered as raw numeric values
+
+Insufficient Data may appear as its own distribution bucket.
+
+------------------------------------------------------------------------
+
+## Architectural Boundaries
+
+Frontend MUST NOT: - Derive environmental metrics\
+- Recompute classifications\
+- Reconstruct historical measurement series\
+- Perform statistical modeling or smoothing
+
+Frontend MAY: - Normalize sentinel values\
+- Group records for distribution visualization\
+- Sort and paginate for usability
