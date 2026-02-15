@@ -80,15 +80,15 @@ test.describe('LAWA Browse Page - Dynamic Filters', () => {
     await page.goto('/')
     await page.click('a[href="/browse/lawa"]')
 
-    // Should default to state view
-    await expect(
-      page.locator('select').filter({ hasText: 'Annual' })
-    ).toHaveValue('state')
+    // Should default to state view - State button should be selected
+    const stateButton = page.getByRole('button', { name: 'State' })
+    const trendButton = page.getByRole('button', { name: 'Trend' })
+    await expect(stateButton).toHaveClass(/bg-primary-600/)
 
     // Switch to trend
-    const annualSelect = page.locator('select').filter({ hasText: 'Annual' })
-    await annualSelect.selectOption('trend')
-    await expect(annualSelect).toHaveValue('trend')
+    await trendButton.click()
+    await page.waitForTimeout(500)
+    await expect(trendButton).toHaveClass(/bg-primary-600/)
   })
 
   test('should show loading states while fetching filters', async ({

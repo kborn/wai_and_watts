@@ -6,6 +6,7 @@ import type {
   LawaTrendMultiYearRecord,
   Explanation,
   CapabilitiesResponse,
+  RegionContextFactPack,
 } from '../types'
 
 // Backend response DTO (matches Java Explanation class)
@@ -275,6 +276,23 @@ class ApiClient {
       '/api/v1/lawa/water-quality/trend/multiyear/indicators'
     )
     return response.indicators
+  }
+
+  async getRegionContext(params?: {
+    region?: string
+    indicator?: string
+    trendWindow?: number
+  }): Promise<RegionContextFactPack> {
+    const searchParams = new URLSearchParams()
+    if (params?.region) searchParams.append('region', params.region)
+    if (params?.indicator) searchParams.append('indicator', params.indicator)
+    if (params?.trendWindow)
+      searchParams.append('trendWindow', params.trendWindow.toString())
+
+    const query = searchParams.toString()
+    return this.request<RegionContextFactPack>(
+      `/api/v1/region-context${query ? `?${query}` : ''}`
+    )
   }
 }
 

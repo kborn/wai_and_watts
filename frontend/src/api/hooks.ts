@@ -104,3 +104,15 @@ export const useLawaTrendIndicators = () => {
     queryFn: () => apiClient.getLawaTrendIndicators(),
   })
 }
+
+export const useRegionContext = (params?: {
+  region?: string
+  indicator?: string
+  trendWindow?: number
+}) => {
+  return useQuery({
+    queryKey: ['region-context', params],
+    queryFn: () => apiClient.getRegionContext(params),
+    enabled: !!params?.region,
+  })
+}
