@@ -1296,3 +1296,35 @@ Frontend MUST NOT: - Derive environmental metrics\
 Frontend MAY: - Normalize sentinel values\
 - Group records for distribution visualization\
 - Sort and paginate for usability
+
+
+# Decision --- Phase 14C Regional Environmental Context Panel
+
+Date: 2026-02-14
+
+------------------------------------------------------------------------
+
+## Decision
+
+Implement a Regional Environmental & Infrastructure Context Panel that
+synthesizes water monitoring and energy system signals into a single
+situational awareness surface without implying causal or statistical
+relationships between datasets.
+
+------------------------------------------------------------------------
+
+## Core Guardrail
+
+The panel MUST include disclaimer text:
+
+"These signals are presented for situational context only. No causal or
+statistical relationship between datasets is implied."
+
+------------------------------------------------------------------------
+
+## Panel Sections
+
+Water Monitoring Confidence\
+Water Direction Signal (Trend Distribution)\
+Water Condition Signal (State Band Distribution)\
+Energy System Context (National MBIE Summary)

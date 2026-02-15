@@ -694,9 +694,97 @@ semantics using:
     -   State is snapshot (not time-series)
     -   Band distribution replaces measurement-over-time
 
-
 ### Links
 - PR: [feat(frontend): LAWA visualization upgrade - timeline chart with safe multi-series](https://github.com/kborn/wai_and_watts/pull/65)
+
+
+## Phase 14C --- Regional Environmental & Infrastructure Context Panel
+
+Goal: Implement a cross-dataset situational awareness panel that
+synthesizes water monitoring and energy system signals into a unified
+product context surface using the established fact-pack aggregation
+pattern.
+
+This phase introduces **product narrative cohesion** without introducing
+cross-dataset analytics, correlation, or composite environmental
+scoring.
+
+------------------------------------------------------------------------
+
+### Definition of Done
+
+-   [ ] Backend region context fact-pack endpoint implemented and
+    documented
+-   [ ] Water Trend distribution summary aggregation implemented and
+    validated
+-   [ ] Water State band distribution summary aggregation implemented
+    and validated
+-   [ ] Energy system context summary aggregation implemented and
+    validated
+-   [ ] Frontend Context Panel UI component implemented
+-   [ ] Required disclaimer text rendered exactly per decision contract
+-   [ ] Panel correctly gated on region selection
+-   [ ] Empty state handling implemented
+-   [ ] Loading state handling implemented
+-   [ ] Error state handling implemented
+-   [ ] Telemetry / logging added for context endpoint usage
+-   [ ] No regressions introduced to existing Trend or State
+    visualization behavior
+-   [ ] Fact-pack contract reviewed for stability and future
+    extensibility
+
+------------------------------------------------------------------------
+
+### Work Items
+
+Backend
+
+-   [ ] Create Region Context aggregation service
+-   [ ] Implement Water Trend summary calculator
+-   [ ] Implement Water State band distribution summary calculator
+-   [ ] Implement MBIE energy context summary calculator
+-   [ ] Implement region context API endpoint
+-   [ ] Add endpoint validation and error handling
+-   [ ] Add unit tests for summary aggregation logic
+
+Frontend
+
+-   [ ] Create Context Panel UI container component
+-   [ ] Implement Water Monitoring Confidence section
+-   [ ] Implement Water Direction Signal section
+-   [ ] Implement Water Condition Signal section
+-   [ ] Implement Energy System Context section
+-   [ ] Implement disclaimer rendering
+-   [ ] Implement loading skeleton state
+-   [ ] Implement empty data state
+-   [ ] Implement API error fallback UI
+
+Integration
+
+-   [ ] Validate region filter → context endpoint contract
+-   [ ] Validate panel refresh behavior on filter change
+-   [ ] Validate performance against large region datasets
+-   [ ] Validate panel behavior when one dataset unavailable
+
+------------------------------------------------------------------------
+
+### Notes
+
+This phase intentionally introduces cross-dataset *contextual synthesis*
+only.
+
+It does NOT introduce: - Cross-dataset statistical analysis -
+Environmental correlation modeling - Composite environmental health
+scoring - Predictive or ML-based inference
+
+The Context Panel exists to improve product narrative cohesion and
+decision situational awareness while maintaining strict dataset semantic
+integrity.
+
+All existing visualization rules, dataset contracts, and explanation
+safety patterns remain unchanged.
+
+
 
 ## Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
