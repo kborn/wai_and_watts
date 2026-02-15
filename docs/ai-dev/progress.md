@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 14C — Regional Environmental Context Panel ✅ (Complete)
-- **Status:** Complete
+- **Active Phase:** Phase 15 — Polish & Presentation (Portfolio-Ready) 🚧 PLANNING
+- **Status:** In-Progress
 
 ---
 
@@ -791,97 +791,146 @@ safety patterns remain unchanged.
 ## Phase 15 — Polish & Presentation (Portfolio-Ready)
 Goal: Make the repo recruiter-friendly and easy to run/demo.
 
-Definition of Done:
+### Current Status: PLANNING
+
+### Strategy
+1. **Tier 0: Code Completeness** — Resolve all code changes first (General TODOs)
+2. **Tier 1: Core Deliverables** — README, narrative, demo
+3. **Tier 2: Documentation Polish** — Engineering docs, diagrams
+4. **Tier 3: Nice-to-have** — Retrospective, advanced polish
+
+### Definition of Done:
 - [ ] README: what it is, why it matters, how to run, how to test
 - [ ] Sample queries / curl examples
 - [ ] Short architecture overview (or diagram)
-- [ ] Clear “AI usage” disclosure and workflow explanation
+- [ ] Clear "AI usage" disclosure and workflow explanation
 - [ ] A 5-minute demo script section
 
-Work Items:
-- [ ] Improve README and add usage examples
-- [ ] Add a short demo walkthrough
-- [ ] Final pass on docs (context/progress/decisions/ai usage)
-- [ ] Optional: thin frontend or screenshots
+### Work Items:
+- [ ] Read through and validate each item in Tiers below
+- [ ] Execute Tier 0 (code changes) first
+- [ ] Then proceed to Tier 1-3 sequentially
 
 ---
 
 ## Final Polish & Deferred Portfolio Tasks
 
-These tasks were intentionally deferred to prioritize core engineering velocity.  
-Complete before marking Wai & Watts “portfolio-ready.”
+These tasks were intentionally deferred to prioritize core engineering velocity.
+Complete before marking Wai & Watts "portfolio-ready."
 
-#### Tier 1 — Must-Have Portfolio Narrative
+---
+
+### Tier 0 — Code Completeness (MUST COMPLETE FIRST)
+
+These items may result in code changes. Complete before hygiene/documentation to prevent redundant work.
+
+#### Local Development Experience
+- [ ] Dockerize project for easy pull-and-run
+  - [ ] Dockerfile for backend (Java 21)
+  - [ ] Dockerfile for frontend (Node)
+  - [ ] docker-compose.yml for full stack
+  - [ ] README updated with docker run instructions
+
+#### Test Coverage
+- [ ] Add code coverage reporting (Jacoco or similar)
+  - [ ] Configure Maven plugin
+  - [ ] Add minimum coverage threshold (e.g., 70% or 80%)
+  - [ ] CI fails if threshold not met
+- [ ] Review current test coverage
+  - [ ] Identify gaps in critical paths
+  - [ ] Add tests for uncovered business logic
+
+#### Database & Indexing
+- [ ] Unique index on MBIE annual
+- [ ] idx for READ API queries for LAWA state multi year
+
+#### Data Normalization
+- [ ] Normalize metadata columns across all tables
+- [ ] Fix region string case issues
+
+#### High level code review
+- [ ] High level but thorough review of backend architecture and implementation for 'sane-ness'
+  - [ ] Validate implementation matches expectations for a senior engineer
+  - [ ] Replace Java logic with SQL where possible
+- [ ] High level but thorough review of frontend architecture and implementation for 'sane-ness'
+  - [ ] Validate implementation matches expectations for a senior engineer
+
+### Feature Usage Review
+
+- [ ] Validate intention of version in endpoint
+  - [ ] Are we using this feature as intended?
+- [ ] Validate intention of dataset_release
+  - [ ] Are we using this feature as intended?
+
+#### Code Cleanup
+- [ ] Create abstract CSV parser
+- [ ] Remove unused 'units' field from LAWA trend table, DTOs, etc
+- [ ] Refactor common logic from LAWA state and trend (if time permits)
+
+#### Feature Completion
+- [ ] Wire in real LLM (and test)
+- [ ] Differentiate unsupported and ambiguous refusals in UI
+
+#### Investigation (defer unless critical)
+- [ ] Investigate potential use of LAWA catchment field
+- [ ] Investigate different normalized indicators between trend and state
+- [ ] Add concept of FilterConfidence OR FilterDerivationNotes
+
+#### UI Polish
+- [ ] Additional 'Select Region or Indicator to view State band distribution.' in LAWA state
+- [ ] Ensure consistency throughout UI pages
+
+---
+
+### Tier 1 — Must-Have Portfolio Narrative
+
 - [ ] Add **Project Scope & Narrative** and **Non-Goals & Tradeoffs** to README
 - [ ] Add **Architecture Evolution Narrative** (Phase 6 → Phase 7 → future phases)
 - [ ] Add **Repo Map** (REPO_MAP.md or README section describing key directories)
 
-#### Tier 1 — Demo-First Entry Point
+### Tier 1 — Demo-First Entry Point
+
 - [ ] Add DEMO.md or README Demo section:
   - [ ] Local run instructions
   - [ ] Example curl/Postman queries (annual + quarterly)
   - [ ] Example grounded LLM explanation request
 - [ ] Add a **5-minute interview walkthrough script**
 
-#### Tier 2 — Engineering Documentation Polish
+---
+
+### Tier 2 — Engineering Documentation Polish
+
 - [ ] Replace PR links in progress.md with canonical repo-relative paths
 - [ ] Add architectural diagram (ingestion lifecycle + domain persistence)
 - [ ] Add dataset taxonomy table (mbie.generation.annual, mbie.generation.quarterly, etc.)
-- [ ] Normalize and backfill decisions.md for early implicit decisions
-- [ ] Add decision format contract section for future contributors/GPTs
-- [ ] Cohesion across docs. Where do table schema specs belong? design or or spec? Do we have all tables defined?
+- [ ] Cohesion across docs. Where do table schema specs belong? design or spec?
 
-#### Tier 2 — Environmental Storytelling Deliverables
-- [ ] Add Insights.md with 3–5 grounded findings (charts/tables allowed):
-  - renewables trend
-  - fossil backup spikes
-  - seasonal hydro variability
-- [ ] Ensure insights link directly to persisted DB queries
+### Tier 2 — Environmental Storytelling Deliverables
 
-#### Tier 3 — AI & System Retrospective
+- [x] Add Insights.md with 3–5 grounded findings (exists at repo root)
+- [x] Ensure insights link directly to persisted DB queries
+
+---
+
+### Tier 3 — AI & System Retrospective (Deprioritized)
+
 - [ ] Add AI development retrospective in docs/ai-dev/
-  - roles used (Builder, Staff, PM)
-  - guardrails and human-in-the-loop policy
-  - examples of AI-assisted engineering decisions
-  - friction and how it was handled i.e. chat gpt sessions become unusably slow over time. Is there enough context in repo docs to start a new agent?
-    - can this friction be reduced in onboarding in future projects?
-  - Can we create a template of AI docs to be re-used in future projects to onboard agents?
 - [ ] Document AI grounding contract (Fact Pack, refusal behavior, citation rules)
-- [ ] We noticed in step 8 that the architecture and contracts as well as the README were forgotten about since they were created. 
-  - Who should have been reading and updating these? 
-  - Did it matter in the end? Was it even worthwhile to create them?
-  - Do we go back and retrofit the to the code now? 
 
-#### Tier 3 — Production-Readiness Signals (Doc-Only)
+### Tier 3 — Production-Readiness Signals (Doc-Only)
+
 - [ ] Document intended ingestion error handling and retries
 - [ ] Document reprocessing/backfill strategy
 - [ ] Document data quality validation approach
 - [ ] Document logging/observability strategy
 
-#### Codebase Hygiene
+### Tier 3 — Codebase Hygiene
+
 - [ ] Ensure naming consistency (mbieGenerationAnnual vs mbieGenerationQuarterly)
 - [ ] Add schema migration history summary
 - [ ] Add README pointers to fixtures and test strategy
-- [ ] Write a 1-paragraph “Roadmap Philosophy” ection that explains why this sequencing mirrors real platform evolution (PM suggestion)
-- [ ] Decide on a stable Maven/Java setup for tests (JAVA_HOME vs mockito mock-maker) and document the standard workflow
-
-
-#### General TODOs
-- [ ] Unique index on MBIE annual
-- [ ] idx for READ API queries for LAWA state multi year
-- [ ] normalize meta data columns across all tables
-- [ ] create abstract csv parser
-- [ ] Add concept of FilterConfidence OR FilterDerivationNotes
-    - Example risk: 
-      - User: “Hydro vs wind in early 2020s” 
-      - Parser output possibilities:
-        - 2020–2023 
-        - 2021–2024 
-        - 2020–2022 
-        - All plausible. Only one is correct per spec.
-- [ ] Differentiate unsupported and ambigous refusalsa in UI
-- 
----
+- [ ] Write a 1-paragraph "Roadmap Philosophy" section
+- [ ] Decide on a stable Maven/Java setup for tests
 
 #### AI Onboarding & Documentation Validation Tasks
 These tasks validate that repository documentation is sufficient for new AI agents.
@@ -892,116 +941,21 @@ These tasks validate that repository documentation is sufficient for new AI agen
 - [ ] Backfill missing documentation based on onboarding failures
 
 
-#### TODO — Toolchain Hardening (Prevent Future JVM / Build Friction)
-
-Goal
-Make Wai & Watts development environment **boring, deterministic, and drift-resistant** across:
-- Local dev (Mac)
-- CI
-- Future contributors
-
-This is not feature work. This is DevEx + stability.
-
-
-Context / Why
-During Phase 10 we hit:
-- Multiple JDKs active (21 vs 25)
-- Maven using different JDK than shell
-- Mockito inline + modern JDK attach behavior
-- Local `.m2` permission / ownership drift
-- Dependency version pin mismatch with Central
-
-None were code problems — all were environment/toolchain drift.
-
-The 5 Rules (Adopt + Document)
-
-1️⃣ Single Supported JDK
-**Decision:**  
-Project standard = **JDK 21 LTS**
-
-**Actions**
-- POM compiler release = 21
-- CI builds + tests on 21
-- Docs state 21 as required dev JDK
-
-**Optional Later**
-- Maven Toolchains enforcement
-
-2️⃣ Never Run Maven / Gradle as Root
-**Rule**  
-Never run:
-- `sudo mvn`
-- `sudo ./mvnw`
-
-**Why**  
-Prevents silent corruption of:
-- `~/.m2`
-
-
-3️⃣ Let Spring Boot Manage Test Dependency Versions
-**Rule**  
-Do NOT pin versions for:
-- Mockito
-- ByteBuddy
-- JUnit components
-
-Unless required for security or breaking change mitigation.
-
-**Why**  
-Boot BOM keeps ecosystem aligned.
-
-
-4️⃣ Prefer CLI Tools That Do NOT Require Spring Context
-**Decision**  
-Keep transform tools:
-- Plain Java main classes
-- No Spring container startup
-
-**Why**
-- Faster
-- Less launcher magic
-- Less JDK weirdness
-- Easier scripting
-
-
-5️⃣ CI Is Source of Truth
-If:
-- CI passes
-- Local fails
-
-Assume local environment drift first.
-
-
-Nice-To-Have (Later, Not Urgent)
-
-Containerized Build
-Optional:
-
-docker build
-docker test
-
-
-Benefit:
-- Zero JDK drift
-- Zero local Maven cache weirdness
-
-
-Maven Toolchains Hard Enforcement
-Ensures:
-- Even if dev installs JDK 25+
-- Build still compiles + tests with 21
+#### Toolchain Hardening ✅ COMPLETE (Documented in decisions.md)
+Rules documented in decisions.md:
+- Single Supported JDK: JDK 21 LTS
+- Never Run Maven/Gradle as Root
+- Let Spring Boot Manage Test Dependency Versions
+- Prefer CLI Tools Without Spring Context
+- CI Is Source of Truth
 
 Definition of Done
-- [ ] progress.md contains toolchain rules
-- [ ] README documents required JDK
-- [ ] CI pinned to JDK 21
-- [ ] POM compiler release locked to 21
-- [ ] Team guidance: never sudo Maven
-
-Non-Goals
-- Supporting multiple JDKs simultaneously
-- Early adoption of non-LTS JDKs
-- Over-engineering local dev environment
-
+- [x] progress.md contains toolchain rules (this section)
+- [x] README documents required JDK (README has Java 21)
+- [x] CI pinned to JDK 21 (CI workflow)
+- [x] POM compiler release locked to 21 (pom.xml)
+- [x] Team guidance: never sudo Maven (documented)
 
 ---
+
+
