@@ -1302,7 +1302,6 @@ Frontend MAY: - Normalize sentinel values\
 
 Date: 2026-02-14
 
-------------------------------------------------------------------------
 
 ## Decision
 
@@ -1311,7 +1310,6 @@ synthesizes water monitoring and energy system signals into a single
 situational awareness surface without implying causal or statistical
 relationships between datasets.
 
-------------------------------------------------------------------------
 
 ## Core Guardrail
 
@@ -1320,7 +1318,6 @@ The panel MUST include disclaimer text:
 "These signals are presented for situational context only. No causal or
 statistical relationship between datasets is implied."
 
-------------------------------------------------------------------------
 
 ## Panel Sections
 
@@ -1328,3 +1325,54 @@ Water Monitoring Confidence\
 Water Direction Signal (Trend Distribution)\
 Water Condition Signal (State Band Distribution)\
 Energy System Context (National MBIE Summary)
+
+
+
+# Decision — Regional Environmental Context View Independence
+
+Date: 2026-02-14
+
+## Decision
+
+The Regional Environmental Context card is independent of LAWA View Type (Trend vs State) and must be computed from the active filter slice only.
+
+Context values are derived from:
+* Region (required)
+* Indicator scope (selected indicator or All Indicators)
+
+Context values must not change when users switch between Trend and State visualization modes unless the underlying filter slice changes.
+
+Trend-derived metrics and State-derived metrics are computed independently from their respective datasets and merged into a single context surface for display.
+
+## Rationale
+### Preserve Signal vs Interpretation Separation
+
+The Context card is an interpretation support surface, not a visualization-mode-dependent data surface. 
+Tying Context to View Type would incorrectly imply that Context represents the chart rather than the environmental situation for the selected slice.
+
+### Prevent Silent Data Drift
+
+If Context were recomputed based on View Type, switching between Trend and State 
+could cause values to change without user-visible filter changes, creating confusion and reducing trust.
+
+### Maintain Product Mental Model
+
+The product architecture intentionally separates:
+* Signal surfaces (Trend chart, State chart)
+* Interpretation surface (Context)
+* Evidence surface (Table)
+
+Keeping Context independent preserves this structure.
+
+## Implications
+### Frontend
+* Context must not re-query or recompute based on View Type changes.
+* Context recomputation is triggered only by Region or Indicator filter changes.
+
+### Backend / Data Logic
+* Context endpoints must ignore View Type.
+* Trend and State context metrics must be computed independently and returned together.
+
+### UX / Product Behavior
+* Users may switch between Trend and State views without Context values changing.
+* Context reflects environmental conditions for the selected slice, not the active chart.

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public class RegionContextAggregationServiceImpl implements RegionContextAggregationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RegionContextAggregationServiceImpl.class);
+    private static final int[] CANONICAL_TREND_PERIODS = {20, 15, 10, 5};
 
     private final LawaTrendMultiYearRecordRepository trendRepository;
     private final LawaStateMultiYearRecordRepository stateRepository;
@@ -59,17 +60,17 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                         (r.getRegion() != null && r.getRegion().equalsIgnoreCase(region)))
                 .filter(r -> indicator == null || indicator.isEmpty() || 
                         (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(indicator)))
-                .filter(r -> trendWindow == null || 
-                        r.getTrendPeriodYears() == trendWindow)
                 .collect(Collectors.toList());
 
-        int totalSites = records.size();
+        Map<String, LawaTrendMultiYearRecord> deduplicated = deduplicateToCanonicalTrend(records, trendWindow);
+
+        int totalUnits = deduplicated.size();
         int degrading = 0;
         int improving = 0;
         int indeterminate = 0;
         int insufficient = 0;
 
-        for (LawaTrendMultiYearRecord r : records) {
+        for (LawaTrendMultiYearRecord r : deduplicated.values()) {
             Integer score = r.getTrendScore();
             if (score == null || score == -99) {
                 insufficient++;
@@ -82,14 +83,52 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
             }
         }
 
-        double total = totalSites > 0 ? totalSites : 1.0;
+        int sufficientUnits = totalUnits - insufficient;
+        double denominator = sufficientUnits > 0 ? sufficientUnits : 1.0;
+        
         return new WaterTrendSummaryDto(
-                totalSites,
-                Math.round((degrading / total) * 1000.0) / 10.0,
-                Math.round((improving / total) * 1000.0) / 10.0,
-                Math.round((indeterminate / total) * 1000.0) / 10.0,
-                Math.round((insufficient / total) * 1000.0) / 10.0
+                totalUnits,
+                Math.round((degrading / denominator) * 1000.0) / 10.0,
+                Math.round((improving / denominator) * 1000.0) / 10.0,
+                Math.round((indeterminate / denominator) * 1000.0) / 10.0,
+                Math.round((insufficient / (totalUnits > 0 ? totalUnits : 1.0)) * 1000.0) / 10.0
         );
+    }
+
+    private Map<String, LawaTrendMultiYearRecord> deduplicateToCanonicalTrend(
+            List<LawaTrendMultiYearRecord> records, Integer preferredPeriod) {
+        
+        Map<String, LawaTrendMultiYearRecord> result = new LinkedHashMap<>();
+
+        for (LawaTrendMultiYearRecord r : records) {
+            String siteId = r.getLawaSiteId();
+            String ind = r.getIndicatorNorm();
+            if (siteId == null || ind == null) continue;
+            
+            String key = siteId + "|" + ind;
+
+            if (!result.containsKey(key)) {
+                result.put(key, r);
+            } else {
+                LawaTrendMultiYearRecord existing = result.get(key);
+                int existingPeriod = existing.getTrendPeriodYears() != null ? existing.getTrendPeriodYears() : 0;
+                int newPeriod = r.getTrendPeriodYears() != null ? r.getTrendPeriodYears() : 0;
+
+                if (preferredPeriod != null) {
+                    if (newPeriod == preferredPeriod) {
+                        result.put(key, r);
+                    } else if (existingPeriod != preferredPeriod && newPeriod == preferredPeriod) {
+                        result.put(key, r);
+                    }
+                } else {
+                    if (newPeriod > existingPeriod) {
+                        result.put(key, r);
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private WaterStateSummaryDto computeStateSummary(String region, String indicator) {
@@ -102,7 +141,23 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                         (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(indicator)))
                 .collect(Collectors.toList());
 
-        int totalSites = records.size();
+        boolean hasIndicatorFilter = indicator != null && !indicator.isEmpty();
+
+        Set<String> uniqueUnits;
+        if (hasIndicatorFilter) {
+            uniqueUnits = records.stream()
+                    .map(LawaStateMultiYearRecord::getLawaSiteId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        } else {
+            uniqueUnits = records.stream()
+                    .map(r -> r.getLawaSiteId() + "|" + r.getIndicatorNorm())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+        }
+
+        int totalUnits = uniqueUnits.size();
+
         Map<String, Integer> bandDistribution = new LinkedHashMap<>();
         bandDistribution.put("A", 0);
         bandDistribution.put("B", 0);
@@ -111,18 +166,35 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
         bandDistribution.put("E", 0);
         bandDistribution.put("INSUFFICIENT", 0);
 
+        Set<String> seenUnits = new HashSet<>();
+        Set<String> validBands = Set.of("A", "B", "C", "D", "E");
+        
         for (LawaStateMultiYearRecord r : records) {
-            if (r.getMedian() == null || r.getMedian().intValue() == -99) {
+            String unitKey;
+            if (hasIndicatorFilter) {
+                unitKey = r.getLawaSiteId();
+            } else {
+                unitKey = r.getLawaSiteId() + "|" + r.getIndicatorNorm();
+            }
+            if (unitKey == null || seenUnits.contains(unitKey)) continue;
+            seenUnits.add(unitKey);
+
+            String band = r.getAttributeBand();
+            boolean isInsufficient = band == null || 
+                    band.isEmpty() || 
+                    band.equalsIgnoreCase("NA") ||
+                    !validBands.contains(band);
+
+            if (isInsufficient) {
                 bandDistribution.merge("INSUFFICIENT", 1, Integer::sum);
             } else {
-                String band = r.getAttributeBand();
-                if (band != null && bandDistribution.containsKey(band)) {
+                if (bandDistribution.containsKey(band)) {
                     bandDistribution.merge(band, 1, Integer::sum);
                 }
             }
         }
 
-        return new WaterStateSummaryDto(totalSites, bandDistribution);
+        return new WaterStateSummaryDto(totalUnits, bandDistribution);
     }
 
     private EnergySummaryDto computeEnergySummary() {

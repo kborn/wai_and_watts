@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
@@ -44,12 +43,12 @@ class RegionContextControllerTest {
                         .param("indicator", "E. coli"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.regionId").value("Auckland"))
-                .andExpect(jsonPath("$.water.trend.totalSites").value(10))
+                .andExpect(jsonPath("$.water.trend.unitCount").value(10))
                 .andExpect(jsonPath("$.water.trend.degradingPct").value(20.0))
                 .andExpect(jsonPath("$.water.trend.improvingPct").value(30.0))
                 .andExpect(jsonPath("$.water.trend.indeterminatePct").value(40.0))
                 .andExpect(jsonPath("$.water.trend.insufficientPct").value(10.0))
-                .andExpect(jsonPath("$.water.state.totalSites").value(10))
+                .andExpect(jsonPath("$.water.state.unitCount").value(10))
                 .andExpect(jsonPath("$.water.state.bandDistribution.A").value(2))
                 .andExpect(jsonPath("$.water.state.bandDistribution.B").value(3))
                 .andExpect(jsonPath("$.energy.latestYear").value(2024))
