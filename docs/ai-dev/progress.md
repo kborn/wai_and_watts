@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 14B — LAWA Unified Visualization ✅ (Complete)
+- **Active Phase:** Phase 14C — Regional Environmental Context Panel ✅ (Complete)
 - **Status:** Complete
 
 ---
@@ -646,6 +646,7 @@ Notes:
 ### Links
 - PR: [feat(frontend): MBIE timeline chart with ECharts](https://github.com/kborn/wai_and_watts/pull/64)
 
+
 ## Phase 14B --- LAWA Unified Visualization (Trend + State)
 
 Goal: Implement unified LAWA visualization model aligned to dataset
@@ -709,73 +710,70 @@ This phase introduces **product narrative cohesion** without introducing
 cross-dataset analytics, correlation, or composite environmental
 scoring.
 
-------------------------------------------------------------------------
 
 ### Definition of Done
 
--   [ ] Backend region context fact-pack endpoint implemented and
+-   [x] Backend region context fact-pack endpoint implemented and
     documented
--   [ ] Water Trend distribution summary aggregation implemented and
+-   [x] Water Trend distribution summary aggregation implemented and
     validated
--   [ ] Water State band distribution summary aggregation implemented
+-   [x] Water State band distribution summary aggregation implemented
     and validated
--   [ ] Energy system context summary aggregation implemented and
+-   [x] Energy system context summary aggregation implemented and
     validated
--   [ ] Frontend Context Panel UI component implemented
--   [ ] Required disclaimer text rendered exactly per decision contract
--   [ ] Panel correctly gated on region selection
--   [ ] Empty state handling implemented
--   [ ] Loading state handling implemented
--   [ ] Error state handling implemented
--   [ ] Telemetry / logging added for context endpoint usage
--   [ ] No regressions introduced to existing Trend or State
+-   [x] Frontend Context Panel UI component implemented
+-   [x] Required disclaimer text rendered exactly per decision contract
+-   [x] Panel correctly gated on region selection
+-   [x] Empty state handling implemented
+-   [x] Loading state handling implemented
+-   [x] Error state handling implemented
+-   [x] No regressions introduced to existing Trend or State
     visualization behavior
--   [ ] Fact-pack contract reviewed for stability and future
+-   [x] Fact-pack contract reviewed for stability and future
     extensibility
-
-------------------------------------------------------------------------
 
 ### Work Items
 
 Backend
 
--   [ ] Create Region Context aggregation service
--   [ ] Implement Water Trend summary calculator
--   [ ] Implement Water State band distribution summary calculator
--   [ ] Implement MBIE energy context summary calculator
--   [ ] Implement region context API endpoint
--   [ ] Add endpoint validation and error handling
--   [ ] Add unit tests for summary aggregation logic
+-   [x] Create Region Context aggregation service
+-   [x] Implement Water Trend summary calculator
+-   [x] Implement Water State band distribution summary calculator
+-   [x] Implement MBIE energy context summary calculator
+-   [x] Implement region context API endpoint
+-   [x] Add endpoint validation and error handling
+-   [x] Add unit tests for summary aggregation logic
 
 Frontend
 
--   [ ] Create Context Panel UI container component
--   [ ] Implement Water Monitoring Confidence section
--   [ ] Implement Water Direction Signal section
--   [ ] Implement Water Condition Signal section
--   [ ] Implement Energy System Context section
--   [ ] Implement disclaimer rendering
--   [ ] Implement loading skeleton state
--   [ ] Implement empty data state
--   [ ] Implement API error fallback UI
+-   [x] Create Context Panel UI container component
+-   [x] Implement Water Monitoring Confidence section
+-   [x] Implement Water Direction Signal section
+-   [x] Implement Water Condition Signal section
+-   [x] Implement Energy System Context section
+-   [x] Implement disclaimer rendering
+-   [x] Implement loading skeleton state
+-   [x] Implement empty data state
+-   [x] Implement API error fallback UI
 
 Integration
 
--   [ ] Validate region filter → context endpoint contract
--   [ ] Validate panel refresh behavior on filter change
--   [ ] Validate performance against large region datasets
--   [ ] Validate panel behavior when one dataset unavailable
+-   [x] Validate region filter → context endpoint contract
+-   [x] Validate panel refresh behavior on filter change
+-   [x] Validate performance against large region datasets
+-   [x] Validate panel behavior when one dataset unavailable
 
-------------------------------------------------------------------------
 
 ### Notes
 
 This phase intentionally introduces cross-dataset *contextual synthesis*
 only.
 
-It does NOT introduce: - Cross-dataset statistical analysis -
-Environmental correlation modeling - Composite environmental health
-scoring - Predictive or ML-based inference
+It does NOT introduce:
+-   Cross-dataset statistical analysis
+-   Environmental correlation modeling
+-   Composite environmental health scoring
+-   Predictive or ML-based inference
 
 The Context Panel exists to improve product narrative cohesion and
 decision situational awareness while maintaining strict dataset semantic
@@ -784,6 +782,10 @@ integrity.
 All existing visualization rules, dataset contracts, and explanation
 safety patterns remain unchanged.
 
+
+### Links
+- PR: [feat(backend): Region Context API endpoint](https://github.com/kborn/wai_and_watts/pull/66)
+- PR: [feat(frontend): Regional Environmental Context Panel](https://github.com/kborn/wai_and_watts/pull/67)
 
 
 ## Phase 15 — Polish & Presentation (Portfolio-Ready)
