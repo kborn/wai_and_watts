@@ -10,6 +10,7 @@ import {
   useLawaTrendIndicators,
 } from '../../api/hooks'
 import { Card, CardContent, Button } from '../../components/ui'
+import RegionContextPanel from './RegionContextPanel'
 
 const createHatchPattern = (): HTMLCanvasElement | undefined => {
   if (typeof document === 'undefined') return undefined
@@ -506,25 +507,6 @@ const LawaBrowsePage: React.FC = () => {
       <Card className="mb-6">
         <CardContent>
           <div className="flex flex-wrap gap-4 items-end">
-            <div className="min-w-[140px]">
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                View Type
-              </label>
-              <select
-                value={viewType}
-                onChange={e => {
-                  setViewType(e.target.value as 'state' | 'trend')
-                  setSelectedSite(null)
-                  setTrendClassificationFilter(null)
-                  setStateBandFilter(null)
-                }}
-                className="select-base"
-              >
-                <option value="state">State</option>
-                <option value="trend">Trend</option>
-              </select>
-            </div>
-
             <div className="min-w-[160px]">
               <label className="block text-sm font-medium text-neutral-700 mb-1">
                 Region
@@ -616,6 +598,53 @@ const LawaBrowsePage: React.FC = () => {
               </button>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {region && (
+        <RegionContextPanel
+          region={region}
+          indicator={indicator || undefined}
+        />
+      )}
+
+      <Card className="mb-4">
+        <CardContent className="py-3">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-neutral-700">View:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setViewType('state')
+                  setSelectedSite(null)
+                  setTrendClassificationFilter(null)
+                  setStateBandFilter(null)
+                }}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewType === 'state'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                State
+              </button>
+              <button
+                onClick={() => {
+                  setViewType('trend')
+                  setSelectedSite(null)
+                  setTrendClassificationFilter(null)
+                  setStateBandFilter(null)
+                }}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewType === 'trend'
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Trend
+              </button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

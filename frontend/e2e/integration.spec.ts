@@ -73,9 +73,9 @@ test.describe('End-to-End Dynamic Filter Integration', () => {
     // Wait for page to load
     await page.waitForTimeout(1000)
 
-    // Verify dropdown elements exist and are visible
-    const regionSelect = page.locator('select').nth(1)
-    const indicatorSelect = page.locator('select').nth(2)
+    // Verify dropdown elements exist and are visible (now at index 0 and 1 since View Type is buttons)
+    const regionSelect = page.locator('select').nth(0)
+    const indicatorSelect = page.locator('select').nth(1)
 
     await expect(regionSelect).toBeVisible()
     await expect(indicatorSelect).toBeVisible()
@@ -117,24 +117,28 @@ test.describe('End-to-End Dynamic Filter Integration', () => {
     // Wait for page to load
     await page.waitForTimeout(1000)
 
-    const viewTypeSelect = page.locator('select').first()
-    await expect(viewTypeSelect).toBeVisible()
+    // The View Type is now a button group (not a select)
+    const stateButton = page.getByRole('button', { name: 'State' })
+    const trendButton = page.getByRole('button', { name: 'Trend' })
 
-    // Verify initial state
-    await expect(viewTypeSelect).toContainText('State')
+    await expect(stateButton).toBeVisible()
+    await expect(trendButton).toBeVisible()
 
-    // Switch to trend view
-    await viewTypeSelect.selectOption('trend')
-    await page.waitForTimeout(1000)
+    // Verify initial state - State button should be selected (primary color)
+    await expect(stateButton).toHaveClass(/bg-primary-600/)
 
-    // Verify the view changed
-    await expect(viewTypeSelect).toContainText('Trend')
+    // Click Trend button
+    await trendButton.click()
+    await page.waitForTimeout(500)
 
-    // Switch back to state view
-    await viewTypeSelect.selectOption('state')
-    await page.waitForTimeout(1000)
+    // Verify Trend is now selected
+    await expect(trendButton).toHaveClass(/bg-primary-600/)
 
-    // Verify the view changed back
-    await expect(viewTypeSelect).toContainText('State')
+    // Click State button
+    await stateButton.click()
+    await page.waitForTimeout(500)
+
+    // Verify State is now selected again
+    await expect(stateButton).toHaveClass(/bg-primary-600/)
   })
 })

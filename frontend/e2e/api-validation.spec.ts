@@ -51,9 +51,9 @@ test.describe('Dynamic Filter Basic Validation', () => {
     // Wait for page to load
     await page.waitForTimeout(1000)
 
-    // Verify dropdown elements exist
-    const regionSelect = page.locator('select').nth(1)
-    const indicatorSelect = page.locator('select').nth(2)
+    // Verify dropdown elements exist (now at index 0 and 1 since View Type is buttons)
+    const regionSelect = page.locator('select').nth(0)
+    const indicatorSelect = page.locator('select').nth(1)
 
     await expect(regionSelect).toBeVisible()
     await expect(indicatorSelect).toBeVisible()
@@ -66,16 +66,16 @@ test.describe('Dynamic Filter Basic Validation', () => {
   test('LAWA trend view loads with dropdown elements', async ({ page }) => {
     await page.goto('/browse/lawa')
 
-    // Switch to trend view (first select is View Type)
-    const viewTypeSelect = page.locator('select').first()
-    await viewTypeSelect.selectOption('trend')
+    // Switch to trend view using the button
+    const trendButton = page.getByRole('button', { name: 'Trend' })
+    await trendButton.click()
 
     // Wait for page to load
     await page.waitForTimeout(1000)
 
-    // Verify dropdown elements exist in trend view
-    const regionSelect = page.locator('select').nth(1)
-    const indicatorSelect = page.locator('select').nth(2)
+    // Verify dropdown elements exist in trend view (now at index 0 and 1)
+    const regionSelect = page.locator('select').nth(0)
+    const indicatorSelect = page.locator('select').nth(1)
 
     await expect(regionSelect).toBeVisible()
     await expect(indicatorSelect).toBeVisible()
@@ -91,24 +91,27 @@ test.describe('Dynamic Filter Basic Validation', () => {
     // Wait for page to load
     await page.waitForTimeout(1000)
 
-    const viewTypeSelect = page.locator('select').first()
-    await expect(viewTypeSelect).toBeVisible()
+    const stateButton = page.getByRole('button', { name: 'State' })
+    const trendButton = page.getByRole('button', { name: 'Trend' })
 
-    // Verify initial state
-    await expect(viewTypeSelect).toContainText('State')
+    await expect(stateButton).toBeVisible()
+    await expect(trendButton).toBeVisible()
 
-    // Switch to trend view
-    await viewTypeSelect.selectOption('trend')
+    // Verify initial state - State button should be selected
+    await expect(stateButton).toHaveClass(/bg-primary-600/)
+
+    // Click Trend button
+    await trendButton.click()
     await page.waitForTimeout(500)
 
-    // Verify the view changed
-    await expect(viewTypeSelect).toContainText('Trend')
+    // Verify Trend is now selected
+    await expect(trendButton).toHaveClass(/bg-primary-600/)
 
-    // Switch back to state view
-    await viewTypeSelect.selectOption('state')
+    // Click State button
+    await stateButton.click()
     await page.waitForTimeout(500)
 
-    // Verify the view changed back
-    await expect(viewTypeSelect).toContainText('State')
+    // Verify State is now selected again
+    await expect(stateButton).toHaveClass(/bg-primary-600/)
   })
 })

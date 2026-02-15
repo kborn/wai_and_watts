@@ -96,13 +96,15 @@ test.describe('Dynamic Filters - Comprehensive Tests', () => {
   test('should switch between view types', async ({ page }) => {
     await page.goto('/browse/lawa')
 
-    // Should default to state view
-    const viewTypeSelect = page.locator('select').filter({ hasText: 'Annual' })
-    await expect(viewTypeSelect).toHaveValue('state')
+    // Should default to state view - State button should be selected
+    const stateButton = page.getByRole('button', { name: 'State' })
+    const trendButton = page.getByRole('button', { name: 'Trend' })
+    await expect(stateButton).toHaveClass(/bg-primary-600/)
 
     // Switch to trend view
-    await viewTypeSelect.selectOption({ label: 'Trend' })
-    await expect(viewTypeSelect).toHaveValue('trend')
+    await trendButton.click()
+    await page.waitForTimeout(500)
+    await expect(trendButton).toHaveClass(/bg-primary-600/)
   })
 
   test('should handle loading states correctly', async ({ page }) => {

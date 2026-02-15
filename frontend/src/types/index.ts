@@ -110,3 +110,28 @@ export interface CapabilitiesResponse {
   requiredFilters: Record<string, string>
   filterStructure: Record<string, string>
 }
+
+// Region Context Types
+export interface RegionContextFactPack {
+  regionId: string
+  generatedAt: string
+  water: {
+    trend: {
+      unitCount: number
+      degradingPct: number
+      improvingPct: number
+      indeterminatePct: number
+      insufficientPct: number
+    }
+    state: {
+      unitCount: number
+      bandDistribution: Record<string, number>
+    }
+  }
+  energy: {
+    latestYear: number
+    latestRenewablePct: number
+    renewable5YrDeltaPct: number
+    fossilLatestPct: number
+  }
+}
