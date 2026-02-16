@@ -4,8 +4,6 @@ import nz.waiwatts.explanations.dto.ClassificationFact;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.dto.MetricFact;
-import org.springframework.stereotype.Component;
-
 import java.util.Comparator;
 import java.util.List;
 
@@ -16,7 +14,6 @@ import java.util.List;
  * without calling a real LLM. This allows testing the architecture, grounding, citations, 
  * and refusal behavior in Phase 11.
  */
-@Component
 public class StubExplanationProvider implements ExplanationProvider {
 
     @Override
@@ -213,12 +210,12 @@ public class StubExplanationProvider implements ExplanationProvider {
                 var excellentMetric = metrics.stream()
                     .filter(m -> m.getId().contains("excellent"))
                     .findFirst();
-                
+
                 if (excellentMetric.isPresent()) {
                     explanation.append(excellentMetric.get().getValue())
-                        .append("% of sites are classified as having excellent water quality, while ");
+                            .append("% of sites are classified as having excellent water quality, while ");
                 }
-                
+
                 // Find poor percentage metric
                 var poorMetric = metrics.stream()
                     .filter(m -> m.getId().contains("poor"))
