@@ -37,6 +37,15 @@ download → transform → ingest (CLI) → start backend → validate APIs
    export DB_PASSWORD="waiwatts"
    ```
 
+   Optional LLM configuration (if unset, the app uses deterministic stub responses):
+   ```bash
+   # OpenAI provider + model + key
+   export LLM_PROVIDER="OPENAI"
+   export LLM_MODEL="gpt-4o-mini"
+   export LLM_API_KEY="your_api_key"
+   export LLM_BASE_URL="https://api.openai.com/v1"
+   ```
+
 3. **Build**
    ```bash
    # Build executable Spring Boot JAR
@@ -135,6 +144,10 @@ Access frontend at http://localhost:5173 (or next available port).
 ### Quick Start
 
 ```bash
+# Optional: enable LLM provider for /api/v1/explanations
+export LLM_MODEL="gpt-4o-mini"
+export LLM_API_KEY="your_api_key"
+
 # Start all services (Postgres + Backend + Frontend)
 docker compose up -d --build
 

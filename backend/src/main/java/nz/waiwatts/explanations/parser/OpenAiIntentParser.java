@@ -1,0 +1,229 @@
+package nz.waiwatts.explanations.parser;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import nz.waiwatts.explanations.dto.ExplanationRequest;
+import nz.waiwatts.explanations.provider.OpenAiResponseClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * OpenAI-backed intent parser.
+ *
+ * Produces a structured ExplanationRequest or null if parsing is ambiguous.
+ */
+public class OpenAiIntentParser implements IntentParser {
+
+    private static final Logger log = LoggerFactory.getLogger(OpenAiIntentParser.class);
+
+    private static final List<String> SUPPORTED_QUESTION_TYPES = List.of(
+        "renewable_generation_trend",
+        "hydro_generation_trend",
+        "fuel_type_comparison",
+        "water_quality_overview",
+        "excellent_sites_trend",
+        "regional_water_quality",
+        "water_quality_trends",
+        "improving_sites_trend",
+        "regional_trend_comparison"
+    );
+
+    private static final List<String> SUPPORTED_DATASET_SOURCES = List.of(
+        "mbie.generation.annual",
+        "mbie.generation.quarterly",
+        "lawa.water_quality.state.multi_year",
+        "lawa.water_quality.trend.multi_year"
+    );
+
+    private static final Set<String> ALLOWED_FILTER_KEYS = Set.of(
+        "fuelType", "indicator", "region", "trend", "startYear", "endYear"
+    );
+
+    private static final String UNKNOWN = "unknown";
+
+    private final OpenAiResponseClient client;
+    private final ObjectMapper objectMapper;
+    private final String model;
+
+    public OpenAiIntentParser(OpenAiResponseClient client, ObjectMapper objectMapper, String model) {
+        this.client = client;
+        this.objectMapper = objectMapper;
+        this.model = model;
+    }
+
+    @Override
+    public ExplanationRequest parseQuestion(String question) {
+        String instructions = buildInstructions();
+        String input = "User question: " + question;
+        String output = client.createResponseWithSchema(model, instructions, input, buildSchema(), "intent_parse");
+
+        if (output == null || output.isBlank()) {
+            log.warn("OpenAI intent parser returned empty output");
+            return null;
+        }
+
+        JsonNode node;
+        try {
+            node = objectMapper.readTree(output);
+        } catch (Exception e) {
+            log.warn("OpenAI intent parser output not valid JSON: {}", e.getMessage());
+            return null;
+        }
+
+        String questionType = textOrNull(node, "questionType");
+        String datasetSource = textOrNull(node, "datasetSource");
+
+        if (questionType == null || datasetSource == null) {
+            return null;
+        }
+
+        if (UNKNOWN.equals(questionType) || UNKNOWN.equals(datasetSource)) {
+            return null;
+        }
+
+        if (!SUPPORTED_QUESTION_TYPES.contains(questionType)) {
+            return null;
+        }
+
+        if (!SUPPORTED_DATASET_SOURCES.contains(datasetSource)) {
+            return null;
+        }
+
+        Map<String, Object> filters = parseFilters(node.get("filters"));
+        return new ExplanationRequest(questionType, datasetSource, filters == null || filters.isEmpty() ? null : filters);
+    }
+
+    private Map<String, Object> parseFilters(JsonNode filtersNode) {
+        if (filtersNode == null || !filtersNode.isObject()) {
+            return null;
+        }
+
+        Map<String, Object> filters = new HashMap<>();
+        filtersNode.fields().forEachRemaining(entry -> {
+            String key = entry.getKey();
+            if (!ALLOWED_FILTER_KEYS.contains(key)) {
+                return;
+            }
+            JsonNode value = entry.getValue();
+            if (value == null || value.isNull()) {
+                return;
+            }
+            Object normalized = normalizeFilterValue(key, value);
+            if (normalized != null) {
+                filters.put(key, normalized);
+            }
+        });
+
+        return filters.isEmpty() ? null : filters;
+    }
+
+    private Object normalizeFilterValue(String key, JsonNode value) {
+        if ("startYear".equals(key) || "endYear".equals(key)) {
+            if (value.isInt()) {
+                return value.intValue();
+            }
+            if (value.isTextual()) {
+                try {
+                    return Integer.parseInt(value.asText().trim());
+                } catch (NumberFormatException ignored) {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        if (value.isTextual()) {
+            String text = value.asText().trim();
+            return text.isEmpty() ? null : text;
+        }
+
+        return null;
+    }
+
+    private String textOrNull(JsonNode node, String field) {
+        if (node == null || !node.has(field)) {
+            return null;
+        }
+        JsonNode value = node.get(field);
+        if (value == null || value.isNull()) {
+            return null;
+        }
+        String text = value.asText();
+        return text != null ? text.trim() : null;
+    }
+
+    private ObjectNode buildSchema() {
+        ObjectNode schema = objectMapper.createObjectNode();
+        schema.put("type", "object");
+        schema.put("additionalProperties", false);
+
+        ObjectNode properties = schema.putObject("properties");
+        properties.set("questionType", enumNode(SUPPORTED_QUESTION_TYPES, UNKNOWN));
+        properties.set("datasetSource", enumNode(SUPPORTED_DATASET_SOURCES, UNKNOWN));
+
+        ObjectNode filters = properties.putObject("filters");
+        filters.put("type", "object");
+        filters.put("additionalProperties", false);
+
+        ObjectNode filterProps = filters.putObject("properties");
+        filterProps.set("fuelType", nullableType("string"));
+        filterProps.set("indicator", nullableType("string"));
+        filterProps.set("region", nullableType("string"));
+        filterProps.set("trend", nullableType("string"));
+        filterProps.set("startYear", nullableType("integer"));
+        filterProps.set("endYear", nullableType("integer"));
+
+        ArrayNode filterRequired = filters.putArray("required");
+        filterRequired.add("fuelType");
+        filterRequired.add("indicator");
+        filterRequired.add("region");
+        filterRequired.add("trend");
+        filterRequired.add("startYear");
+        filterRequired.add("endYear");
+
+        ArrayNode required = schema.putArray("required");
+        required.add("questionType");
+        required.add("datasetSource");
+        required.add("filters");
+
+        return schema;
+    }
+
+    private ObjectNode enumNode(List<String> allowed, String extra) {
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("type", "string");
+        ArrayNode enums = node.putArray("enum");
+        for (String value : allowed) {
+            enums.add(value);
+        }
+        enums.add(extra);
+        return node;
+    }
+
+    private ObjectNode nullableType(String type) {
+        ObjectNode node = objectMapper.createObjectNode();
+        ArrayNode types = node.putArray("type");
+        types.add(type);
+        types.add("null");
+        return node;
+    }
+
+    private String buildInstructions() {
+        return """
+            You are an intent parser for Wai & Watts.
+            Map the user question to a structured ExplanationRequest.
+            Only use the supported questionType and datasetSource values provided in the schema.
+            If you cannot confidently map the question, set questionType or datasetSource to "unknown".
+            Use filters only when explicitly stated (startYear, endYear, fuelType, indicator, region, trend).
+            Do not invent filters or values.
+            Return JSON only, matching the schema exactly.
+            """;
+    }
+}

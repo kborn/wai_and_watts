@@ -1,7 +1,6 @@
 package nz.waiwatts.explanations.parser;
 
 import nz.waiwatts.explanations.dto.ExplanationRequest;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -15,7 +14,6 @@ import java.util.ArrayList;
  * This implementation uses deterministic rules to map natural language to structured requests.
  * In a full LLM implementation, this would be replaced by an LLM provider.
  */
-@Component("stubIntentParser")
 public class StubIntentParser implements IntentParser {
 
     @Override

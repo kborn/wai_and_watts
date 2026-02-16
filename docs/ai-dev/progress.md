@@ -37,7 +37,7 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 15 — Polish & Presentation (Portfolio-Ready) 🚧 PLANNING
+- **Active Phase:** Phase 15 — Polish & Presentation (Portfolio-Ready) 
 - **Status:** In-Progress
 
 ---
@@ -832,13 +832,13 @@ These items may result in code changes. Complete before hygiene/documentation to
   - [x] nginx.conf for frontend API proxy - frontend/nginx.conf
   - [x] README updated with docker run instructions
 
-### Links
+##### Links
 - PR: [feat(phase-15): dockerized ingestion pipeline + manifest support](https://github.com/kborn/wai_and_watts/pull/68)
 
 
 #### Feature Completion
-- [ ] Wire in real LLM (and test)
-- [ ] Differentiate unsupported and ambiguous refusals in UI
+- [x] Wire in real LLM (and test)
+- [x] Differentiate unsupported and ambiguous refusals in UI
 
 #### Database & Indexing
 - [ ] Unique index on MBIE annual

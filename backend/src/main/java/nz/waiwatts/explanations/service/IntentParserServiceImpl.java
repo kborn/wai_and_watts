@@ -31,7 +31,7 @@ public class IntentParserServiceImpl implements IntentParserService {
         logger.info("Parsing natural language question: {}", question);
         
         try {
-            // Delegate to injected parser strategy (currently StubIntentParser)
+            // Delegate to injected parser strategy
             ExplanationRequest request = intentParser.parseQuestion(question);
             
             if (request == null) {
