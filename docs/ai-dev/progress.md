@@ -825,20 +825,17 @@ Complete before marking Wai & Watts "portfolio-ready."
 These items may result in code changes. Complete before hygiene/documentation to prevent redundant work.
 
 #### Local Development Experience
-- [ ] Dockerize project for easy pull-and-run
-  - [ ] Dockerfile for backend (Java 21)
-  - [ ] Dockerfile for frontend (Node)
-  - [ ] docker-compose.yml for full stack
-  - [ ] README updated with docker run instructions
+- [x] Dockerize project for easy pull-and-run
+  - [x] docker-compose.yml for full stack (root)
+  - [x] Dockerfile for backend (Java 21) - backend/Dockerfile
+  - [x] Dockerfile for frontend (Node) - frontend/Dockerfile  
+  - [x] nginx.conf for frontend API proxy - frontend/nginx.conf
+  - [x] README updated with docker run instructions
 
-#### Test Coverage
-- [ ] Add code coverage reporting (Jacoco or similar)
-  - [ ] Configure Maven plugin
-  - [ ] Add minimum coverage threshold (e.g., 70% or 80%)
-  - [ ] CI fails if threshold not met
-- [ ] Review current test coverage
-  - [ ] Identify gaps in critical paths
-  - [ ] Add tests for uncovered business logic
+
+#### Feature Completion
+- [ ] Wire in real LLM (and test)
+- [ ] Differentiate unsupported and ambiguous refusals in UI
 
 #### Database & Indexing
 - [ ] Unique index on MBIE annual
@@ -848,15 +845,8 @@ These items may result in code changes. Complete before hygiene/documentation to
 - [ ] Normalize metadata columns across all tables
 - [ ] Fix region string case issues
 
-#### High level code review
-- [ ] High level but thorough review of backend architecture and implementation for 'sane-ness'
-  - [ ] Validate implementation matches expectations for a senior engineer
-  - [ ] Replace Java logic with SQL where possible
-- [ ] High level but thorough review of frontend architecture and implementation for 'sane-ness'
-  - [ ] Validate implementation matches expectations for a senior engineer
 
 ### Feature Usage Review
-
 - [ ] Validate intention of version in endpoint
   - [ ] Are we using this feature as intended?
 - [ ] Validate intention of dataset_release
@@ -867,10 +857,6 @@ These items may result in code changes. Complete before hygiene/documentation to
 - [ ] Remove unused 'units' field from LAWA trend table, DTOs, etc
 - [ ] Refactor common logic from LAWA state and trend (if time permits)
 
-#### Feature Completion
-- [ ] Wire in real LLM (and test)
-- [ ] Differentiate unsupported and ambiguous refusals in UI
-
 #### Investigation (defer unless critical)
 - [ ] Investigate potential use of LAWA catchment field
 - [ ] Investigate different normalized indicators between trend and state
@@ -879,6 +865,22 @@ These items may result in code changes. Complete before hygiene/documentation to
 #### UI Polish
 - [ ] Additional 'Select Region or Indicator to view State band distribution.' in LAWA state
 - [ ] Ensure consistency throughout UI pages
+
+#### Test Coverage
+- [ ] Add code coverage reporting (Jacoco or similar)
+  - [ ] Configure Maven plugin
+  - [ ] Add minimum coverage threshold (e.g., 70% or 80%)
+  - [ ] CI fails if threshold not met
+- [ ] Review current test coverage
+  - [ ] Identify gaps in critical paths
+  - [ ] Add tests for uncovered business logic
+
+#### High level code review
+- [ ] High level but thorough review of backend architecture and implementation for 'sane-ness'
+  - [ ] Validate implementation matches expectations for a senior engineer
+  - [ ] Replace Java logic with SQL where possible
+- [ ] High level but thorough review of frontend architecture and implementation for 'sane-ness'
+  - [ ] Validate implementation matches expectations for a senior engineer
 
 ---
 

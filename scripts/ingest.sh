@@ -53,21 +53,29 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-shopt -s nullglob
-JAR_CANDIDATES=("$REPO_ROOT"/backend/target/*.jar)
-JAR=""
-for candidate in "${JAR_CANDIDATES[@]}"; do
-  if [[ "$candidate" == *original* ]]; then
-    continue
-  fi
-  if [[ -z "$JAR" || "$candidate" -nt "$JAR" ]]; then
-    JAR="$candidate"
-  fi
-done
+JAR="${WAIWATTS_JAR:-}"
+
+if [[ -z "$JAR" ]]; then
+  shopt -s nullglob
+  JAR_CANDIDATES=("$REPO_ROOT"/backend/target/*.jar)
+  for candidate in "${JAR_CANDIDATES[@]}"; do
+    if [[ "$candidate" == *original* ]]; then
+      continue
+    fi
+    if [[ -z "$JAR" || "$candidate" -nt "$JAR" ]]; then
+      JAR="$candidate"
+    fi
+  done
+fi
+
+if [[ -z "$JAR" && -f "/app/app.jar" ]]; then
+  JAR="/app/app.jar"
+fi
 
 if [[ -z "$JAR" || ! -f "$JAR" ]]; then
-  echo "ERROR: Backend jar not found in: $REPO_ROOT/backend/target"
+  echo "ERROR: Backend jar not found."
   echo "Build it with: mvn -f backend clean package spring-boot:repackage -DskipTests"
+  echo "Or set WAIWATTS_JAR to a valid jar path."
   exit 2
 fi
 echo "Using jar: $JAR"

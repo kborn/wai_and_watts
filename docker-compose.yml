@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: waiwatts-postgres
+    environment:
+      POSTGRES_DB: waiwatts
+      POSTGRES_USER: waiwatts
+      POSTGRES_PASSWORD: waiwatts
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waiwatts"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: waiwatts-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/waiwatts
+      DB_USER: waiwatts
+      DB_PASSWORD: waiwatts
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: waiwatts-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  ingest:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: waiwatts-ingest
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/waiwatts
+      DB_USER: waiwatts
+      DB_PASSWORD: waiwatts
+    entrypoint: ["/app/ingest.sh"]
+    command: ["--provider", "all"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+  ingest-all:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: waiwatts-ingest-all
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/waiwatts
+      DB_USER: waiwatts
+      DB_PASSWORD: waiwatts
+    entrypoint: ["/app/ingest.sh"]
+    command: ["--provider", "all"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+
+volumes:
+  postgres_data:
