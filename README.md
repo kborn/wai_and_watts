@@ -123,3 +123,107 @@ Access frontend at http://localhost:5173 (or next available port).
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:8080
    - API docs: http://localhost:8080/swagger-ui.html
+
+---
+
+## Docker (Recommended for Quick Start)
+
+### Prerequisites
+- Docker
+- Docker Compose (included with Docker Desktop)
+
+### Quick Start
+
+```bash
+# Start all services (Postgres + Backend + Frontend)
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop all services
+docker compose down
+```
+
+### Services
+| Service    | URL                          | Description              |
+|------------|------------------------------|------------------------|
+| Frontend   | http://localhost:5173       | React UI               |
+| Backend    | http://localhost:8080       | Spring Boot API        |
+| Postgres   | localhost:5432              | Database (waiwatts)   |
+
+### Data Population
+
+Data files are bundled in the container at `/app/downloads/`.
+To run ingestion per dataset (transform + ingest), use the pipeline entrypoint:
+
+```bash
+# MBIE annual generation
+docker compose run --rm ingest \
+  mbie.generation.annual --bundle-date 2026-02-06 \
+  --published-date 2025-11-01 --release-label "MBIE Q3 2025"
+
+# MBIE quarterly generation
+docker compose run --rm ingest \
+  mbie.generation.quarterly --bundle-date 2026-02-06 \
+  --published-date 2025-11-01 --release-label "MBIE Q3 2025"
+
+# LAWA state (multi-year)
+docker compose run --rm ingest \
+  lawa.water_quality.state.multi_year --bundle-date 2026-02-06 \
+  --published-date 2025-10-15 --release-label "LAWA Oct 2025"
+
+# LAWA trend (multi-year)
+docker compose run --rm ingest \
+  lawa.water_quality.trend.multi_year --bundle-date 2026-02-06 \
+  --published-date 2025-10-15 --release-label "LAWA Oct 2025"
+```
+
+The pipeline will:
+1. Transform XLSX files to CSV
+2. Ingest into the database
+3. Handle idempotency (skip if already ingested)
+
+Notes:
+- `--bundle-date YYYY-MM-DD` derives the workbook path from `downloads/<provider>/<date>/...`.
+- `--input /path/to/workbook.xlsx` overrides the derived path.
+- `--published-date` and `--release-label` are optional flags.
+- If `downloads/manifest/<bundle-date>.json` exists, `--published-date` and `--release-label` can be omitted.
+
+Example (manifest-driven):
+
+```bash
+docker compose run --rm ingest-all --bundle-date 2026-02-06
+```
+
+For full operator workflow, see:
+- `docs/operators/OPERATOR_INGESTION_GUIDE.md`
+- `docs/validation/PHASE10_OPERATOR_TEST_DRIVE.md`
+
+### With Local Development
+
+For development with hot reload, use local services instead:
+
+```bash
+# Terminal 1: Start backend
+cd backend && mvn spring-boot:run
+
+# Terminal 2: Start frontend
+cd frontend && npm run dev
+
+# Terminal 3: Start Postgres (or use local installation)
+docker run -p 5432:5432 -e POSTGRES_DB=waiwatts -e POSTGRES_USER=waiwatts -e POSTGRES_PASSWORD=waiwatts postgres:16-alpine
+```
+
+### Manual Docker Build (Advanced)
+
+```bash
+# Build backend image
+docker build -t waiwatts-backend:latest -f backend/Dockerfile .
+
+# Build frontend image
+docker build -t waiwatts-frontend:latest -f frontend/Dockerfile .
+
+# Run with docker-compose using local builds
+docker compose up -d --build
+```
