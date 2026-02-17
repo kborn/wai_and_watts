@@ -19,6 +19,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
     // Centralized excellent state bands for LAWA water quality
     private static final Set<String> EXCELLENT_BANDS = Set.of("A");
     private static final Set<String> POOR_BANDS = Set.of("D", "E");
+    private static final int REGIONAL_SAMPLE_K = 2;
 
     public LawaStateMultiYearFactPackBuilder(LawaStateMultiYearRecordRepository repository) {
         this.repository = repository;
@@ -367,10 +368,18 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                 Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
             ));
 
+        Set<String> selectedRegions = selectDeterministicRegionalSample(
+            totalSitesByRegion,
+            excellentSitesByRegion
+        );
+
         totalSitesByRegion.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .forEach(regionEntry -> {
                 String region = regionEntry.getKey();
+                if (!selectedRegions.contains(region)) {
+                    return;
+                }
                 Long totalSites = totalSitesByRegion.get(region);
                 Long excellentSites = excellentSitesByRegion.getOrDefault(region, 0L);
                 
@@ -391,6 +400,13 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                     factPack.getFacts().getMetrics().add(metric);
                 }
             });
+
+        // Keep only classifications for selected regions so the provider can only cite available subset.
+        factPack.getFacts().setClassifications(
+            factPack.getFacts().getClassifications().stream()
+                .filter(c -> selectedRegions.contains((String) c.getDimensions().get("region")))
+                .toList()
+        );
     }
 
     private void buildBasicFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
@@ -431,7 +447,6 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         switch (questionType) {
             case "water_quality_overview":
             case "excellent_sites_trend":
-            case "regional_water_quality":
                 // If there are no facts, keep allowed claims empty to trigger refusal as per tests
                 boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -443,15 +458,31 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 if (!factPack.getFacts().getClassifications().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(
-                        factPack.getFacts().getClassifications().stream()
-                            .limit(3) // Limit to first 3 for reasonable citation list
-                            .map(ClassificationFact::getId)
-                            .collect(Collectors.toList())
-                    );
+                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                        factPack.getFacts().getClassifications().stream().map(ClassificationFact::getId).toList(),
+                        3
+                    ));
                 } else if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(Collections.singletonList(factPack.getFacts().getTimeSeries().getFirst().getId()));
+                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                        factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
+                        1
+                    ));
                 }
+                break;
+            case "regional_water_quality":
+                boolean hasRegionalFacts = !(factPack.getFacts().getClassifications().isEmpty()
+                        && factPack.getFacts().getMetrics().isEmpty()
+                        && factPack.getFacts().getTimeSeries().isEmpty());
+                if (hasRegionalFacts) {
+                    factPack.getGuardrails().setAllowedClaims(Arrays.asList("distribution", "trend", "percentage", "regional_comparison"));
+                    factPack.getGuardrails().setRequiredCitations(
+                        buildRegionalWaterQualityRequiredCitations(factPack)
+                    );
+                } else {
+                    factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+                    factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
+                }
+                factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 break;
             default:
                 // For unsupported question types, set empty guardrails to trigger refusal
@@ -460,6 +491,64 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
                 break;
         }
+    }
+
+    private List<String> stableRequiredCitations(List<String> ids, int limit) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return ids.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .distinct()
+            .sorted()
+            .limit(limit)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private Set<String> selectDeterministicRegionalSample(
+        Map<String, Long> totalSitesByRegion,
+        Map<String, Long> excellentSitesByRegion
+    ) {
+        List<Map.Entry<String, BigDecimal>> ranked = totalSitesByRegion.entrySet().stream()
+            .filter(e -> e.getValue() != null && e.getValue() > 0)
+            .map(e -> {
+                String region = e.getKey();
+                long total = e.getValue();
+                long excellent = excellentSitesByRegion.getOrDefault(region, 0L);
+                BigDecimal percent = new BigDecimal(excellent)
+                    .multiply(new BigDecimal("100"))
+                    .divide(new BigDecimal(total), 2, RoundingMode.HALF_UP);
+                return Map.entry(region, percent);
+            })
+            .toList();
+
+        Comparator<Map.Entry<String, BigDecimal>> highToLow = Comparator
+            .comparing(Map.Entry<String, BigDecimal>::getValue, Comparator.reverseOrder())
+            .thenComparing(Map.Entry::getKey);
+        Comparator<Map.Entry<String, BigDecimal>> lowToHigh = Comparator
+            .comparing(Map.Entry<String, BigDecimal>::getValue)
+            .thenComparing(Map.Entry::getKey);
+
+        LinkedHashSet<String> selected = new LinkedHashSet<>();
+        ranked.stream().sorted(highToLow).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
+        ranked.stream().sorted(lowToHigh).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
+        return selected;
+    }
+
+    private List<String> buildRegionalWaterQualityRequiredCitations(FactPack factPack) {
+        List<String> classFamilies = factPack.getFacts().getClassifications().stream()
+            .map(ClassificationFact::getId)
+            .map(id -> id.replaceFirst(":[^:]+$", ":*"))
+            .toList();
+        List<String> metricFamilies = factPack.getFacts().getMetrics().stream()
+            .map(MetricFact::getId)
+            .filter(id -> id.startsWith("metric:lawa:excellent_sites_percentage:"))
+            .map(id -> "metric:lawa:excellent_sites_percentage:*")
+            .toList();
+        List<String> families = new ArrayList<>();
+        families.addAll(classFamilies);
+        families.addAll(metricFamilies);
+        return stableRequiredCitations(families, Integer.MAX_VALUE);
     }
 
     private String getPeriodCoverage(List<LawaStateMultiYearRecord> records) {

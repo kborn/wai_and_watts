@@ -7,7 +7,7 @@ import nz.waiwatts.explanations.provider.OpenAiResponseClient;
 import nz.waiwatts.explanations.provider.StubExplanationProvider;
 import nz.waiwatts.explanations.parser.IntentParser;
 import nz.waiwatts.explanations.parser.OpenAiIntentParser;
-import nz.waiwatts.explanations.parser.StubIntentParser;
+import nz.waiwatts.explanations.parser.HardcodedDemoIntentParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -34,7 +34,7 @@ public class LlmProviderConfig {
     public ExplanationProvider explanationProvider(
         LlmProperties properties,
         ObjectMapper objectMapper,
-        HttpClient llmHttpClient
+        OpenAiResponseClient client
     ) {
         if (!properties.isConfigured()) {
             log.info("LLM not configured (model/apiKey missing). Using StubExplanationProvider.");
@@ -42,7 +42,6 @@ public class LlmProviderConfig {
         }
 
         if (properties.getProvider() == LlmProvider.OPENAI) {
-            OpenAiResponseClient client = new OpenAiResponseClient(llmHttpClient, objectMapper, properties);
             log.info("LLM configured: provider=OPENAI model={}", properties.getModel());
             return new OpenAiExplanationProvider(client, objectMapper, properties.getModel());
         }
@@ -55,20 +54,28 @@ public class LlmProviderConfig {
     public IntentParser intentParser(
         LlmProperties properties,
         ObjectMapper objectMapper,
-        HttpClient llmHttpClient
+        OpenAiResponseClient client
     ) {
         if (!properties.isConfigured()) {
-            log.info("LLM not configured (model/apiKey missing). Using StubIntentParser.");
-            return new StubIntentParser();
+            log.info("LLM not configured (model/apiKey missing). Using HardcodedDemoIntentParser.");
+            return new HardcodedDemoIntentParser();
         }
 
         if (properties.getProvider() == LlmProvider.OPENAI) {
-            OpenAiResponseClient client = new OpenAiResponseClient(llmHttpClient, objectMapper, properties);
             log.info("Intent parser configured: provider=OPENAI model={}", properties.getModel());
             return new OpenAiIntentParser(client, objectMapper, properties.getModel());
         }
 
-        log.warn("LLM provider '{}' not recognized. Using StubIntentParser.", properties.getProvider());
-        return new StubIntentParser();
+        log.warn("LLM provider '{}' not recognized. Using HardcodedDemoIntentParser.", properties.getProvider());
+        return new HardcodedDemoIntentParser();
+    }
+
+    @Bean
+    public OpenAiResponseClient openAiResponseClient(
+        LlmProperties properties,
+        ObjectMapper objectMapper,
+        HttpClient llmHttpClient
+    ) {
+        return new OpenAiResponseClient(llmHttpClient, objectMapper, properties);
     }
 }

@@ -47,7 +47,8 @@ These values are **exact** and **case-sensitive**.
 ### MBIE Generation
 - `renewable_generation_trend` — Explain renewable generation trends between years
 - `hydro_generation_trend` — Explain hydro generation trends between years
-- `fuel_type_comparison` — Compare wind vs hydro generation
+- `fuel_type_comparison` — Compare two fuel types (e.g., hydro vs geothermal)
+- `generation_mix_overview` — Summarize main sources of electricity generation
 
 ### LAWA Water Quality State
 - `water_quality_overview` — Overview of water quality state distribution
@@ -81,6 +82,7 @@ These values are **exact** and **case-sensitive**.
 
 Allowed keys (global superset):
 - `fuelType` *(string, MBIE only)*
+- `fuelTypeB` *(string, MBIE only; optional second fuel for comparison)*
 - `indicator` *(string, LAWA only)*
 - `region` *(string, LAWA only)*
 - `trend` *(string, LAWA trend only)*
@@ -99,8 +101,9 @@ Unknown filter keys MUST be refused (not ignored).
 **MBIE question types**
 - `datasetSource` must be `mbie.generation.annual` or `mbie.generation.quarterly`
 - `fuelType` is:
-  - **required** for `fuel_type_comparison` (if you later hardcode which fuels are allowed, do it in a forward decision)
+  - **required** for `fuel_type_comparison` (use `fuelType` + `fuelTypeB` to compare two fuels)
   - optional for `renewable_generation_trend` and `hydro_generation_trend`
+  - optional for `generation_mix_overview`
 
 **LAWA state question types**
 - `datasetSource` must be `lawa.water_quality.state.multi_year`

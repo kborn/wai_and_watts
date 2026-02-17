@@ -16,6 +16,9 @@ public class IntentParseResponse {
     
     private RefusalResponse refusal;
 
+    @JsonProperty("parserUsed")
+    private String parserUsed;
+
     public IntentParseResponse() {}
 
     public static IntentParseResponse success(ExplanationRequest request) {
@@ -54,6 +57,14 @@ public class IntentParseResponse {
 
     public void setRefusal(RefusalResponse refusal) {
         this.refusal = refusal;
+    }
+
+    public String getParserUsed() {
+        return parserUsed;
+    }
+
+    public void setParserUsed(String parserUsed) {
+        this.parserUsed = parserUsed;
     }
 
     /**

@@ -320,6 +320,15 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         assertNotNull(waikatoMetric);
         assertEquals(new BigDecimal("100.00"), canterburyMetric.getValue()); // 1/1 = 100%
         assertEquals(new BigDecimal("0.00"), waikatoMetric.getValue()); // 0/1 = 0%
+        assertEquals(
+            List.of(
+                "class:lawa:water_quality_trend:Canterbury:*",
+                "class:lawa:water_quality_trend:Otago:*",
+                "class:lawa:water_quality_trend:Waikato:*",
+                "metric:lawa:improving_sites_percentage:*"
+            ),
+            factPack.getGuardrails().getRequiredCitations()
+        );
     }
 
     @Test
@@ -480,6 +489,94 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
             assertEquals(class1.getId(), class2.getId());
             assertEquals(class1.getClassification(), class2.getClassification());
         }
+    }
+
+    @Test
+    void testDeterministicRequiredCitationsUnderInputShuffle() {
+        DatasetRelease release = createDatasetRelease();
+
+        LawaTrendMultiYearRecord canterburyImproving = new LawaTrendMultiYearRecord();
+        canterburyImproving.setLawaSiteId("SITE001");
+        canterburyImproving.setSiteName("Site SITE001");
+        canterburyImproving.setRegion("Canterbury");
+        canterburyImproving.setTrendNorm("IMPROVING");
+        canterburyImproving.setTrendScore(3);
+        canterburyImproving.setTrendPeriodYears(10);
+        canterburyImproving.setPeriodType("HYDRO_NYR_WINDOW");
+        canterburyImproving.setPeriodStartYear(2019);
+        canterburyImproving.setPeriodEndYear(2023);
+        canterburyImproving.setDatasetRelease(release);
+
+        LawaTrendMultiYearRecord waikatoDegrading = new LawaTrendMultiYearRecord();
+        waikatoDegrading.setLawaSiteId("SITE002");
+        waikatoDegrading.setSiteName("Site SITE002");
+        waikatoDegrading.setRegion("Waikato");
+        waikatoDegrading.setTrendNorm("DEGRADING");
+        waikatoDegrading.setTrendScore(-2);
+        waikatoDegrading.setTrendPeriodYears(10);
+        waikatoDegrading.setPeriodType("HYDRO_NYR_WINDOW");
+        waikatoDegrading.setPeriodStartYear(2019);
+        waikatoDegrading.setPeriodEndYear(2023);
+        waikatoDegrading.setDatasetRelease(release);
+
+        LawaTrendMultiYearRecord otagoInsufficient = new LawaTrendMultiYearRecord();
+        otagoInsufficient.setLawaSiteId("SITE003");
+        otagoInsufficient.setSiteName("Site SITE003");
+        otagoInsufficient.setRegion("Otago");
+        otagoInsufficient.setTrendNorm("INSUFFICIENT_DATA");
+        otagoInsufficient.setTrendScore(0);
+        otagoInsufficient.setTrendPeriodYears(10);
+        otagoInsufficient.setPeriodType("HYDRO_NYR_WINDOW");
+        otagoInsufficient.setPeriodStartYear(2019);
+        otagoInsufficient.setPeriodEndYear(2023);
+        otagoInsufficient.setDatasetRelease(release);
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("regional_trend_comparison");
+        request.setFilters(Map.of("datasetSource", "lawa.water_quality.trend.multi_year"));
+
+        when(repository.findAll()).thenReturn(List.of(canterburyImproving, waikatoDegrading, otagoInsufficient));
+        FactPack first = builder.buildFactPack(request);
+
+        when(repository.findAll()).thenReturn(List.of(otagoInsufficient, waikatoDegrading, canterburyImproving));
+        FactPack second = builder.buildFactPack(request);
+
+        assertEquals(
+            first.getGuardrails().getRequiredCitations(),
+            second.getGuardrails().getRequiredCitations()
+        );
+    }
+
+    @Test
+    void testRegionalTrendComparisonUsesDeterministicRegionSubset() {
+        DatasetRelease release = createDatasetRelease();
+        List<String> regions = List.of("Auckland", "Waikato", "Canterbury", "Otago", "Taranaki");
+        List<LawaTrendMultiYearRecord> records = regions.stream().map(region -> {
+            LawaTrendMultiYearRecord r = new LawaTrendMultiYearRecord();
+            r.setLawaSiteId("SITE-" + region);
+            r.setSiteName("Site " + region);
+            r.setRegion(region);
+            r.setTrendNorm("IMPROVING");
+            r.setTrendScore(2);
+            r.setTrendPeriodYears(10);
+            r.setPeriodType("HYDRO_NYR_WINDOW");
+            r.setPeriodStartYear(2019);
+            r.setPeriodEndYear(2023);
+            r.setDatasetRelease(release);
+            return r;
+        }).toList();
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("regional_trend_comparison");
+        request.setFilters(Map.of("datasetSource", "lawa.water_quality.trend.multi_year"));
+
+        when(repository.findAll()).thenReturn(records);
+        FactPack factPack = builder.buildFactPack(request);
+
+        long metricRegionCount = factPack.getFacts().getMetrics().stream()
+            .filter(m -> m.getId().startsWith("metric:lawa:improving_sites_percentage:"))
+            .count();
+        assertTrue(metricRegionCount <= 4);
     }
 
     private DatasetRelease createDatasetRelease() {

@@ -4,18 +4,13 @@ import type {
   MbieGenerationQuarterlyRecord,
   LawaStateMultiYearRecord,
   LawaTrendMultiYearRecord,
-  Explanation,
+  AskResult,
   CapabilitiesResponse,
   RegionContextFactPack,
 } from '../types'
 
-// Backend response DTO (matches Java Explanation class)
-interface BackendExplanationResponse {
-  explanationText?: string
-  citations?: string[]
-  isRefusal: boolean
-  refusalReason?: string
-}
+// Backend response DTO (matches Java AskResult class)
+type BackendAskResult = AskResult
 import { logger } from '../utils/logger'
 import { addDiagnostic } from '../utils/diagnostics'
 import {
@@ -146,8 +141,8 @@ class ApiClient {
   }
 
   // Explanation endpoints
-  async askQuestion(request: AskRequest): Promise<Explanation> {
-    const response = await this.request<BackendExplanationResponse>(
+  async askQuestion(request: AskRequest): Promise<AskResult> {
+    const response = await this.request<BackendAskResult>(
       '/api/v1/explanations/ask',
       {
         method: 'POST',
@@ -155,13 +150,7 @@ class ApiClient {
       }
     )
 
-    // Map backend fields to frontend interface
-    return {
-      explanation: response.explanationText,
-      citations: response.citations?.map((c: string) => ({ dataset: c })) || [],
-      refusalCategory: response.isRefusal ? 'EXPLANATION_FAILED' : undefined,
-      refusalReason: response.refusalReason,
-    }
+    return response
   }
 
   async getCapabilities(): Promise<CapabilitiesResponse> {

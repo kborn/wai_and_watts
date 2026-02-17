@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * OpenAI-backed ExplanationProvider.
@@ -66,7 +67,31 @@ public class OpenAiExplanationProvider implements ExplanationProvider {
         List<String> required = factPack.getGuardrails() != null && factPack.getGuardrails().getRequiredCitations() != null
             ? factPack.getGuardrails().getRequiredCitations()
             : List.of();
-        return required.stream().allMatch(explanation.getCitations()::contains);
+        List<String> actual = explanation.getCitations();
+        return required.stream().allMatch(req -> hasMatchingCitation(req, actual));
+    }
+
+    private boolean hasMatchingCitation(String requiredId, List<String> actualIds) {
+        if (requiredId == null || requiredId.isBlank()) return true;
+        if (actualIds == null || actualIds.isEmpty()) return false;
+        String req = requiredId.trim().toLowerCase(Locale.ROOT);
+        List<String> normalizedActualIds = actualIds.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .map(id -> id.trim().toLowerCase(Locale.ROOT))
+            .toList();
+        if (normalizedActualIds.contains(req)) return true;
+
+        if (req.endsWith(":*")) {
+            String wildcardPrefix = req.substring(0, req.length() - 1);
+            return normalizedActualIds.stream().anyMatch(act -> act.startsWith(wildcardPrefix));
+        }
+
+        boolean isLawaMetricOrClass = req.startsWith("metric:lawa:") || req.startsWith("class:lawa:");
+        if (!isLawaMetricOrClass) return false;
+        int lastColon = req.lastIndexOf(':');
+        if (lastColon <= 0) return false;
+        String familyPrefix = req.substring(0, lastColon + 1);
+        return normalizedActualIds.stream().anyMatch(act -> act.startsWith(familyPrefix));
     }
 
     private Explanation parseExplanation(String output) {
@@ -82,6 +107,8 @@ public class OpenAiExplanationProvider implements ExplanationProvider {
         return """
             You are the Wai & Watts explanation engine.
             Use ONLY the provided Fact Pack. Do NOT use external knowledge.
+            Do NOT mention any region name or numeric value unless that exact region/value appears in the provided facts.
+            If facts are a regional subset, do not imply coverage beyond those regions.
             Always respond as a single JSON object with keys:
             explanationText (string), citations (array of fact IDs), isRefusal (boolean), refusalReason (string or null).
             If the Fact Pack is insufficient, set isRefusal=true and provide a brief refusalReason.

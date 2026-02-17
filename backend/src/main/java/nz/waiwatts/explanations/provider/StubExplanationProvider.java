@@ -4,8 +4,10 @@ import nz.waiwatts.explanations.dto.ClassificationFact;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.dto.MetricFact;
+import nz.waiwatts.explanations.dto.TimeSeriesFact;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Stubbed/deterministic Explanation Provider for Phase 11 testing.
@@ -37,8 +39,23 @@ public class StubExplanationProvider implements ExplanationProvider {
         List<String> requiredCitations = factPack.getGuardrails().getRequiredCitations();
         List<String> actualCitations = explanation.getCitations();
         
-        // Check if all required citations are present
-        return requiredCitations.stream().allMatch(actualCitations::contains);
+        return requiredCitations.stream().allMatch(req -> hasMatchingCitation(req, actualCitations));
+    }
+
+    private boolean hasMatchingCitation(String requiredId, List<String> actualIds) {
+        if (requiredId == null || requiredId.isBlank()) return true;
+        if (actualIds == null || actualIds.isEmpty()) return false;
+        String req = requiredId.trim().toLowerCase(Locale.ROOT);
+        List<String> normalizedActualIds = actualIds.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .map(id -> id.trim().toLowerCase(Locale.ROOT))
+            .toList();
+        if (normalizedActualIds.contains(req)) return true;
+        if (req.endsWith(":*")) {
+            String wildcardPrefix = req.substring(0, req.length() - 1);
+            return normalizedActualIds.stream().anyMatch(act -> act.startsWith(wildcardPrefix));
+        }
+        return false;
     }
 
     private boolean hasMissingFacts(FactPack factPack) {
@@ -59,6 +76,8 @@ public class StubExplanationProvider implements ExplanationProvider {
                     generateHydroGenerationTrendExplanation(factPack);
             case "fuel_type_comparison" ->
                     generateFuelTypeComparisonExplanation(factPack);
+            case "generation_mix_overview" ->
+                    generateGenerationMixOverviewExplanation(factPack);
             case "water_quality_overview" ->
                     generateWaterQualityOverviewExplanation(factPack);
             case "excellent_sites_trend" ->
@@ -157,6 +176,37 @@ public class StubExplanationProvider implements ExplanationProvider {
     private Explanation generateFuelTypeComparisonExplanation(FactPack factPack) {
         StringBuilder explanation = new StringBuilder();
         explanation.append("Among the fuel types analyzed, ");
+
+        // If time series exist (typically for specific fuel comparisons), compare trends
+        if (!factPack.getFacts().getTimeSeries().isEmpty()) {
+            var timeSeriesList = factPack.getFacts().getTimeSeries().stream()
+                .sorted(Comparator.comparing(ts -> ts.getId()))
+                .toList();
+
+            if (timeSeriesList.size() >= 2) {
+                var a = timeSeriesList.getFirst();
+                var b = timeSeriesList.get(1);
+                String fuelA = (String) a.getDimensions().getOrDefault("fuel_type", "FUEL_A");
+                String fuelB = (String) b.getDimensions().getOrDefault("fuel_type", "FUEL_B");
+
+                String trendA = trendDirection(a);
+                String trendB = trendDirection(b);
+
+                explanation.append(fuelA)
+                    .append(" shows an ")
+                    .append(trendA)
+                    .append(" trend, while ")
+                    .append(fuelB)
+                    .append(" shows an ")
+                    .append(trendB)
+                    .append(" trend over the available period.");
+
+                return new Explanation(
+                    explanation.toString(),
+                    List.of(a.getId(), b.getId())
+                );
+            }
+        }
         
         if (!factPack.getFacts().getMetrics().isEmpty()) {
             var metrics = factPack.getFacts().getMetrics();
@@ -189,6 +239,65 @@ public class StubExplanationProvider implements ExplanationProvider {
         }
         
         return Explanation.refusal("Insufficient fuel type data for comparison");
+    }
+
+    private Explanation generateGenerationMixOverviewExplanation(FactPack factPack) {
+        StringBuilder explanation = new StringBuilder();
+        explanation.append("In the most recent period available, ");
+
+        var metrics = factPack.getFacts().getMetrics();
+        if (metrics == null || metrics.isEmpty()) {
+            return Explanation.refusal("Insufficient fuel type data for generation mix overview");
+        }
+
+        var sorted = metrics.stream()
+            .sorted(Comparator.comparing(MetricFact::getValue).reversed())
+            .toList();
+
+        var top = sorted.getFirst();
+        String topFuel = (String) top.getDimensions().get("fuel_type");
+        explanation.append(topFuel)
+            .append(" is the largest contributor at ")
+            .append(top.getValue())
+            .append(" GWh in ")
+            .append(top.getPeriod());
+
+        if (sorted.size() >= 2) {
+            var second = sorted.get(1);
+            String secondFuel = (String) second.getDimensions().get("fuel_type");
+            explanation.append(", followed by ")
+                .append(secondFuel)
+                .append(" at ")
+                .append(second.getValue())
+                .append(" GWh.");
+        } else {
+            explanation.append(".");
+        }
+
+        List<String> citations = sorted.stream()
+            .map(MetricFact::getId)
+            .toList();
+
+        return new Explanation(
+            explanation.toString(),
+            citations
+        );
+    }
+
+    private String trendDirection(TimeSeriesFact series) {
+        var points = series.getPoints();
+        if (points == null || points.size() < 2) {
+            return "unclear";
+        }
+        var first = points.getFirst().getValue();
+        var last = points.getLast().getValue();
+        if (last.compareTo(first) > 0) {
+            return "increasing";
+        }
+        if (last.compareTo(first) < 0) {
+            return "decreasing";
+        }
+        return "stable";
     }
 
     private Explanation generateWaterQualityOverviewExplanation(FactPack factPack) {

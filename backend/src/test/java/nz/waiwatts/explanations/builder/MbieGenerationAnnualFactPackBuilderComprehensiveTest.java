@@ -177,6 +177,35 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
     }
 
     @Test
+    void testFuelTypeComparisonWithExplicitFuelsBuildsTimeSeries() {
+        ExplanationRequest request = new ExplanationRequest(
+            "fuel_type_comparison",
+            Map.of(
+                "datasetSource", "mbie.generation.annual",
+                "fuelType", "HYDRO",
+                "fuelTypeB", "GEOTHERMAL"
+            )
+        );
+
+        List<MbieGenerationAnnualRecord> records = List.of(
+            createRecord(2021, "HYDRO", new BigDecimal("24000")),
+            createRecord(2022, "HYDRO", new BigDecimal("25000")),
+            createRecord(2021, "GEOTHERMAL", new BigDecimal("7000")),
+            createRecord(2022, "GEOTHERMAL", new BigDecimal("7200"))
+        );
+
+        when(repository.findAll()).thenReturn(records);
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertEquals(2, factPack.getFacts().getTimeSeries().size());
+        assertTrue(factPack.getFacts().getTimeSeries().stream()
+            .allMatch(ts -> ts.getDimensions().containsKey("fuel_type")));
+
+        assertFalse(factPack.getGuardrails().getRequiredCitations().isEmpty());
+    }
+
+    @Test
     void testUnsupportedQuestionTypeProducesRefusalGuardrails() {
         ExplanationRequest request = new ExplanationRequest(
             "forecasting", // Unsupported type

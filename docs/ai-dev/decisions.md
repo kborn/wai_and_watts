@@ -1376,3 +1376,54 @@ Keeping Context independent preserves this structure.
 ### UX / Product Behavior
 * Users may switch between Trend and State views without Context values changing.
 * Context reflects environmental conditions for the selected slice, not the active chart.
+
+### Phase 15 — Citation Family Matching (Validation Softening)
+Date: 2026-02-17
+
+Decision:
+Citation validation will treat certain required citations as **evidence families** via prefix matching (e.g., `metric:lawa:excellent_sites_percentage:*`), rather than requiring exact ID equality.
+
+Rationale:
+- Exact citation matching causes false INTERNAL_ERROR outcomes when the model cites an equivalent concrete fact within the same family.
+- Phase 15 prioritizes safe usefulness and determinism over overly strict coupling to a single citation ID spelling.
+
+Implications:
+- Validation passes if each required citation is satisfied by:
+  - exact match, or
+  - family-prefix match (wildcard `:*`)
+- Tests must cover both match and non-match cases.
+- This change must not weaken the “no uncited claims” rule; it only prevents false rejects for equivalent evidence.
+
+---
+
+### Phase 15 — Deterministic Required Citation Selection
+Date: 2026-02-17
+
+Decision:
+Fact Pack builders must produce deterministic required-citation sets and ordering, independent of collection iteration order.
+
+Rationale:
+- Non-deterministic required citations create random pass/fail across identical runs, undermining Phase 15 repeatability guarantees.
+
+Implications:
+- Required citations are deduped and sorted by a stable key.
+- Any “representative selection” must be deterministic with documented tie-breakers.
+- Tests must demonstrate stability under input reordering.
+
+---
+
+### Phase 15 — Derived Analytics Refusal Boundary (Phase 16)
+Date: 2026-02-17
+
+Decision:
+Prompts requesting derived analytics not present in Fact Packs (ranking, argmax windows, shares/threshold crossing) must refuse with `CAPABILITY_UNSUPPORTED` rather than being mapped into a descriptive trend/overview response.
+
+Rationale:
+- Answering a different question “as if” it answered the user’s question violates trustworthiness.
+- Derived analytics are explicitly deferred to Phase 16 unless included deterministically in Fact Packs.
+
+Implications:
+- Intent parsing/validation recognizes derived-analytics language (e.g., “fastest”, “largest”, “which fuel”, “share”, “exceed”).
+- Phase 15 does not add new analytics computation; refusal is correct.
+- Tests must ensure these prompts do not return generic trend narratives.
+

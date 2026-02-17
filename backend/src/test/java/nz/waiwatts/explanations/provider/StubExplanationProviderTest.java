@@ -68,6 +68,18 @@ class StubExplanationProviderTest {
     }
 
     @Test
+    void testCitationValidationForGenerationMixOverview() {
+        FactPack factPack = createMetricFactPack();
+
+        Explanation explanation = provider.generateExplanation("generation_mix_overview", factPack);
+
+        assertFalse(explanation.isRefusal());
+        assertNotNull(explanation.getCitations());
+        assertEquals(3, explanation.getCitations().size());
+        assertTrue(provider.validateCitations(explanation, factPack));
+    }
+
+    @Test
     void testCitationValidationFailsForMissingCitations() {
         // Create Fact Pack with required citations
         FactPack factPack = createTimeSeriesFactPack();

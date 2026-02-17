@@ -161,7 +161,10 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 buildHydroGenerationTrendFacts(factPack, records);
                 break;
             case "fuel_type_comparison":
-                buildFuelTypeComparisonFacts(factPack, records);
+                buildFuelTypeComparisonFacts(factPack, request, records);
+                break;
+            case "generation_mix_overview":
+                buildGenerationMixOverviewFacts(factPack, records);
                 break;
             default:
                 // Build basic facts for unsupported question types (will result in refusal)
@@ -271,7 +274,61 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         }
     }
 
-    private void buildFuelTypeComparisonFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records) {
+    private void buildFuelTypeComparisonFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationQuarterlyRecord> records) {
+        List<String> fuels = extractFuelTypeFilters(request);
+        if (fuels.size() >= 2) {
+            buildFuelTypeTimeSeriesFacts(factPack, records, fuels);
+            buildFuelTypeLatestMetrics(factPack, records, fuels);
+            return;
+        }
+        buildFuelTypeLatestMetrics(factPack, records, null);
+    }
+
+    private void buildGenerationMixOverviewFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records) {
+        buildFuelTypeLatestMetrics(factPack, records, null);
+    }
+
+    private void buildFuelTypeTimeSeriesFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records, List<String> fuels) {
+        for (String fuel : fuels) {
+            Map<String, BigDecimal> quarterlyTotals = records.stream()
+                .filter(record -> fuel.equalsIgnoreCase(record.getFuelTypeNorm()))
+                .collect(Collectors.groupingBy(
+                    r -> r.getPeriodYear() + "-Q" + r.getPeriodQuarter(),
+                    Collectors.mapping(MbieGenerationQuarterlyRecord::getGenerationGwh,
+                        Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+                ));
+
+            if (quarterlyTotals.isEmpty()) {
+                continue;
+            }
+
+            List<String> quarters = quarterlyTotals.keySet().stream()
+                .sorted()
+                .toList();
+            String coverage = !quarters.isEmpty() ? quarters.getFirst() + "_to_" + quarters.getLast() : "all_time";
+
+            TimeSeriesFact timeSeries = new TimeSeriesFact(
+                "ts:mbie:generation_gwh_quarterly:" + fuel + ":" + coverage,
+                "generation_gwh_quarterly",
+                "GWh",
+                Map.of("scope", "NZ", "fuel_type", fuel, "granularity", "quarterly")
+            );
+
+            List<TimeSeriesFact.DataPoint> points = quarterlyTotals.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+            timeSeries.setPoints(points);
+            factPack.getFacts().getTimeSeries().add(timeSeries);
+        }
+    }
+
+    private void buildFuelTypeLatestMetrics(
+        FactPack factPack,
+        List<MbieGenerationQuarterlyRecord> records,
+        List<String> fuels
+    ) {
         // Get most recent quarter's data
         Optional<String> latestQuarterOpt = records.stream()
             .map(r -> r.getPeriodYear() + "-Q" + r.getPeriodQuarter())
@@ -284,6 +341,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             
             Map<String, BigDecimal> fuelTypeTotals = records.stream()
                 .filter(record -> record.getPeriodYear() == year && record.getPeriodQuarter() == quarter)
+                .filter(record -> fuels == null || fuels.isEmpty() || fuels.stream().anyMatch(f -> f.equalsIgnoreCase(record.getFuelTypeNorm())))
                 .collect(Collectors.groupingBy(
                     MbieGenerationQuarterlyRecord::getFuelTypeNorm,
                     Collectors.mapping(MbieGenerationQuarterlyRecord::getGenerationGwh, 
@@ -347,10 +405,14 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(Collections.singletonList(factPack.getFacts().getTimeSeries().getFirst().getId()));
+                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                        factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
+                        1
+                    ));
                 }
                 break;
             case "fuel_type_comparison":
+            case "generation_mix_overview":
                 // If no facts, keep allowedClaims empty to trigger refusal as per tests
                 boolean hasAnyFactsComp = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -361,12 +423,16 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                     factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
-                if (!factPack.getFacts().getMetrics().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(
-                        factPack.getFacts().getMetrics().stream()
-                            .map(MetricFact::getId)
-                            .collect(Collectors.toList())
-                    );
+                if (!factPack.getFacts().getTimeSeries().isEmpty()) {
+                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                        factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
+                        Integer.MAX_VALUE
+                    ));
+                } else if (!factPack.getFacts().getMetrics().isEmpty()) {
+                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                        factPack.getFacts().getMetrics().stream().map(MetricFact::getId).toList(),
+                        Integer.MAX_VALUE
+                    ));
                 }
                 break;
             default:
@@ -376,6 +442,37 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
                 break;
         }
+    }
+
+    private List<String> stableRequiredCitations(List<String> ids, int limit) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return ids.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .distinct()
+            .sorted()
+            .limit(limit)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private List<String> extractFuelTypeFilters(ExplanationRequest request) {
+        if (request == null || request.getFilters() == null) {
+            return List.of();
+        }
+        Object fuelA = request.getFilters().get("fuelType");
+        Object fuelB = request.getFilters().get("fuelTypeB");
+        List<String> fuels = new ArrayList<>();
+        if (fuelA instanceof String s && !s.isBlank()) {
+            fuels.add(s.trim().toUpperCase());
+        }
+        if (fuelB instanceof String s && !s.isBlank()) {
+            String norm = s.trim().toUpperCase();
+            if (!fuels.contains(norm)) {
+                fuels.add(norm);
+            }
+        }
+        return fuels;
     }
 
     private String getPeriodCoverage(List<MbieGenerationQuarterlyRecord> records) {

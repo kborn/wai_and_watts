@@ -1,13 +1,13 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import type { Explanation } from '../../types'
+import type { AskResult } from '../../types'
 import { Card, CardContent, RefusalCallout } from '../../components/ui'
 import { Button } from '../../components/ui'
 
 const ResultsPage: React.FC = () => {
   const location = useLocation()
   const state = location.state as
-    | { question?: string; explanation?: Explanation }
+    | { question?: string; explanation?: AskResult }
     | undefined
 
   return (
@@ -23,13 +23,41 @@ const ResultsPage: React.FC = () => {
         </Card>
       )}
 
-      {state?.explanation ? (
+      {state?.explanation?.isRefusal ? (
+        <Card className="mb-6">
+          <CardContent>
+            <RefusalCallout
+              message={
+                state.explanation.refusal?.message ||
+                'Unable to answer this question.'
+              }
+            />
+            {state.explanation.refusal?.code && (
+              <p className="text-sm text-neutral-500 mt-3">
+                Code: {state.explanation.refusal.code}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ) : state?.explanation ? (
         <>
           <Card className="mb-6">
             <CardContent>
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">
                 Explanation
               </h3>
+              {state.explanation.selectedDatasetSource && (
+                <div className="mb-4 text-sm text-neutral-600">
+                  <div className="font-medium text-neutral-700">
+                    Using dataset: {state.explanation.selectedDatasetSource}
+                  </div>
+                  {state.explanation.datasetSelection?.reason && (
+                    <div className="text-neutral-500 mt-1">
+                      {state.explanation.datasetSelection.reason}
+                    </div>
+                  )}
+                </div>
+              )}
               <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">
                 {state.explanation.explanation}
               </p>
@@ -53,24 +81,18 @@ const ResultsPage: React.FC = () => {
                           className="p-3 bg-neutral-50 rounded-lg border border-neutral-200"
                         >
                           <div className="font-medium text-neutral-800">
-                            {citation.dataset}
+                            {citation.id}
                           </div>
+                          {citation.type && (
+                            <div className="text-sm text-neutral-600 mt-1">
+                              <span className="font-medium">Type:</span>{' '}
+                              {citation.type}
+                            </div>
+                          )}
                           {citation.field && (
                             <div className="text-sm text-neutral-600 mt-1">
                               <span className="font-medium">Field:</span>{' '}
                               {citation.field}
-                            </div>
-                          )}
-                          {citation.value && (
-                            <div className="text-sm text-neutral-600">
-                              <span className="font-medium">Value:</span>{' '}
-                              {citation.value}
-                            </div>
-                          )}
-                          {citation.source && (
-                            <div className="text-sm text-neutral-500 mt-1">
-                              <span className="font-medium">Source:</span>{' '}
-                              {citation.source}
                             </div>
                           )}
                         </li>
@@ -81,20 +103,6 @@ const ResultsPage: React.FC = () => {
               </Card>
             )}
         </>
-      ) : state?.explanation?.refusalCategory ? (
-        <Card className="mb-6">
-          <CardContent>
-            <RefusalCallout
-              message={
-                state.explanation.refusalReason ||
-                'Unable to answer this question.'
-              }
-            />
-            <p className="text-sm text-neutral-500 mt-3">
-              Category: {state.explanation.refusalCategory}
-            </p>
-          </CardContent>
-        </Card>
       ) : (
         <Card>
           <CardContent>

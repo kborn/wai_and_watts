@@ -15,7 +15,7 @@ The intent parser converts:
 It may:
 - Select `questionType`
 - Select `datasetSource`
-- Extract filters (`startYear`, `endYear`, `fuelType`, `indicator`, `region`, `trend`)
+- Extract filters (`startYear`, `endYear`, `fuelType`, `fuelTypeB`, `indicator`, `region`, `trend`)
 
 ---
 

@@ -141,6 +141,18 @@ class StubExplanationProviderComprehensiveTest {
     }
 
     @Test
+    void testExplanationForGenerationMixOverview() {
+        FactPack factPack = createMetricFactPack();
+
+        Explanation explanation = provider.generateExplanation("generation_mix_overview", factPack);
+
+        assertFalse(explanation.isRefusal());
+        assertTrue(explanation.getExplanationText().contains("largest contributor"));
+        assertEquals(3, explanation.getCitations().size());
+        assertTrue(provider.validateCitations(explanation, factPack));
+    }
+
+    @Test
     void testRefusalForUnknownQuestionType() {
         FactPack factPack = createTimeSeriesFactPack();
         
