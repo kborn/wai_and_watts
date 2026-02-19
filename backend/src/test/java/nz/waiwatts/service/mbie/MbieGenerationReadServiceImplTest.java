@@ -43,7 +43,9 @@ class MbieGenerationReadServiceImplTest {
         r2.setFuelTypeNorm("WIND");
         r2.setGenerationGwh(new BigDecimal("3918.6"));
 
-        when(repo.findAll()).thenReturn(List.of(r1, r2));
+        when(repo.findForReadApi(null, null, null)).thenReturn(List.of(r1, r2));
+        when(repo.findForReadApi(2023, null, null)).thenReturn(List.of(r2));
+        when(repo.findForReadApi(null, null, "HYDRO")).thenReturn(List.of(r1));
     }
 
     @Test

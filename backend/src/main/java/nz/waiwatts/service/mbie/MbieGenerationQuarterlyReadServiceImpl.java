@@ -29,19 +29,12 @@ public class MbieGenerationQuarterlyReadServiceImpl implements MbieGenerationQua
                                                        Integer toYear,
                                                        Integer quarter,
                                                        String fuelType) {
-        int from = fromYear != null ? fromYear : Integer.MIN_VALUE;
-        int to = toYear != null ? toYear : Integer.MAX_VALUE;
         String fuelTypeNorm = fuelType != null ? fuelType.trim().toUpperCase(Locale.ROOT) : null;
 
-        return repository.findAll().stream()
-                .filter(r -> r.getPeriodYear() >= from && r.getPeriodYear() <= to)
-                .filter(r -> quarter == null || r.getPeriodQuarter() == quarter)
-                .filter(r -> fuelTypeNorm == null || fuelTypeNorm.equalsIgnoreCase(nullToEmpty(r.getFuelTypeNorm())))
+        return repository.findForReadApi(fromYear, toYear, quarter, fuelTypeNorm).stream()
                 .map(MbieGenerationQuarterlyReadServiceImpl::toDto)
                 .collect(Collectors.toList());
     }
-
-    private static String nullToEmpty(String s) { return s == null ? "" : s; }
 
     private static MbieGenerationQuarterlyRecordDto toDto(MbieGenerationQuarterlyRecord e) {
         UUID releaseId = e.getDatasetRelease() != null ? e.getDatasetRelease().getId() : null;
