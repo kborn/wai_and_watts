@@ -1427,3 +1427,38 @@ Implications:
 - Phase 15 does not add new analytics computation; refusal is correct.
 - Tests must ensure these prompts do not return generic trend narratives.
 
+### Phase 15 — Architectural Convergence Mode
+Date: 2026-02-19
+
+Decision:
+Phase 15 operates in strict architectural convergence mode. All findings from the high-level code review must either be executed, explicitly deferred with rationale, or explicitly dropped with justification before Phase 15 can close.
+
+Rationale:
+- Phase 15 is the polish phase; architectural debt must not roll into Phase 16.
+- The project is transitioning from exploratory build-out to portfolio-grade presentation.
+- Architectural clarity is more important than feature expansion at this stage.
+
+Implications:
+- Findings are not tracked as checklists.
+- Remediation tasks are executed chronologically.
+- No reprioritization based on severity; execution order governs.
+- Items dropped from remediation must be explicitly justified.
+
+---
+
+### Phase 15 — Architectural Review Triage Policy
+Date: 2026-02-19
+
+Decision:
+Architectural review findings are observational artifacts. The remediation plan is the only executable artifact.
+
+Rationale:
+- Findings document what exists.
+- Remediation plan defines what changes.
+- Conflating the two creates confusion and false task tracking.
+
+Implications:
+- `phase15_architectural_review_findings.md` is not a checklist.
+- `phase15_architectural_remediation_plan.md` is the authoritative execution contract.
+- `progress.md` references the remediation plan but does not duplicate its tasks.
+- Findings not promoted into the remediation plan are considered intentionally accepted design tradeoffs.
