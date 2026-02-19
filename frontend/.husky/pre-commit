@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+. "$REPO_ROOT/.husky/_/husky.sh"
 
 # Navigate to frontend directory
 cd "$(dirname "$0")/.."
