@@ -880,8 +880,9 @@ Definition of Done
     - `docs/phase15/phase15_maturity_checklist.md`
 
 #### Database & Indexing
-- [ ] Unique index on MBIE annual
-- [ ] idx for READ API queries for LAWA state multi year
+- [x] Ensure proper unique indexes exist for all dataset tables 
+- [x] Ensure proper indexes exist on all dataset tables to support API use cases
+- [x] Refactor read APIs to use repository-level filtered queries (remove in-memory `findAll()` filtering) so index strategy aligns with real query paths
 
 #### Data Normalization
 - [ ] Normalize metadata columns across all tables

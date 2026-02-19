@@ -23,21 +23,14 @@ public class LawaTrendMultiYearReadServiceImpl implements LawaTrendMultiYearRead
                                                   Integer toYear,
                                                   String indicator,
                                                   String region) {
-        int from = fromYear != null ? fromYear : Integer.MIN_VALUE;
-        int to = toYear != null ? toYear : Integer.MAX_VALUE;
-
         String indicatorNorm = indicator != null ? collapseWhitespace(indicator.trim()) : null;
         String regionNorm = region != null ? collapseWhitespace(region.trim()) : null;
 
-        return repository.findAll().stream()
-                .filter(r -> r.getPeriodEndYear() >= from && r.getPeriodStartYear() <= to)
-                .filter(r -> indicatorNorm == null || indicatorNorm.equalsIgnoreCase(nullToEmpty(r.getIndicatorNorm())))
-                .filter(r -> regionNorm == null || regionNorm.equalsIgnoreCase(nullToEmpty(r.getRegion())))
+        return repository.findForReadApi(fromYear, toYear, indicatorNorm, regionNorm).stream()
                 .map(LawaTrendMultiYearReadServiceImpl::toDto)
                 .collect(Collectors.toList());
     }
 
-    private static String nullToEmpty(String s) { return s == null ? "" : s; }
     private static String collapseWhitespace(String s) { return s.replaceAll("\\s+", " "); }
 
     private static LawaTrendMultiYearRecordDto toDto(LawaTrendMultiYearRecord e) {

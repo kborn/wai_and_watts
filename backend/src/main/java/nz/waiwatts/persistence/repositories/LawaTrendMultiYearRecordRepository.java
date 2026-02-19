@@ -3,11 +3,27 @@ package nz.waiwatts.persistence.repositories;
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.util.List;
 import java.util.UUID;
 
 public interface LawaTrendMultiYearRecordRepository extends JpaRepository<LawaTrendMultiYearRecord, Long> {
     List<LawaTrendMultiYearRecord> findByDatasetReleaseId(UUID datasetReleaseId);
+
+    @Query("""
+            SELECT m
+            FROM LawaTrendMultiYearRecord m
+            WHERE (:fromYear IS NULL OR m.periodEndYear >= :fromYear)
+              AND (:toYear IS NULL OR m.periodStartYear <= :toYear)
+              AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = LOWER(:indicatorNorm))
+              AND (:regionNorm IS NULL OR LOWER(m.region) = LOWER(:regionNorm))
+            ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm
+            """)
+    List<LawaTrendMultiYearRecord> findForReadApi(@Param("fromYear") Integer fromYear,
+                                                  @Param("toYear") Integer toYear,
+                                                  @Param("indicatorNorm") String indicatorNorm,
+                                                  @Param("regionNorm") String regionNorm);
     
     @Query("SELECT DISTINCT m.region FROM LawaTrendMultiYearRecord m ORDER BY m.region")
     List<String> findDistinctRegionOrderByRegion();
