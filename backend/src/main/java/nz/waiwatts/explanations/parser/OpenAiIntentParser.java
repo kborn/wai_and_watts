@@ -27,6 +27,7 @@ public class OpenAiIntentParser implements IntentParser {
         "renewable_generation_trend",
         "hydro_generation_trend",
         "fuel_type_comparison",
+        "generation_mix_overview",
         "water_quality_overview",
         "excellent_sites_trend",
         "regional_water_quality",
@@ -43,7 +44,7 @@ public class OpenAiIntentParser implements IntentParser {
     );
 
     private static final Set<String> ALLOWED_FILTER_KEYS = Set.of(
-        "fuelType", "indicator", "region", "trend", "startYear", "endYear"
+        "fuelType", "fuelTypeB", "indicator", "region", "trend", "startYear", "endYear"
     );
 
     private static final String UNKNOWN = "unknown";
@@ -80,11 +81,11 @@ public class OpenAiIntentParser implements IntentParser {
         String questionType = textOrNull(node, "questionType");
         String datasetSource = textOrNull(node, "datasetSource");
 
-        if (questionType == null || datasetSource == null) {
+        if (questionType == null) {
             return null;
         }
 
-        if (UNKNOWN.equals(questionType) || UNKNOWN.equals(datasetSource)) {
+        if (UNKNOWN.equals(questionType)) {
             return null;
         }
 
@@ -92,8 +93,12 @@ public class OpenAiIntentParser implements IntentParser {
             return null;
         }
 
-        if (!SUPPORTED_DATASET_SOURCES.contains(datasetSource)) {
-            return null;
+        if (datasetSource != null) {
+            if (UNKNOWN.equals(datasetSource)) {
+                datasetSource = null;
+            } else if (!SUPPORTED_DATASET_SOURCES.contains(datasetSource)) {
+                return null;
+            }
         }
 
         Map<String, Object> filters = parseFilters(node.get("filters"));
@@ -130,8 +135,12 @@ public class OpenAiIntentParser implements IntentParser {
                 return value.intValue();
             }
             if (value.isTextual()) {
+                String text = value.asText().trim();
+                if (text.equalsIgnoreCase("null") || text.isEmpty()) {
+                    return null;
+                }
                 try {
-                    return Integer.parseInt(value.asText().trim());
+                    return Integer.parseInt(text);
                 } catch (NumberFormatException ignored) {
                     return null;
                 }
@@ -141,6 +150,9 @@ public class OpenAiIntentParser implements IntentParser {
 
         if (value.isTextual()) {
             String text = value.asText().trim();
+            if (text.equalsIgnoreCase("null")) {
+                return null;
+            }
             return text.isEmpty() ? null : text;
         }
 
@@ -174,6 +186,7 @@ public class OpenAiIntentParser implements IntentParser {
 
         ObjectNode filterProps = filters.putObject("properties");
         filterProps.set("fuelType", nullableType("string"));
+        filterProps.set("fuelTypeB", nullableType("string"));
         filterProps.set("indicator", nullableType("string"));
         filterProps.set("region", nullableType("string"));
         filterProps.set("trend", nullableType("string"));
@@ -182,6 +195,7 @@ public class OpenAiIntentParser implements IntentParser {
 
         ArrayNode filterRequired = filters.putArray("required");
         filterRequired.add("fuelType");
+        filterRequired.add("fuelTypeB");
         filterRequired.add("indicator");
         filterRequired.add("region");
         filterRequired.add("trend");
@@ -221,7 +235,7 @@ public class OpenAiIntentParser implements IntentParser {
             Map the user question to a structured ExplanationRequest.
             Only use the supported questionType and datasetSource values provided in the schema.
             If you cannot confidently map the question, set questionType or datasetSource to "unknown".
-            Use filters only when explicitly stated (startYear, endYear, fuelType, indicator, region, trend).
+            Use filters only when explicitly stated (startYear, endYear, fuelType, fuelTypeB, indicator, region, trend).
             Do not invent filters or values.
             Return JSON only, matching the schema exactly.
             """;

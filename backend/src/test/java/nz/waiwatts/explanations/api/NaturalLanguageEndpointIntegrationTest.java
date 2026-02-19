@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.IntentParseResponse;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
+import nz.waiwatts.explanations.service.DatasetSelectionService;
 import nz.waiwatts.explanations.service.RequestValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -47,6 +49,9 @@ class NaturalLanguageEndpointIntegrationTest {
 
     @MockBean
     private RequestValidationService validationService;
+
+    @MockBean
+    private DatasetSelectionService datasetSelectionService;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -78,6 +83,12 @@ class NaturalLanguageEndpointIntegrationTest {
         Explanation mockExplanation = new Explanation("Renewable generation increased from X to Y", List.of("fact1", "fact2"));
 
         when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
+        when(datasetSelectionService.selectDataset(any(), any()))
+            .thenReturn(DatasetSelectionService.DatasetSelectionResult.selected(
+                "mbie.generation.annual",
+                "Dataset source explicitly provided in parsed intent.",
+                DatasetSelectionService.DatasetSelectionStrategy.EXPLICIT
+            ));
         when(validationService.validateRequest(any())).thenReturn(validationResult);
         when(explanationService.generateExplanation(any())).thenReturn(mockExplanation);
 
@@ -85,9 +96,13 @@ class NaturalLanguageEndpointIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.explanationText").value("Renewable generation increased from X to Y"))
+                .andExpect(jsonPath("$.explanation").value("Renewable generation increased from X to Y"))
                 .andExpect(jsonPath("$.citations").isArray())
-                .andExpect(jsonPath("$.isRefusal").value(false));
+                .andExpect(jsonPath("$.isRefusal").value(false))
+                .andExpect(jsonPath("$.refusal.code").value(nullValue()))
+                .andExpect(jsonPath("$.refusal.message").value(nullValue()))
+                .andExpect(jsonPath("$.selectedDatasetSource").value("mbie.generation.annual"))
+                .andExpect(jsonPath("$.datasetSelection.strategy").value("EXPLICIT"));
     }
 
     @Test
@@ -99,7 +114,7 @@ class NaturalLanguageEndpointIntegrationTest {
             """;
 
         // Mock parsing failure
-        IntentParseResponse parseResponse = IntentParseResponse.refusal("AMBIGUOUS_INTENT",
+        IntentParseResponse parseResponse = IntentParseResponse.refusal("UNABLE_TO_PARSE",
                 "I can't confidently map this question to a supported explanation type.");
 
         when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
@@ -109,7 +124,9 @@ class NaturalLanguageEndpointIntegrationTest {
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isRefusal").value(true))
-                .andExpect(jsonPath("$.refusalReason").exists()); // Just check it exists, content may vary
+                .andExpect(jsonPath("$.refusal.code").value("UNABLE_TO_PARSE"))
+                .andExpect(jsonPath("$.refusal.message").exists())
+                .andExpect(jsonPath("$.datasetSelection.strategy").value("NONE"));
     }
 
     @Test
@@ -132,6 +149,12 @@ class NaturalLanguageEndpointIntegrationTest {
                 RequestValidationService.ValidationResult.failure("INVALID_FILTERS", "startYear must be <= endYear");
 
         when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
+        when(datasetSelectionService.selectDataset(any(), any()))
+            .thenReturn(DatasetSelectionService.DatasetSelectionResult.selected(
+                "mbie.generation.annual",
+                "Dataset source explicitly provided in parsed intent.",
+                DatasetSelectionService.DatasetSelectionStrategy.EXPLICIT
+            ));
         when(validationService.validateRequest(any())).thenReturn(validationResult);
 
         mockMvc.perform(post("/api/v1/explanations/ask")
@@ -139,7 +162,10 @@ class NaturalLanguageEndpointIntegrationTest {
                         .content(requestBody))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isRefusal").value(true))
-                .andExpect(jsonPath("$.refusalReason").exists()); // Just check it exists, content may vary
+                .andExpect(jsonPath("$.refusal.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.refusal.message").exists())
+                .andExpect(jsonPath("$.selectedDatasetSource").value("mbie.generation.annual"))
+                .andExpect(jsonPath("$.datasetSelection.strategy").value("EXPLICIT"));
     }
 
     @Test

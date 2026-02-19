@@ -39,8 +39,8 @@ const AskPage: React.FC = () => {
   const exampleQuestions = [
     'Explain renewable generation trends between 2020 and 2023',
     'What are the main sources of electricity generation in New Zealand?',
-    'How has wind energy generation changed over the last 5 years?',
     'Compare hydro and geothermal generation patterns',
+    'Explain hydro generation trends between 2018 and 2023',
   ]
 
   return (

@@ -144,13 +144,13 @@ class ExplanationServiceImplEdgeCaseTest {
         FactPack factPack = new FactPack();
         // Ensure pre-provider gates pass: allowedClaims not empty and at least one fact present
         factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
+        factPack.getGuardrails().setRequiredCitations(List.of("metric:mbie:generation_gwh:2023:HYDRO"));
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m1", null, null, null, null, null));
         Explanation explanation = new Explanation("Some explanation", List.of());
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
         when(explanationProvider.generateExplanation(any(), any())).thenReturn(explanation);
-        when(explanationProvider.validateCitations(explanation, factPack)).thenReturn(false);
 
         Explanation result = service.generateExplanation(request);
 
@@ -194,7 +194,7 @@ class ExplanationServiceImplEdgeCaseTest {
     }
 
     @Test
-    void testValidationThrowsException() {
+    void testValidationIsServiceOwnedAndProviderValidationIsNotCalled() {
         ExplanationRequest request = new ExplanationRequest(
             "hydro_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
@@ -209,11 +209,10 @@ class ExplanationServiceImplEdgeCaseTest {
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
         when(explanationProvider.generateExplanation(any(), any())).thenReturn(explanation);
-        when(explanationProvider.validateCitations(any(), any()))
-            .thenThrow(new RuntimeException("Validation failed"));
 
-        // Should propagate exception
-        assertThrows(RuntimeException.class, () -> service.generateExplanation(request));
+        Explanation result = service.generateExplanation(request);
+        assertFalse(result.isRefusal());
+        verify(explanationProvider, never()).validateCitations(any(), any());
     }
 
     @Test
@@ -259,7 +258,6 @@ class ExplanationServiceImplEdgeCaseTest {
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
         when(explanationProvider.generateExplanation("hydro_generation_trend", factPack)).thenReturn(explanation);
-        when(explanationProvider.validateCitations(explanation, factPack)).thenReturn(true);
 
         Explanation result = service.generateExplanation(request);
 
@@ -271,6 +269,57 @@ class ExplanationServiceImplEdgeCaseTest {
         verify(factPackBuilder).canHandle(request);
         verify(factPackBuilder).buildFactPack(request);
         verify(explanationProvider).generateExplanation("hydro_generation_trend", factPack);
-        verify(explanationProvider).validateCitations(explanation, factPack);
+        verify(explanationProvider, never()).validateCitations(any(), any());
+    }
+
+    @Test
+    void testCitationValidationSupportsWildcardFamilyPrefix() {
+        ExplanationRequest request = new ExplanationRequest(
+            "regional_water_quality",
+            Map.of("datasetSource", "lawa.water_quality.state.multi_year")
+        );
+
+        FactPack factPack = new FactPack();
+        factPack.getGuardrails().setAllowedClaims(List.of("distribution"));
+        factPack.getGuardrails().setRequiredCitations(List.of("metric:lawa:excellent_sites_percentage:*"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m5", null, null, null, null, null));
+
+        Explanation explanation = new Explanation(
+            "Regional water quality varies across regions.",
+            List.of("metric:lawa:excellent_sites_percentage:canterbury")
+        );
+
+        when(factPackBuilder.canHandle(request)).thenReturn(true);
+        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(explanationProvider.generateExplanation(any(), any())).thenReturn(explanation);
+
+        Explanation result = service.generateExplanation(request);
+        assertFalse(result.isRefusal());
+    }
+
+    @Test
+    void testCitationValidationRejectsWrongWildcardFamily() {
+        ExplanationRequest request = new ExplanationRequest(
+            "regional_water_quality",
+            Map.of("datasetSource", "lawa.water_quality.state.multi_year")
+        );
+
+        FactPack factPack = new FactPack();
+        factPack.getGuardrails().setAllowedClaims(List.of("distribution"));
+        factPack.getGuardrails().setRequiredCitations(List.of("metric:lawa:excellent_sites_percentage:*"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m6", null, null, null, null, null));
+
+        Explanation explanation = new Explanation(
+            "Regional water quality varies across regions.",
+            List.of("metric:lawa:improving_sites_percentage:canterbury")
+        );
+
+        when(factPackBuilder.canHandle(request)).thenReturn(true);
+        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(explanationProvider.generateExplanation(any(), any())).thenReturn(explanation);
+
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Generated explanation missing required citations", result.getRefusalReason());
     }
 }

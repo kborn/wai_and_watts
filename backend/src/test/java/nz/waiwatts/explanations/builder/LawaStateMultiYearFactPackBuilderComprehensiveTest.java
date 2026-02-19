@@ -316,6 +316,14 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         assertNotNull(waikatoMetric);
         assertEquals(new BigDecimal("50.00"), canterburyMetric.getValue()); // 1/2 = 50%
         assertEquals(new BigDecimal("100.00"), waikatoMetric.getValue()); // 1/1 = 100%
+        assertEquals(
+            List.of(
+                "class:lawa:water_quality_state:Canterbury:*",
+                "class:lawa:water_quality_state:Waikato:*",
+                "metric:lawa:excellent_sites_percentage:*"
+            ),
+            factPack.getGuardrails().getRequiredCitations()
+        );
     }
 
     @Test
@@ -487,6 +495,91 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
             assertEquals(class1.getId(), class2.getId());
             assertEquals(class1.getClassification(), class2.getClassification());
         }
+    }
+
+    @Test
+    void testDeterministicRequiredCitationsUnderInputShuffle() {
+        DatasetRelease release = createDatasetRelease();
+
+        LawaStateMultiYearRecord canterburyExcellent = new LawaStateMultiYearRecord();
+        canterburyExcellent.setLawaSiteId("SITE001");
+        canterburyExcellent.setSiteName("Site SITE001");
+        canterburyExcellent.setRegion("Canterbury");
+        canterburyExcellent.setAttributeBand("A");
+        canterburyExcellent.setStateNorm("EXCELLENT");
+        canterburyExcellent.setPeriodType("HYDRO_NYR_WINDOW");
+        canterburyExcellent.setPeriodStartYear(2019);
+        canterburyExcellent.setPeriodEndYear(2023);
+        canterburyExcellent.setDatasetRelease(release);
+
+        LawaStateMultiYearRecord waikatoPoor = new LawaStateMultiYearRecord();
+        waikatoPoor.setLawaSiteId("SITE002");
+        waikatoPoor.setSiteName("Site SITE002");
+        waikatoPoor.setRegion("Waikato");
+        waikatoPoor.setAttributeBand("D");
+        waikatoPoor.setStateNorm("POOR");
+        waikatoPoor.setPeriodType("HYDRO_NYR_WINDOW");
+        waikatoPoor.setPeriodStartYear(2019);
+        waikatoPoor.setPeriodEndYear(2023);
+        waikatoPoor.setDatasetRelease(release);
+
+        LawaStateMultiYearRecord otagoGood = new LawaStateMultiYearRecord();
+        otagoGood.setLawaSiteId("SITE003");
+        otagoGood.setSiteName("Site SITE003");
+        otagoGood.setRegion("Otago");
+        otagoGood.setAttributeBand("B");
+        otagoGood.setStateNorm("GOOD");
+        otagoGood.setPeriodType("HYDRO_NYR_WINDOW");
+        otagoGood.setPeriodStartYear(2019);
+        otagoGood.setPeriodEndYear(2023);
+        otagoGood.setDatasetRelease(release);
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("regional_water_quality");
+        request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
+
+        when(repository.findAll()).thenReturn(List.of(canterburyExcellent, waikatoPoor, otagoGood));
+        FactPack first = builder.buildFactPack(request);
+
+        when(repository.findAll()).thenReturn(List.of(otagoGood, waikatoPoor, canterburyExcellent));
+        FactPack second = builder.buildFactPack(request);
+
+        assertEquals(
+            first.getGuardrails().getRequiredCitations(),
+            second.getGuardrails().getRequiredCitations()
+        );
+    }
+
+    @Test
+    void testRegionalWaterQualityUsesDeterministicRegionSubset() {
+        DatasetRelease release = createDatasetRelease();
+
+        List<String> regions = List.of("Auckland", "Waikato", "Canterbury", "Otago", "Taranaki");
+        List<LawaStateMultiYearRecord> records = regions.stream().map(region -> {
+            LawaStateMultiYearRecord r = new LawaStateMultiYearRecord();
+            r.setLawaSiteId("SITE-" + region);
+            r.setSiteName("Site " + region);
+            r.setRegion(region);
+            r.setAttributeBand("A");
+            r.setStateNorm("EXCELLENT");
+            r.setPeriodType("HYDRO_NYR_WINDOW");
+            r.setPeriodStartYear(2019);
+            r.setPeriodEndYear(2023);
+            r.setDatasetRelease(release);
+            return r;
+        }).toList();
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("regional_water_quality");
+        request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
+
+        when(repository.findAll()).thenReturn(records);
+        FactPack factPack = builder.buildFactPack(request);
+
+        long metricRegionCount = factPack.getFacts().getMetrics().stream()
+            .filter(m -> m.getId().startsWith("metric:lawa:excellent_sites_percentage:"))
+            .count();
+        assertTrue(metricRegionCount <= 4);
     }
 
     private DatasetRelease createDatasetRelease() {

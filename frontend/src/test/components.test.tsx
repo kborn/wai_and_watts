@@ -1,14 +1,20 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import '@testing-library/jest-dom'
 import AskPage from '../features/ask/AskPage'
+import ResultsPage from '../features/results/ResultsPage'
 
 // Mock API for component testing
 vi.mock('../api/hooks', () => ({
   useAskQuestion: vi.fn(() => ({
     mutateAsync: vi.fn().mockResolvedValue({
+      isRefusal: false,
+      refusal: null,
+      parsedRequest: null,
+      selectedDatasetSource: null,
+      datasetSelection: null,
       explanation: 'Test explanation',
       citations: [],
     }),
@@ -83,5 +89,89 @@ describe('AskPage Component', () => {
       'e.g., Explain renewable generation trends between 2020 and 2023'
     )
     expect(textarea).toHaveAttribute('id', 'question')
+  })
+})
+
+describe('ResultsPage Component', () => {
+  it('shows dataset selection when provided', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/results',
+              state: {
+                question: 'Explain renewable generation trends',
+                explanation: {
+                  isRefusal: false,
+                  refusal: null,
+                  parsedRequest: null,
+                  selectedDatasetSource: 'mbie.generation.annual',
+                  datasetSelection: {
+                    strategy: 'LLM_CANDIDATES',
+                    reason:
+                      'Selected from LLM candidates after verifying filters.',
+                  },
+                  explanation: 'Test explanation',
+                  citations: [],
+                },
+              },
+            },
+          ]}
+        >
+          <ResultsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    )
+
+    expect(
+      screen.getByText('Using dataset: mbie.generation.annual')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Selected from LLM candidates after verifying filters.')
+    ).toBeInTheDocument()
+  })
+
+  it('shows refusal callout when refusal response received', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/results',
+              state: {
+                question: 'Why did hydro fall?',
+                explanation: {
+                  isRefusal: true,
+                  refusal: {
+                    code: 'UNSUPPORTED_INTENT',
+                    message: 'Wai & Watts explains what published data shows.',
+                  },
+                  parsedRequest: null,
+                  selectedDatasetSource: null,
+                  datasetSelection: null,
+                  explanation: '',
+                  citations: [],
+                },
+              },
+            },
+          ]}
+        >
+          <ResultsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    )
+
+    expect(
+      screen.getByText('Wai & Watts explains what published data shows.')
+    ).toBeInTheDocument()
   })
 })

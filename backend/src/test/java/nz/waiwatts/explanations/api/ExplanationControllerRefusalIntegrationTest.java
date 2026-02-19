@@ -117,6 +117,7 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(jsonPath("$.supportedQuestionTypes.renewable_generation_trend").exists())
                 .andExpect(jsonPath("$.supportedQuestionTypes.hydro_generation_trend").exists())
                 .andExpect(jsonPath("$.supportedQuestionTypes.fuel_type_comparison").exists())
+                .andExpect(jsonPath("$.supportedQuestionTypes.generation_mix_overview").exists())
                 .andExpect(jsonPath("$.unsupportedQuestionTypes").exists())
                 .andExpect(jsonPath("$.unsupportedQuestionTypes.forecasting").exists())
                 .andExpect(jsonPath("$.unsupportedQuestionTypes.causation").exists())

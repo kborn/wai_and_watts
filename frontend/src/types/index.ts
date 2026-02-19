@@ -11,6 +11,7 @@ export interface ExplanationRequest {
   datasetSource: string
   filters?: {
     fuelType?: string
+    fuelTypeB?: string
     indicator?: string
     region?: string
     trend?: string
@@ -19,19 +20,47 @@ export interface ExplanationRequest {
   }
 }
 
-export interface Explanation {
-  explanation?: string
-  citations?: Citation[]
-  refusalCategory?: string
-  refusalReason?: string
+export interface AskResult {
+  isRefusal: boolean
+  refusal: Refusal | null
+  parsedRequest: ExplanationRequest | null
+  selectedDatasetSource: string | null
+  datasetSelection: DatasetSelection | null
+  explanation: string
+  citations: Citation[]
+  dataSummary?: Record<string, unknown>
+  debug?: AskDebug
+}
+
+export interface Refusal {
+  code: string
+  message: string
+  details?: Record<string, unknown>
+}
+
+export interface DatasetSelection {
+  strategy: 'EXPLICIT' | 'LLM_CANDIDATES' | 'HEURISTIC' | 'NONE'
+  reason: string
+}
+
+export interface AskDebug {
+  parserUsed?: string
+  parseDurationMs?: number
+  selectionCandidates?: string[]
+  refusalTrigger?: string
 }
 
 export interface Citation {
-  factPackId?: string
-  dataset?: string
+  id: string
+  type: 'TIME_SERIES' | 'METRIC' | 'CLASSIFICATION' | 'COMPARISON' | 'UNKNOWN'
+  datasetSource?: string
   field?: string
-  value?: string
-  source?: string
+  fuelType?: string
+  periodYear?: number
+  period?: {
+    startYear?: number
+    endYear?: number
+  }
 }
 
 export interface AskRequest {

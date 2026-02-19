@@ -18,18 +18,22 @@ describe('API Client', () => {
     it('should make a POST request to /api/v1/explanations/ask', async () => {
       // Mock backend DTO response
       const mockBackendResponse = {
-        explanationText: 'Test explanation',
-        citations: ['test'],
         isRefusal: false,
+        refusal: null,
+        parsedRequest: null,
+        selectedDatasetSource: null,
+        datasetSelection: null,
+        explanation: 'Test explanation',
+        citations: [
+          {
+            id: 'ts:mbie:generation_gwh:HYDRO:1974_2024',
+            type: 'TIME_SERIES',
+          },
+        ],
       }
 
       // Expected frontend interface after mapping
-      const expectedFrontendResponse = {
-        explanation: 'Test explanation',
-        citations: [{ dataset: 'test' }],
-        refusalCategory: undefined,
-        refusalReason: undefined,
-      }
+      const expectedFrontendResponse = mockBackendResponse
 
       mockFetch.mockResolvedValueOnce({
         ok: true,

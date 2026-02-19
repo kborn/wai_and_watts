@@ -1,10 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiClient } from './client'
-import type { AskRequest, Explanation } from '../types'
+import type { AskRequest, AskResult } from '../types'
 
 // Explanation hooks
 export const useAskQuestion = () => {
-  return useMutation<Explanation, Error, AskRequest>({
+  return useMutation<AskResult, Error, AskRequest>({
     mutationFn: (request: AskRequest) => apiClient.askQuestion(request),
   })
 }

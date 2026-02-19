@@ -811,6 +811,11 @@ Goal: Make the repo recruiter-friendly and easy to run/demo.
 - [ ] Execute Tier 0 (code changes) first
 - [ ] Then proceed to Tier 1-3 sequentially
 
+Notes:
+- Updated DatasetCatalog/runtime alignment, preserved explicit dataset refusal reasons, sanitized LLM filter "null" values, stabilized /ask response envelope, and added dataset-scoped capabilities data.
+- Fixed CAPABILITY_UNSUPPORTED refusals for valid MBIE annual trend questions and preserved accurate refusal messages for explicit dataset failures.
+- Tests: `mvn test`
+
 ---
 
 ## Final Polish & Deferred Portfolio Tasks
@@ -836,9 +841,43 @@ These items may result in code changes. Complete before hygiene/documentation to
 - PR: [feat(phase-15): dockerized ingestion pipeline + manifest support](https://github.com/kborn/wai_and_watts/pull/68)
 
 
+#### Toolchain Hardening ✅ COMPLETE (Documented in decisions.md)
+Rules documented in decisions.md:
+- Single Supported JDK: JDK 21 LTS
+- Never Run Maven/Gradle as Root
+- Let Spring Boot Manage Test Dependency Versions
+- Prefer CLI Tools Without Spring Context
+- CI Is Source of Truth
+
+Definition of Done
+- [x] progress.md contains toolchain rules (this section)
+- [x] README documents required JDK (README has Java 21)
+- [x] CI pinned to JDK 21 (CI workflow)
+- [x] POM compiler release locked to 21 (pom.xml)
+- [x] Team guidance: never sudo Maven (documented)
+
 #### Feature Completion
 - [x] Wire in real LLM (and test)
 - [x] Differentiate unsupported and ambiguous refusals in UI
+
+#### Intent Parser Restriction Loosening
+- [x] Loosened IntentParserService restrictions under the Phase 15 shape-based contract.
+  - [x] Replaced static benchmark ("10 answered + 4 refusals") with authoritative Phase 15 gates:
+    - Gate A safety (no uncited answers; no INTERNAL_ERROR)
+    - Gate B shape coverage thresholds
+    - Gate C determinism across 3 runs
+  - [x] Added/generated benchmark harness and evaluator:
+    - `docs/phase15/pattern_panel_runner.py`
+    - `docs/phase15/pattern_panel_evaluate.py`
+    - `docs/phase15/README_pattern_panel.md`
+  - [x] Implemented and validated Phase 15 hardening:
+    - Citation family matching (`:*`) in validation
+    - Deterministic required-citation construction (dedupe + stable sort)
+    - Derived-analytics refusal boundary (`CAPABILITY_UNSUPPORTED`)
+  - [x] Phase 15 authority docs in place:
+    - `docs/phase15/phase15_exit_rubric.md`
+    - `docs/phase15/phase15_generated_panel_spec.md`
+    - `docs/phase15/phase15_maturity_checklist.md`
 
 #### Database & Indexing
 - [ ] Unique index on MBIE annual
@@ -854,6 +893,7 @@ These items may result in code changes. Complete before hygiene/documentation to
   - [ ] Are we using this feature as intended?
 - [ ] Validate intention of dataset_release
   - [ ] Are we using this feature as intended?
+- [ ] Review LLM stub functionality 
 
 #### Code Cleanup
 - [ ] Create abstract CSV parser
@@ -868,6 +908,13 @@ These items may result in code changes. Complete before hygiene/documentation to
 #### UI Polish
 - [ ] Additional 'Select Region or Indicator to view State band distribution.' in LAWA state
 - [ ] Ensure consistency throughout UI pages
+- [ ] Ask page
+  - [ ]  "I can't answer that using the available dataset facts. If you want, I can explain what facts would be needed. vs "Failed to process question. Please try again." page
+  - [ ] what are "citations" Is it useful? can it be more useful?
+  - [ ] signal for when no llm provider is configured
+  - [ ] Overall question -> response -> question flow is awkward'
+  - [ ] Some explainer as to what the data is, what kinds of qustions to ask (not just samples)
+  - 
 
 #### Test Coverage
 - [ ] Add code coverage reporting (Jacoco or similar)
@@ -912,8 +959,8 @@ These items may result in code changes. Complete before hygiene/documentation to
 
 ### Tier 2 — Environmental Storytelling Deliverables
 
-- [x] Add Insights.md with 3–5 grounded findings (exists at repo root)
-- [x] Ensure insights link directly to persisted DB queries
+- [ ] Add Insights.md with 3–5 grounded findings (exists at repo root)
+- [ ] Ensure insights link directly to persisted DB queries
 
 ---
 
@@ -939,28 +986,26 @@ These items may result in code changes. Complete before hygiene/documentation to
 
 #### AI Onboarding & Documentation Validation Tasks
 These tasks validate that repository documentation is sufficient for new AI agents.
-- [x] Add AI Onboarding Runbook (`docs/ai-dev/AI_ONBOARDING_RUNBOOK.md`)
-- [x] Add AI Onboarding Checklist (`docs/ai-dev/AI_ONBOARDING_CHECKLIST.md`)
+- [ ] Add AI Onboarding Runbook (`docs/ai-dev/AI_ONBOARDING_RUNBOOK.md`)
+  - [ ] Add AI Onboarding Checklist (`docs/ai-dev/AI_ONBOARDING_CHECKLIST.md`)
 - [ ] Validate onboarding with a fresh AI session (no bootstrap)
 - [ ] Record onboarding friction points in decisions.md
 - [ ] Backfill missing documentation based on onboarding failures
 
 
-#### Toolchain Hardening ✅ COMPLETE (Documented in decisions.md)
-Rules documented in decisions.md:
-- Single Supported JDK: JDK 21 LTS
-- Never Run Maven/Gradle as Root
-- Let Spring Boot Manage Test Dependency Versions
-- Prefer CLI Tools Without Spring Context
-- CI Is Source of Truth
 
-Definition of Done
-- [x] progress.md contains toolchain rules (this section)
-- [x] README documents required JDK (README has Java 21)
-- [x] CI pinned to JDK 21 (CI workflow)
-- [x] POM compiler release locked to 21 (pom.xml)
-- [x] Team guidance: never sudo Maven (documented)
+## Phase 16 — Further enhancements to NL explanations capabilities
+Successfully answer:
+- [ ] In what 5-year period did New Zealand have the biggest increase in solar electricity generation?
+- [ ] When did wind generation grow the fastest over any 3-year period?
+- [ ] What 10-year period saw the largest drop in coal generation?
+- [ ] Which renewable fuel has increased the most in total generation since 2005?
+- [ ] Which fuel contributed the most to total generation growth between 2010 and 2024?
+- [ ] How has the share of renewable electricity changed over time?
+- [ ] When did renewable electricity first exceed 80% of total generation?
+- [ ] Which 5-year period saw the largest improvement in the number of excellent-quality river sites?
+- [ ] Which region has seen the largest improvement in water quality over the last decade?
+- [ ] Has renewable electricity growth accelerated in the last decade compared to the previous decade?
+- [ ] Make LAWA regional evidence subset selection configurable (replace hardcoded top/bottom K with property-driven config for `regional_water_quality` and `regional_trend_comparison`).
 
 ---
-
-
