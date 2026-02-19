@@ -884,17 +884,25 @@ Definition of Done
 - [x] Ensure proper indexes exist on all dataset tables to support API use cases
 - [x] Refactor read APIs to use repository-level filtered queries (remove in-memory `findAll()` filtering) so index strategy aligns with real query paths
 
-#### Data Normalization
-- [ ] Normalize metadata columns across all tables
-- [ ] Fix region string case issues
 
+#### High level code review
+- [ ] High level but thorough review of backend architecture and implementation for 'sane-ness'
+  - [ ] Validate implementation matches expectations for a senior engineer
+  - [ ] Replace Java logic with SQL where possible
+- [ ] High level but thorough review of frontend architecture and implementation for 'sane-ness'
+  - [ ] Validate implementation matches expectations for a senior engineer
 
 ### Feature Usage Review
 - [ ] Validate intention of version in endpoint
   - [ ] Are we using this feature as intended?
 - [ ] Validate intention of dataset_release
   - [ ] Are we using this feature as intended?
-- [ ] Review LLM stub functionality 
+- [ ] Review LLM stub functionality
+
+
+#### Data Normalization
+- [ ] Normalize metadata columns across all tables
+- [ ] Fix region string case issues
 
 #### Code Cleanup
 - [ ] Create abstract CSV parser
@@ -925,13 +933,6 @@ Definition of Done
 - [ ] Review current test coverage
   - [ ] Identify gaps in critical paths
   - [ ] Add tests for uncovered business logic
-
-#### High level code review
-- [ ] High level but thorough review of backend architecture and implementation for 'sane-ness'
-  - [ ] Validate implementation matches expectations for a senior engineer
-  - [ ] Replace Java logic with SQL where possible
-- [ ] High level but thorough review of frontend architecture and implementation for 'sane-ness'
-  - [ ] Validate implementation matches expectations for a senior engineer
 
 ---
 
