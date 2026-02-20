@@ -12,7 +12,8 @@ import nz.waiwatts.explanations.dto.FactPack;
  * - Returning structured response
  * 
  * Must not query DB or modify facts.
- * Validates citation presence for grounding enforcement.
+ * Citation validation must follow the shared citation-validation layer rules
+ * so stub and live providers cannot diverge.
  */
 public interface ExplanationProvider {
     

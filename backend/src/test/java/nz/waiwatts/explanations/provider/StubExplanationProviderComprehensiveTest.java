@@ -67,6 +67,32 @@ class StubExplanationProviderComprehensiveTest {
     }
 
     @Test
+    void testCitationValidationSupportsAnyWildcardFamily() {
+        FactPack factPack = createTimeSeriesFactPack();
+        factPack.getGuardrails().setRequiredCitations(List.of("metric:lawa:improving_sites_pct:__any__"));
+
+        Explanation explanation = new Explanation(
+            "Some explanation text",
+            List.of("metric:lawa:improving_sites_pct:canterbury")
+        );
+
+        assertTrue(provider.validateCitations(explanation, factPack));
+    }
+
+    @Test
+    void testCitationValidationSupportsLawaFamilyMatch() {
+        FactPack factPack = createTimeSeriesFactPack();
+        factPack.getGuardrails().setRequiredCitations(List.of("class:lawa:water_quality_state:EXCELLENT"));
+
+        Explanation explanation = new Explanation(
+            "Some explanation text",
+            List.of("class:lawa:water_quality_state:good")
+        );
+
+        assertTrue(provider.validateCitations(explanation, factPack));
+    }
+
+    @Test
     void testRefusalForInsufficientData() {
         // Create Fact Pack with required citations but no facts
         FactPack emptyFactPack = new FactPack();

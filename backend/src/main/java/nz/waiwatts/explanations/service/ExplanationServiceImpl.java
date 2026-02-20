@@ -48,12 +48,12 @@ public class ExplanationServiceImpl implements ExplanationService {
         if (builder == null) {
             // Helpful context for diagnosis without exposing internals
             try {
-                String ds = request != null ? request.getDatasetSource() : null;
-                if (ds == null && request != null && request.getFilters() != null) {
+                String ds = request.getDatasetSource();
+                if (ds == null && request.getFilters() != null) {
                     ds = (String) request.getFilters().get("datasetSource");
                 }
                 log.info("FactPackBuilder selection: none found for questionType={} datasetSource={}",
-                        request != null ? request.getQuestionType() : null, ds);
+                        request.getQuestionType(), ds);
             } catch (Exception ignore) {
                 // avoid impacting user flow
             }
@@ -182,48 +182,11 @@ public class ExplanationServiceImpl implements ExplanationService {
             List<String> required = (factPack.getGuardrails() != null && factPack.getGuardrails().getRequiredCitations() != null)
                     ? factPack.getGuardrails().getRequiredCitations() : List.of();
             List<String> actual = (explanation.getCitations() != null) ? explanation.getCitations() : List.of();
-
-            // Vacuously true if no required citations
-            return required.stream().allMatch(req -> hasMatchingCitation(req, actual));
+            return CitationValidationUtil.validateRequiredCitations(required, actual);
         } catch (Exception e) {
             // Defensive: on unexpected structure, fail validation
             return false;
         }
-    }
-
-    /**
-     * Citation match rules:
-     * 1) exact id match
-     * 2) required id with ":*" wildcard matches any actual id with that prefix
-     * 3) backward-compatible LAWA family match for region-varying metric/class ids
-     */
-    private boolean hasMatchingCitation(String requiredId, List<String> actualIds) {
-        if (requiredId == null || requiredId.isBlank()) return true;
-        if (actualIds == null || actualIds.isEmpty()) return false;
-        String req = requiredId.trim().toLowerCase(java.util.Locale.ROOT);
-        List<String> normalizedActualIds = actualIds.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .map(id -> id.trim().toLowerCase(java.util.Locale.ROOT))
-            .toList();
-
-        if (normalizedActualIds.contains(req)) return true;
-
-        if (req.endsWith(":*")) {
-            String wildcardPrefix = req.substring(0, req.length() - 1);
-            return normalizedActualIds.stream().anyMatch(act -> act.startsWith(wildcardPrefix));
-        }
-
-        if (req.endsWith(":__any__")) {
-            String anyPrefix = req.substring(0, req.length() - ":__any__".length());
-            return normalizedActualIds.stream().anyMatch(act -> act.startsWith(anyPrefix));
-        }
-
-        boolean isLawa = req.startsWith("metric:lawa:") || req.startsWith("class:lawa:");
-        if (!isLawa) return false;
-        int lastColon = req.lastIndexOf(':');
-        if (lastColon <= 0) return false;
-        String familyPrefix = req.substring(0, lastColon + 1);
-        return normalizedActualIds.stream().anyMatch(act -> act.startsWith(familyPrefix));
     }
 
     private void logCitationFailureDebug(ExplanationRequest request, Explanation explanation, FactPack factPack) {

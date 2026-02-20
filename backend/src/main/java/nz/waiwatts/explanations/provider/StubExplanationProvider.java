@@ -5,16 +5,17 @@ import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.dto.MetricFact;
 import nz.waiwatts.explanations.dto.TimeSeriesFact;
+import nz.waiwatts.explanations.service.CitationValidationUtil;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Stubbed/deterministic Explanation Provider for Phase 11 testing.
  * 
  * This provider returns deterministic responses based on the question type and Fact Pack content
  * without calling a real LLM. This allows testing the architecture, grounding, citations, 
- * and refusal behavior in Phase 11.
+ * and refusal behavior in Phase 11. Citation validation uses the shared validation layer
+ * so behavior stays aligned with live providers.
  */
 public class StubExplanationProvider implements ExplanationProvider {
 
@@ -38,24 +39,7 @@ public class StubExplanationProvider implements ExplanationProvider {
     public boolean validateCitations(Explanation explanation, FactPack factPack) {
         List<String> requiredCitations = factPack.getGuardrails().getRequiredCitations();
         List<String> actualCitations = explanation.getCitations();
-        
-        return requiredCitations.stream().allMatch(req -> hasMatchingCitation(req, actualCitations));
-    }
-
-    private boolean hasMatchingCitation(String requiredId, List<String> actualIds) {
-        if (requiredId == null || requiredId.isBlank()) return true;
-        if (actualIds == null || actualIds.isEmpty()) return false;
-        String req = requiredId.trim().toLowerCase(Locale.ROOT);
-        List<String> normalizedActualIds = actualIds.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .map(id -> id.trim().toLowerCase(Locale.ROOT))
-            .toList();
-        if (normalizedActualIds.contains(req)) return true;
-        if (req.endsWith(":*")) {
-            String wildcardPrefix = req.substring(0, req.length() - 1);
-            return normalizedActualIds.stream().anyMatch(act -> act.startsWith(wildcardPrefix));
-        }
-        return false;
+        return CitationValidationUtil.validateRequiredCitations(requiredCitations, actualCitations);
     }
 
     private boolean hasMissingFacts(FactPack factPack) {
@@ -180,7 +164,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         // If time series exist (typically for specific fuel comparisons), compare trends
         if (!factPack.getFacts().getTimeSeries().isEmpty()) {
             var timeSeriesList = factPack.getFacts().getTimeSeries().stream()
-                .sorted(Comparator.comparing(ts -> ts.getId()))
+                .sorted(Comparator.comparing(TimeSeriesFact::getId))
                 .toList();
 
             if (timeSeriesList.size() >= 2) {
@@ -320,20 +304,16 @@ public class StubExplanationProvider implements ExplanationProvider {
                     .filter(m -> m.getId().contains("excellent"))
                     .findFirst();
 
-                if (excellentMetric.isPresent()) {
-                    explanation.append(excellentMetric.get().getValue())
-                            .append("% of sites are classified as having excellent water quality, while ");
-                }
+                excellentMetric.ifPresent(metricFact -> explanation.append(metricFact.getValue())
+                        .append("% of sites are classified as having excellent water quality, while "));
 
                 // Find poor percentage metric
                 var poorMetric = metrics.stream()
                     .filter(m -> m.getId().contains("poor"))
                     .findFirst();
-                
-                if (poorMetric.isPresent()) {
-                    explanation.append(poorMetric.get().getValue())
-                        .append("% are classified as having poor water quality.");
-                }
+
+                poorMetric.ifPresent(metricFact -> explanation.append(metricFact.getValue())
+                        .append("% are classified as having poor water quality."));
             }
             
             // Return explanation with citations
@@ -467,12 +447,10 @@ public class StubExplanationProvider implements ExplanationProvider {
                 var avgScoreMetric = metrics.stream()
                     .filter(m -> m.getId().contains("average_trend_score"))
                     .findFirst();
-                
-                if (avgScoreMetric.isPresent()) {
-                    explanation.append(" The average trend score is ")
-                        .append(avgScoreMetric.get().getValue())
-                        .append(".");
-                }
+
+                avgScoreMetric.ifPresent(metricFact -> explanation.append(" The average trend score is ")
+                        .append(metricFact.getValue())
+                        .append("."));
             }
             
             // Return explanation with citations
