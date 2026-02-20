@@ -111,11 +111,16 @@ public class ExplanationController {
 
         logger.info("Processing natural language question (length: {})", question.length());
 
+        IntentParseResponse parseResponse = null;
+        ExplanationRequest parsedRequest = null;
+        DatasetSelectionService.DatasetSelectionResult selectionResult = null;
+        Long parseDurationMs = null;
+
         try {
             long parseStart = System.nanoTime();
             // Parse natural language to structured request
-            IntentParseResponse parseResponse = intentParserService.parseQuestion(question);
-            long parseDurationMs = (System.nanoTime() - parseStart) / 1_000_000;
+            parseResponse = intentParserService.parseQuestion(question);
+            parseDurationMs = (System.nanoTime() - parseStart) / 1_000_000;
         
             if (!parseResponse.isOk()) {
                 logger.info("Intent parse result: refusal - category: {}, message: {}", 
@@ -139,15 +144,14 @@ public class ExplanationController {
             }
 
             // Log successful intent parse
-            ExplanationRequest parsedRequest = parseResponse.getRequest();
+            parsedRequest = parseResponse.getRequest();
             logger.info("Intent parse result: ok - questionType: {}, datasetSource: {}, filters: {}", 
                 parsedRequest.getQuestionType(),
                 parsedRequest.getDatasetSource(),
                 summarizeFilters(parsedRequest));
 
             // Select dataset if missing or verify explicit dataset
-            DatasetSelectionService.DatasetSelectionResult selectionResult =
-                datasetSelectionService.selectDataset(question, parsedRequest);
+            selectionResult = datasetSelectionService.selectDataset(question, parsedRequest);
 
             if (!selectionResult.isSelected()) {
                 logger.info("Dataset selection refusal: category={}, message={}",
@@ -253,7 +257,20 @@ public class ExplanationController {
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             logger.error("Exception in /ask endpoint: {}", e.getMessage(), e);
-            throw e;
+            AskResult.Debug debug = new AskResult.Debug(
+                parseResponse != null ? parseResponse.getParserUsed() : null,
+                parseDurationMs,
+                selectionResult != null ? selectionResult.getCandidates() : null,
+                "EXCEPTION"
+            );
+            AskResult result = refusalResult(
+                "INTERNAL_ERROR",
+                "An internal error occurred while processing your request. Please try again.",
+                parsedRequest,
+                selectionResult,
+                debug
+            );
+            return ResponseEntity.ok(result);
         }
     }
 

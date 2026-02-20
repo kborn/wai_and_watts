@@ -138,6 +138,20 @@ class RequestValidationServiceTest {
     }
 
     @Test
+    void failsWhenStartYearIsNotIntegerWithoutThrowing() {
+        ExplanationRequest request = new ExplanationRequest(
+            "renewable_generation_trend",
+            "mbie.generation.annual",
+            Map.of("startYear", "2024", "endYear", 2020)
+        );
+
+        RequestValidationService.ValidationResult result = service.validateRequest(request);
+
+        assertEquals("VALIDATION_FAILED", result.getRefusalCategory());
+        assertEquals("startYear must be an integer", result.getRefusalMessage());
+    }
+
+    @Test
     void failsFuelComparisonWhenRequiredFiltersMissing() {
         ExplanationRequest request = new ExplanationRequest(
             "fuel_type_comparison",

@@ -21,7 +21,6 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -208,5 +207,42 @@ class NaturalLanguageEndpointIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testUnexpectedExceptionReturnsInternalErrorRefusalEnvelope() throws Exception {
+        String requestBody = """
+            {
+                "question": "How did renewable generation change from 2018 to 2024?"
+            }
+            """;
+
+        ExplanationRequest parsedRequest = new ExplanationRequest(
+            "renewable_generation_trend",
+            "mbie.generation.annual",
+            Map.of("startYear", 2018, "endYear", 2024)
+        );
+
+        IntentParseResponse parseResponse = IntentParseResponse.success(parsedRequest);
+        RequestValidationService.ValidationResult validationResult = RequestValidationService.ValidationResult.success();
+
+        when(intentParserService.parseQuestion(any())).thenReturn(parseResponse);
+        when(datasetSelectionService.selectDataset(any(), any()))
+            .thenReturn(DatasetSelectionService.DatasetSelectionResult.selected(
+                "mbie.generation.annual",
+                "Dataset source explicitly provided in parsed intent.",
+                DatasetSelectionService.DatasetSelectionStrategy.EXPLICIT
+            ));
+        when(validationService.validateRequest(any())).thenReturn(validationResult);
+        when(explanationService.generateExplanation(any())).thenThrow(new RuntimeException("boom"));
+
+        mockMvc.perform(post("/api/v1/explanations/ask")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isRefusal").value(true))
+                .andExpect(jsonPath("$.refusal.code").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.refusal.message").value("An internal error occurred while processing your request. Please try again."))
+                .andExpect(jsonPath("$.debug.refusalTrigger").value("EXCEPTION"));
     }
 }
