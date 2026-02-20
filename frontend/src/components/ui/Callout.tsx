@@ -32,9 +32,13 @@ export const Callout: React.FC<CalloutProps> = ({
   )
 }
 
-export const RefusalCallout: React.FC<{ message: string }> = ({ message }) => {
+export const RefusalCallout: React.FC<{
+  message: string
+  title?: string
+  variant?: CalloutVariant
+}> = ({ message, title = 'Unable to Answer', variant = 'warning' }) => {
   return (
-    <Callout variant="warning" title="Unable to Answer">
+    <Callout variant={variant} title={title}>
       {message}
     </Callout>
   )
