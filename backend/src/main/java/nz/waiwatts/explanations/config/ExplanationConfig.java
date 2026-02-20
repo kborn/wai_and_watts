@@ -11,6 +11,7 @@ import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
  * Spring configuration for Phase 11 explanation components
@@ -19,21 +20,25 @@ import org.springframework.context.annotation.Configuration;
 public class ExplanationConfig {
 
     @Bean
+    @Order(10)
     public FactPackBuilder mbieGenerationAnnualFactPackBuilder(MbieGenerationAnnualRecordRepository repository) {
         return new MbieGenerationAnnualFactPackBuilder(repository);
     }
 
     @Bean
+    @Order(20)
     public FactPackBuilder mbieGenerationQuarterlyFactPackBuilder(MbieGenerationQuarterlyRecordRepository repository) {
         return new MbieGenerationQuarterlyFactPackBuilder(repository);
     }
 
     @Bean
+    @Order(30)
     public FactPackBuilder lawaStateMultiYearFactPackBuilder(LawaStateMultiYearRecordRepository repository) {
         return new LawaStateMultiYearFactPackBuilder(repository);
     }
 
     @Bean
+    @Order(40)
     public FactPackBuilder lawaTrendMultiYearFactPackBuilder(LawaTrendMultiYearRecordRepository repository) {
         return new LawaTrendMultiYearFactPackBuilder(repository);
     }
