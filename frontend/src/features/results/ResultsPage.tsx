@@ -4,11 +4,40 @@ import type { AskResult } from '../../types'
 import { Card, CardContent, RefusalCallout } from '../../components/ui'
 import { Button } from '../../components/ui'
 
+const getRefusalPresentation = (code?: string) => {
+  if (code === 'INTERNAL_ERROR') {
+    return {
+      title: 'Internal Processing Error',
+      variant: 'error' as const,
+      fallbackMessage:
+        'An internal error occurred while processing your request. Please try again.',
+    }
+  }
+
+  if (code === 'CAPABILITY_UNSUPPORTED' || code === 'UNSUPPORTED_CAPABILITY') {
+    return {
+      title: 'Capability Not Available',
+      variant: 'warning' as const,
+      fallbackMessage:
+        'This request is outside the currently supported analysis capabilities.',
+    }
+  }
+
+  return {
+    title: 'Unsupported Question',
+    variant: 'warning' as const,
+    fallbackMessage:
+      'This question type is not currently supported by the available datasets.',
+  }
+}
+
 const ResultsPage: React.FC = () => {
   const location = useLocation()
   const state = location.state as
     | { question?: string; explanation?: AskResult }
     | undefined
+  const refusalCode = state?.explanation?.refusal?.code
+  const refusalPresentation = getRefusalPresentation(refusalCode)
 
   return (
     <div className="section-container max-w-3xl mx-auto">
@@ -29,8 +58,10 @@ const ResultsPage: React.FC = () => {
             <RefusalCallout
               message={
                 state.explanation.refusal?.message ||
-                'Unable to answer this question.'
+                refusalPresentation.fallbackMessage
               }
+              title={refusalPresentation.title}
+              variant={refusalPresentation.variant}
             />
             {state.explanation.refusal?.code && (
               <p className="text-sm text-neutral-500 mt-3">

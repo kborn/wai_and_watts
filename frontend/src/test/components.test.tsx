@@ -173,5 +173,80 @@ describe('ResultsPage Component', () => {
     expect(
       screen.getByText('Wai & Watts explains what published data shows.')
     ).toBeInTheDocument()
+    expect(screen.getByText('Unsupported Question')).toBeInTheDocument()
+  })
+
+  it('shows capability refusal title for capability refusal codes', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/results',
+              state: {
+                question: 'Compute largest increase',
+                explanation: {
+                  isRefusal: true,
+                  refusal: {
+                    code: 'CAPABILITY_UNSUPPORTED',
+                    message: 'This capability is not available.',
+                  },
+                  parsedRequest: null,
+                  selectedDatasetSource: null,
+                  datasetSelection: null,
+                  explanation: '',
+                  citations: [],
+                },
+              },
+            },
+          ]}
+        >
+          <ResultsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByText('Capability Not Available')).toBeInTheDocument()
+  })
+
+  it('shows internal error title for internal refusal codes', () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/results',
+              state: {
+                question: 'Any question',
+                explanation: {
+                  isRefusal: true,
+                  refusal: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'An unexpected error occurred.',
+                  },
+                  parsedRequest: null,
+                  selectedDatasetSource: null,
+                  datasetSelection: null,
+                  explanation: '',
+                  citations: [],
+                },
+              },
+            },
+          ]}
+        >
+          <ResultsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByText('Internal Processing Error')).toBeInTheDocument()
   })
 })
