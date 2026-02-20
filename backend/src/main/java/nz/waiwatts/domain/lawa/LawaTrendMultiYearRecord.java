@@ -40,9 +40,6 @@ public class LawaTrendMultiYearRecord {
     @Column(name = "indicator_norm", nullable = false)
     private String indicatorNorm;
 
-    @Column(name = "units")
-    private String units;
-
     @Column(name = "trend_raw", nullable = false)
     private String trendRaw;
 
@@ -84,8 +81,6 @@ public class LawaTrendMultiYearRecord {
     public void setIndicatorRaw(String indicatorRaw) { this.indicatorRaw = indicatorRaw; }
     public String getIndicatorNorm() { return indicatorNorm; }
     public void setIndicatorNorm(String indicatorNorm) { this.indicatorNorm = indicatorNorm; }
-    public String getUnits() { return units; }
-    public void setUnits(String units) { this.units = units; }
     public String getTrendRaw() { return trendRaw; }
     public void setTrendRaw(String trendRaw) { this.trendRaw = trendRaw; }
     public String getTrendNorm() { return trendNorm; }

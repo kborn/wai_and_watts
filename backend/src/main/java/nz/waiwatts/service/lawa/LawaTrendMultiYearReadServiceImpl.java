@@ -44,7 +44,6 @@ public class LawaTrendMultiYearReadServiceImpl implements LawaTrendMultiYearRead
                 e.getLongitude(),
                 e.getIndicatorRaw(),
                 e.getIndicatorNorm(),
-                e.getUnits(),
                 e.getTrendRaw(),
                 e.getTrendNorm(),
                 e.getTrendScore(),

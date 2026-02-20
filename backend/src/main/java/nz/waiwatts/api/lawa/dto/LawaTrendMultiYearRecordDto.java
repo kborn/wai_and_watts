@@ -11,7 +11,6 @@ public class LawaTrendMultiYearRecordDto {
     private BigDecimal longitude;
     private String indicatorRaw;
     private String indicatorNorm;
-    private String units;
     private String trendRaw;
     private String trendNorm;
     private Integer trendScore;
@@ -25,7 +24,7 @@ public class LawaTrendMultiYearRecordDto {
     public LawaTrendMultiYearRecordDto() {}
 
     public LawaTrendMultiYearRecordDto(String lawaSiteId, String siteName, String region, BigDecimal latitude, BigDecimal longitude,
-                                       String indicatorRaw, String indicatorNorm, String units,
+                                       String indicatorRaw, String indicatorNorm,
                                        String trendRaw, String trendNorm, Integer trendScore, Integer trendPeriodYears,
                                        String trendDataFrequency, String periodType, int periodStartYear, int periodEndYear,
                                        UUID releaseId) {
@@ -36,7 +35,6 @@ public class LawaTrendMultiYearRecordDto {
         this.longitude = longitude;
         this.indicatorRaw = indicatorRaw;
         this.indicatorNorm = indicatorNorm;
-        this.units = units;
         this.trendRaw = trendRaw;
         this.trendNorm = trendNorm;
         this.trendScore = trendScore;
@@ -62,8 +60,6 @@ public class LawaTrendMultiYearRecordDto {
     public void setIndicatorRaw(String indicatorRaw) { this.indicatorRaw = indicatorRaw; }
     public String getIndicatorNorm() { return indicatorNorm; }
     public void setIndicatorNorm(String indicatorNorm) { this.indicatorNorm = indicatorNorm; }
-    public String getUnits() { return units; }
-    public void setUnits(String units) { this.units = units; }
     public String getTrendRaw() { return trendRaw; }
     public void setTrendRaw(String trendRaw) { this.trendRaw = trendRaw; }
     public String getTrendNorm() { return trendNorm; }

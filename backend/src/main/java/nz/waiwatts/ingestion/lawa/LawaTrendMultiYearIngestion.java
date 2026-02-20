@@ -90,7 +90,6 @@ public class LawaTrendMultiYearIngestion {
             e.setLongitude(r.getLongitude());
             e.setIndicatorRaw(r.getIndicatorRaw());
             e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setUnits(r.getUnits());
             e.setTrendRaw(r.getTrendRaw());
             e.setTrendNorm(r.getTrendNorm());
             e.setTrendScore(r.getTrendScore());
@@ -160,7 +159,6 @@ public class LawaTrendMultiYearIngestion {
             e.setLongitude(r.getLongitude());
             e.setIndicatorRaw(r.getIndicatorRaw());
             e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setUnits(r.getUnits());
             e.setTrendRaw(r.getTrendRaw());
             e.setTrendNorm(r.getTrendNorm());
             e.setTrendScore(r.getTrendScore());

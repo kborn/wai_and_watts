@@ -35,7 +35,7 @@ public class LawaTrendMultiYearControllerTest {
         List<LawaTrendMultiYearRecordDto> payload = List.of(
                 new LawaTrendMultiYearRecordDto("arc-00036","Avondale @ Shadbolt","auckland",
                         new BigDecimal("-36.9232796"), new BigDecimal("174.69177898"),
-                        "E.coli","ECOLI","#/100 mL",
+                        "E.coli","ECOLI",
                         "Improving","IMPROVING", 3, 5, "monthly",
                         "HYDRO_NYR_WINDOW", 2020, 2024, relId)
         );
@@ -51,7 +51,6 @@ public class LawaTrendMultiYearControllerTest {
                 .andExpect(jsonPath("$[0].longitude").value(174.69177898))
                 .andExpect(jsonPath("$[0].indicatorRaw").value("E.coli"))
                 .andExpect(jsonPath("$[0].indicatorNorm").value("ECOLI"))
-                .andExpect(jsonPath("$[0].units").value("#/100 mL"))
                 .andExpect(jsonPath("$[0].trendRaw").value("Improving"))
                 .andExpect(jsonPath("$[0].trendNorm").value("IMPROVING"))
                 .andExpect(jsonPath("$[0].trendScore").value(3))
