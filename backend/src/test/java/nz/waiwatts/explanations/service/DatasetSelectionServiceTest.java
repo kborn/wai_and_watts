@@ -200,4 +200,80 @@ class DatasetSelectionServiceTest {
         assertEquals("UNSUPPORTED_CAPABILITY", result.getRefusalCategory());
         assertEquals("Dataset mbie.generation.annual does not support filter: indicator", result.getRefusalMessage());
     }
+
+    @Test
+    void deterministicallyPrefersAnnualWhenMbieCandidatesAreBothValidWithoutQuarterSignal() {
+        DatasetCatalog catalog = new DatasetCatalog();
+        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        LlmProperties properties = new LlmProperties();
+        properties.setProvider(LlmProvider.OPENAI);
+        properties.setModel("gpt-4.1");
+        properties.setApiKey("test-key");
+        properties.setBaseUrl("https://api.openai.com");
+
+        when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
+            .thenReturn("{\"candidates\": [\"mbie.generation.quarterly\", \"mbie.generation.annual\"]}");
+
+        DatasetSelectionService service = new DatasetSelectionService(
+            catalog,
+            client,
+            objectMapper,
+            properties
+        );
+
+        ExplanationRequest request = new ExplanationRequest(
+            "renewable_generation_trend",
+            null,
+            Map.of("startYear", 2020, "endYear", 2024)
+        );
+
+        DatasetSelectionService.DatasetSelectionResult result = service.selectDataset(
+            "How has renewable generation changed over time?",
+            request
+        );
+
+        assertTrue(result.isSelected());
+        assertEquals("mbie.generation.annual", result.getDatasetSource());
+        assertEquals(DatasetSelectionService.DatasetSelectionStrategy.LLM_CANDIDATES, result.getStrategy());
+    }
+
+    @Test
+    void deterministicallyPrefersQuarterlyWhenQuestionContainsQuarterSignal() {
+        DatasetCatalog catalog = new DatasetCatalog();
+        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        LlmProperties properties = new LlmProperties();
+        properties.setProvider(LlmProvider.OPENAI);
+        properties.setModel("gpt-4.1");
+        properties.setApiKey("test-key");
+        properties.setBaseUrl("https://api.openai.com");
+
+        when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
+            .thenReturn("{\"candidates\": [\"mbie.generation.annual\", \"mbie.generation.quarterly\"]}");
+
+        DatasetSelectionService service = new DatasetSelectionService(
+            catalog,
+            client,
+            objectMapper,
+            properties
+        );
+
+        ExplanationRequest request = new ExplanationRequest(
+            "renewable_generation_trend",
+            null,
+            Map.of("startYear", 2020, "endYear", 2024)
+        );
+
+        DatasetSelectionService.DatasetSelectionResult result = service.selectDataset(
+            "How has renewable generation changed each quarter?",
+            request
+        );
+
+        assertTrue(result.isSelected());
+        assertEquals("mbie.generation.quarterly", result.getDatasetSource());
+        assertEquals(DatasetSelectionService.DatasetSelectionStrategy.LLM_CANDIDATES, result.getStrategy());
+    }
 }

@@ -16,15 +16,20 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class DatasetSelectionService {
 
     private static final Logger log = LoggerFactory.getLogger(DatasetSelectionService.class);
+    private static final Pattern QUARTER_SIGNAL_PATTERN = Pattern.compile(
+        "(?i)\\bquarter(?:ly)?\\b|\\bq[1-4]\\b"
+    );
 
     private final DatasetCatalog datasetCatalog;
     private final OpenAiResponseClient client;
@@ -106,12 +111,24 @@ public class DatasetSelectionService {
             );
         }
 
-        for (String candidate : (clamped.isEmpty() ? candidates : clamped)) {
+        List<String> evaluatedCandidates = clamped.isEmpty() ? candidates : clamped;
+        List<DatasetSelectionResult> verifiedSelections = new ArrayList<>();
+        for (String candidate : evaluatedCandidates) {
             DatasetSelectionResult verified = verifyCandidate(request, candidate);
             if (verified.isSelected()) {
-                verified.setCandidates(candidates);
-                return verified;
+                verifiedSelections.add(verified);
             }
+        }
+
+        if (verifiedSelections.size() == 1) {
+            DatasetSelectionResult selected = verifiedSelections.getFirst();
+            selected.setCandidates(candidates);
+            return selected;
+        }
+        if (verifiedSelections.size() > 1) {
+            DatasetSelectionResult selected = selectDeterministicCandidate(verifiedSelections, group, question);
+            selected.setCandidates(candidates);
+            return selected;
         }
 
         return DatasetSelectionResult.refusal(
@@ -352,6 +369,45 @@ public class DatasetSelectionService {
             case LAWA_TREND -> "Parsed a LAWA trend question, but selected a non-trend dataset.";
             default -> "Parsed question is incompatible with dataset " + datasetSource + ".";
         };
+    }
+
+    private DatasetSelectionResult selectDeterministicCandidate(
+        List<DatasetSelectionResult> verifiedSelections,
+        QuestionTypeGroup group,
+        String question
+    ) {
+        if (group == QuestionTypeGroup.MBIE) {
+            boolean quarterSignal = hasQuarterSignal(question);
+            String preferred = quarterSignal ? "mbie.generation.quarterly" : "mbie.generation.annual";
+            Optional<DatasetSelectionResult> preferredMatch = verifiedSelections.stream()
+                .filter(result -> preferred.equalsIgnoreCase(result.getDatasetSource()))
+                .findFirst();
+            if (preferredMatch.isPresent()) {
+                DatasetSelectionResult result = preferredMatch.get();
+                return DatasetSelectionResult.selected(
+                    result.getDatasetSource(),
+                    "Deterministic MBIE tie-breaker applied: "
+                        + (quarterSignal ? "quarter signal -> quarterly dataset." : "no quarter signal -> annual dataset."),
+                    DatasetSelectionStrategy.LLM_CANDIDATES
+                );
+            }
+        }
+
+        DatasetSelectionResult fallback = verifiedSelections.stream().min(Comparator.comparing(result -> result.getDatasetSource().toLowerCase(Locale.ROOT)))
+            .orElseThrow();
+
+        return DatasetSelectionResult.selected(
+            fallback.getDatasetSource(),
+            "Deterministic tie-breaker applied: lexicographic datasetSource order.",
+            DatasetSelectionStrategy.LLM_CANDIDATES
+        );
+    }
+
+    private boolean hasQuarterSignal(String question) {
+        if (question == null || question.isBlank()) {
+            return false;
+        }
+        return QUARTER_SIGNAL_PATTERN.matcher(question).find();
     }
 
     private enum QuestionTypeGroup {
