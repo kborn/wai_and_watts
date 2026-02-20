@@ -37,7 +37,7 @@ Refusal is correct behavior.
   - Shares / thresholds: “When did renewables exceed 80% of total?”
 
 > **Guardrail:** The system must not answer a different question “as if” it answered the user’s question.
-> If the user asks for a derived analytic (ranking/argmax/share/threshold) and the Fact Pack does not include that computed result, the correct outcome is refusal (`CAPABILITY_UNSUPPORTED`) or a structured “limitations” response with explicit refusal to compute.
+> If the user asks for a derived analytic (ranking/argmax/share/threshold) and the Fact Pack does not include that computed result, the correct outcome is refusal (`UNSUPPORTED_CAPABILITY`) or a structured “limitations” response with explicit refusal to compute.
 
 ---
 
@@ -59,7 +59,7 @@ Pass criteria:
 - Supported prompts that refuse must be limited to:
   - `MISSING_REQUIRED_FILTERS`
   - `UNABLE_TO_PARSE` (rare; investigate if >5%)
-- **Unsupported prompts:** ≥ **95%** refuse with `UNSUPPORTED_INTENT` (or `CAPABILITY_UNSUPPORTED` for Phase-16-style derived analytics prompts).
+- **Unsupported prompts:** ≥ **95%** refuse with `UNSUPPORTED_INTENT` (or `UNSUPPORTED_CAPABILITY` for Phase-16-style derived analytics prompts).
 
 ### Gate C — Determinism / Repeatability (stability gate)
 Run the Generated Pattern Panel **3 times** (fresh app start each run).
@@ -99,7 +99,7 @@ That keeps the test future-proof and avoids “supporting 10 magic questions for
 ### Required refusal codes (stable)
 - `UNSUPPORTED_INTENT`
 - `UNABLE_TO_PARSE`
-- `CAPABILITY_UNSUPPORTED`
+- `UNSUPPORTED_CAPABILITY`
 - `DATASET_MISMATCH`
 - `MISSING_REQUIRED_FILTERS`
 
@@ -118,7 +118,7 @@ This rubric assumes the following Phase 15 hardening targets are implemented:
 - When builders declare required citations, ordering/selection must be stable to avoid random pass/fail.
 
 3) **Derived-analytics refusal triggers**
-- Prompts requesting ranking/argmax/share/threshold must refuse as `CAPABILITY_UNSUPPORTED` unless Fact Packs explicitly include those derived results.
+- Prompts requesting ranking/argmax/share/threshold must refuse as `UNSUPPORTED_CAPABILITY` unless Fact Packs explicitly include those derived results.
 
 ---
 

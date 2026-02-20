@@ -99,7 +99,7 @@ class IntentParserServiceImplTest {
         IntentParseResponse response = service.parseQuestion("Which fuel has grown the most since 2005?");
 
         assertFalse(response.isOk());
-        assertEquals("CAPABILITY_UNSUPPORTED", response.getRefusal().getCategory());
+        assertEquals("UNSUPPORTED_CAPABILITY", response.getRefusal().getCategory());
         assertEquals("LLM", response.getParserUsed());
         verifyNoInteractions(llmParser);
     }

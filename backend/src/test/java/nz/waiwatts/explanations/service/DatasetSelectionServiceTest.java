@@ -90,7 +90,7 @@ class DatasetSelectionServiceTest {
         );
 
         assertFalse(result.isSelected());
-        assertEquals("CAPABILITY_UNSUPPORTED", result.getRefusalCategory());
+        assertEquals("UNSUPPORTED_CAPABILITY", result.getRefusalCategory());
     }
 
     @Test
@@ -197,7 +197,7 @@ class DatasetSelectionServiceTest {
 
         assertFalse(result.isSelected());
         assertEquals(DatasetSelectionService.DatasetSelectionStrategy.EXPLICIT, result.getStrategy());
-        assertEquals("CAPABILITY_UNSUPPORTED", result.getRefusalCategory());
+        assertEquals("UNSUPPORTED_CAPABILITY", result.getRefusalCategory());
         assertEquals("Dataset mbie.generation.annual does not support filter: indicator", result.getRefusalMessage());
     }
 }

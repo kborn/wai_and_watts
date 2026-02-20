@@ -17,7 +17,7 @@ in separate Builder sessions.
 ## Task 1.1 --- Canonicalize Refusal Code Taxonomy
 
 Objective: Unify refusal code spelling and eliminate dual usage (e.g.,
-CAPABILITY_UNSUPPORTED vs UNSUPPORTED_CAPABILITY).
+UNSUPPORTED_CAPABILITY vs UNSUPPORTED_CAPABILITY).
 
 Scope: - DatasetSelectionService - RequestValidationService -
 ExplanationController refusal mapping - Related tests
