@@ -39,6 +39,10 @@ download → transform → ingest (CLI) → start backend → validate APIs
 
 - `docs/validation/PHASE10_OPERATOR_TEST_DRIVE.md`
 
+**5-minute demo walkthrough:**
+
+- `DEMO.md`
+
 ## Quick Start
 
 1. **Prerequisites**
