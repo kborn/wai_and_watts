@@ -789,9 +789,8 @@ safety patterns remain unchanged.
 
 
 ## Phase 15 — Polish & Presentation (Portfolio-Ready)
-Goal: Make the repo recruiter-friendly and easy to run/demo.
+Goal: Converge architecture and polish project for portfolio readiness.
 
-### Current Status: PLANNING
 
 ### Strategy
 1. **Tier 0: Code Completeness** — Resolve all code changes first (General TODOs)
@@ -886,11 +885,12 @@ Definition of Done
 
 
 #### High level code review
-- [ ] High level but thorough review of backend architecture and implementation for 'sane-ness'
-  - [ ] Validate implementation matches expectations for a senior engineer
-  - [ ] Replace Java logic with SQL where possible
-- [ ] High level but thorough review of frontend architecture and implementation for 'sane-ness'
-  - [ ] Validate implementation matches expectations for a senior engineer
+- [x] High level but thorough review of backend architecture and implementation for 'sane-ness'
+  - [x] write output to docs/phase-notes/phase15/phase15_architectural_review_findings.md 
+- [x] High level but thorough review of frontend architecture and implementation for 'sane-ness'
+  - [x] write output to docs/phase-notes/phase15/phase15_architectural_review_findings.md
+- [x] Synthesize phase15_architectural_remediation_plan.md into a remediation plan (docs/phase-notes/phase15/phase15_architectural_remediation_plan.md)
+- [ ] Execute Phase 15 Architectural Remediation Plan (chronological plan)
 
 ### Feature Usage Review
 - [ ] Validate intention of version in endpoint
