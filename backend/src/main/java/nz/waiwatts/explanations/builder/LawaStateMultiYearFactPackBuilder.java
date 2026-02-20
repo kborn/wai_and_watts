@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
+import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 
@@ -42,7 +43,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
 
         // Get records for facts and derive provenance from them (Phase 11 acceptable)
-        List<LawaStateMultiYearRecord> records = getRecordsForRequest(request);
+        List<LawaStateMultiYearRecord> records = pinToCanonicalRelease(getRecordsForRequest(request));
         if (!records.isEmpty()) {
             // Group by dataset release to ensure correct contentHash and per-release coverage
             // Use a stable string key: prefer UUID string, else contentHash, else "unknown"
@@ -144,6 +145,58 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
         String indicatorForQuery = regionFilter == null ? null : indicatorFilter;
         return repository.findForReadApi(startYear, endYear, indicatorForQuery, regionFilter);
+    }
+
+    private List<LawaStateMultiYearRecord> pinToCanonicalRelease(List<LawaStateMultiYearRecord> records) {
+        if (records == null || records.isEmpty()) {
+            return records == null ? List.of() : records;
+        }
+
+        // Deterministic release pinning for ask: choose one canonical release.
+        Optional<DatasetRelease> canonicalRelease = records.stream()
+            .map(LawaStateMultiYearRecord::getDatasetRelease)
+            .filter(Objects::nonNull)
+            .max(
+                Comparator.comparing(
+                        DatasetRelease::getImportedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    )
+                    .thenComparing(
+                        DatasetRelease::getRetrievedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    )
+                    .thenComparing(
+                        DatasetRelease::getCreatedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    )
+                    .thenComparing(
+                        DatasetRelease::getContentHash,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    )
+                    .thenComparing(
+                        release -> release.getId() != null ? release.getId().toString() : "",
+                        Comparator.naturalOrder()
+                    )
+            );
+
+        if (canonicalRelease.isEmpty()) {
+            return records;
+        }
+
+        DatasetRelease target = canonicalRelease.get();
+        return records.stream()
+            .filter(record -> isSameRelease(record.getDatasetRelease(), target))
+            .toList();
+    }
+
+    private boolean isSameRelease(DatasetRelease left, DatasetRelease right) {
+        if (left == null || right == null) {
+            return false;
+        }
+        if (left.getId() != null && right.getId() != null) {
+            return left.getId().equals(right.getId());
+        }
+        return Objects.equals(left.getContentHash(), right.getContentHash());
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaStateMultiYearRecord> records) {

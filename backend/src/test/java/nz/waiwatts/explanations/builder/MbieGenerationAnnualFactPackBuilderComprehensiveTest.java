@@ -257,9 +257,48 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
         assertEquals("2022-2023", provenance.getPeriodCoverage());
     }
 
+    @Test
+    void testPinsToSingleCanonicalReleaseForAsk() {
+        ExplanationRequest request = new ExplanationRequest(
+            "hydro_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
+        );
+
+        DatasetRelease olderRelease = new DatasetRelease();
+        olderRelease.setId(UUID.randomUUID());
+        olderRelease.setDatasetSource(datasetSource);
+        olderRelease.setContentHash("sha256:older");
+        olderRelease.setRetrievedAt(LocalDateTime.of(2024, 1, 1, 0, 0));
+        olderRelease.setImportedAt(LocalDateTime.of(2024, 1, 1, 0, 0));
+        olderRelease.setStatus(ReleaseStatus.IMPORTED);
+
+        DatasetRelease newerRelease = new DatasetRelease();
+        newerRelease.setId(UUID.randomUUID());
+        newerRelease.setDatasetSource(datasetSource);
+        newerRelease.setContentHash("sha256:newer");
+        newerRelease.setRetrievedAt(LocalDateTime.of(2025, 1, 1, 0, 0));
+        newerRelease.setImportedAt(LocalDateTime.of(2025, 1, 1, 0, 0));
+        newerRelease.setStatus(ReleaseStatus.IMPORTED);
+
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(List.of(
+            createRecord(2022, "HYDRO", new BigDecimal("25000"), olderRelease),
+            createRecord(2023, "HYDRO", new BigDecimal("26000"), newerRelease)
+        ));
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertEquals(1, factPack.getProvenance().getDatasetSources().size());
+        assertEquals(newerRelease.getId().toString(), factPack.getProvenance().getDatasetSources().getFirst().getDatasetReleaseId());
+        assertEquals("sha256:newer", factPack.getProvenance().getDatasetSources().getFirst().getContentHash());
+    }
+
     private MbieGenerationAnnualRecord createRecord(int year, String fuelType, BigDecimal generation) {
+        return createRecord(year, fuelType, generation, datasetRelease);
+    }
+
+    private MbieGenerationAnnualRecord createRecord(int year, String fuelType, BigDecimal generation, DatasetRelease release) {
         MbieGenerationAnnualRecord record = new MbieGenerationAnnualRecord();
-        record.setDatasetRelease(datasetRelease);
+        record.setDatasetRelease(release);
         record.setPeriodYear(year);
         record.setFuelTypeRaw(fuelType);
         record.setFuelTypeNorm(fuelType);
