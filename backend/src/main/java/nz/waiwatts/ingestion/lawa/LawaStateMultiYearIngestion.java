@@ -21,6 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -94,7 +95,7 @@ public class LawaStateMultiYearIngestion {
             e.setDatasetRelease(release);
             e.setLawaSiteId(r.getLawaSiteId());
             e.setSiteName(r.getSiteName());
-            e.setRegion(r.getRegion());
+            e.setRegion(normalizeRegion(r.getRegion()));
             e.setLatitude(r.getLatitude());
             e.setLongitude(r.getLongitude());
             e.setIndicatorRaw(r.getIndicatorRaw());
@@ -165,7 +166,7 @@ public class LawaStateMultiYearIngestion {
             e.setDatasetRelease(release);
             e.setLawaSiteId(r.getLawaSiteId());
             e.setSiteName(r.getSiteName());
-            e.setRegion(r.getRegion());
+            e.setRegion(normalizeRegion(r.getRegion()));
             e.setLatitude(r.getLatitude());
             e.setLongitude(r.getLongitude());
             e.setIndicatorRaw(r.getIndicatorRaw());
@@ -215,5 +216,9 @@ public class LawaStateMultiYearIngestion {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 not available", e);
         }
+    }
+
+    private static String normalizeRegion(String region) {
+        return region == null ? null : region.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 }

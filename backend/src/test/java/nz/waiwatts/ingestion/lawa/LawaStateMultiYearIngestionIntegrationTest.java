@@ -112,6 +112,8 @@ class LawaStateMultiYearIngestionIntegrationTest {
         // Verify domain records were created and linked
         List<LawaStateMultiYearRecord> records = recordRepository.findByDatasetReleaseId(releaseId);
         assertThat(records).hasSize(2); // 2 rows in test file
+        assertThat(records).extracting(LawaStateMultiYearRecord::getRegion)
+                .containsExactlyInAnyOrder("hawke's bay", "waikato");
 
         // Cleanup
         Files.deleteIfExists(tempFile);
