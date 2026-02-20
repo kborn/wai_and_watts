@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -442,10 +443,47 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         }
     }
 
+    @Test
+    void testPinsToSingleCanonicalReleaseForAsk() {
+        DatasetRelease olderRelease = createDatasetRelease("sha256:mbie_quarterly_old", LocalDateTime.of(2024, 1, 1, 0, 0));
+        DatasetRelease newerRelease = createDatasetRelease("sha256:mbie_quarterly_new", LocalDateTime.of(2025, 1, 1, 0, 0));
+
+        MbieGenerationQuarterlyRecord olderRecord = new MbieGenerationQuarterlyRecord();
+        olderRecord.setDatasetRelease(olderRelease);
+        olderRecord.setPeriodYear(2023);
+        olderRecord.setPeriodQuarter(1);
+        olderRecord.setFuelTypeNorm("HYDRO");
+        olderRecord.setGenerationGwh(new BigDecimal("6500"));
+
+        MbieGenerationQuarterlyRecord newerRecord = new MbieGenerationQuarterlyRecord();
+        newerRecord.setDatasetRelease(newerRelease);
+        newerRecord.setPeriodYear(2023);
+        newerRecord.setPeriodQuarter(2);
+        newerRecord.setFuelTypeNorm("HYDRO");
+        newerRecord.setGenerationGwh(new BigDecimal("7000"));
+
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(olderRecord, newerRecord));
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("hydro_generation_trend");
+        request.setFilters(Map.of("datasetSource", "mbie.generation.quarterly"));
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertEquals(1, factPack.getProvenance().getDatasetSources().size());
+        assertEquals("sha256:mbie_quarterly_new", factPack.getProvenance().getDatasetSources().getFirst().getContentHash());
+    }
+
     private DatasetRelease createDatasetRelease() {
+        return createDatasetRelease("sha256:mbie_quarterly123def456", LocalDateTime.of(2025, 1, 1, 0, 0));
+    }
+
+    private DatasetRelease createDatasetRelease(String contentHash, LocalDateTime importedAt) {
         DatasetRelease release = new DatasetRelease();
-        release.setContentHash("sha256:mbie_quarterly123def456");
+        release.setContentHash(contentHash);
         release.setPublishedDate(LocalDate.now());
+        release.setRetrievedAt(importedAt);
+        release.setImportedAt(importedAt);
         return release;
     }
 }

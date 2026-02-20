@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -569,10 +570,55 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         assertTrue(metricRegionCount <= 4);
     }
 
+    @Test
+    void testPinsToSingleCanonicalReleaseForAsk() {
+        DatasetRelease olderRelease = createDatasetRelease("sha256:lawa_trend_old", LocalDateTime.of(2024, 1, 1, 0, 0));
+        DatasetRelease newerRelease = createDatasetRelease("sha256:lawa_trend_new", LocalDateTime.of(2025, 1, 1, 0, 0));
+
+        LawaTrendMultiYearRecord olderRecord = new LawaTrendMultiYearRecord();
+        olderRecord.setLawaSiteId("SITE001");
+        olderRecord.setRegion("Canterbury");
+        olderRecord.setTrendNorm("IMPROVING");
+        olderRecord.setTrendScore(2);
+        olderRecord.setTrendPeriodYears(10);
+        olderRecord.setPeriodType("HYDRO_NYR_WINDOW");
+        olderRecord.setPeriodStartYear(2019);
+        olderRecord.setPeriodEndYear(2023);
+        olderRecord.setDatasetRelease(olderRelease);
+
+        LawaTrendMultiYearRecord newerRecord = new LawaTrendMultiYearRecord();
+        newerRecord.setLawaSiteId("SITE002");
+        newerRecord.setRegion("Canterbury");
+        newerRecord.setTrendNorm("IMPROVING");
+        newerRecord.setTrendScore(2);
+        newerRecord.setTrendPeriodYears(10);
+        newerRecord.setPeriodType("HYDRO_NYR_WINDOW");
+        newerRecord.setPeriodStartYear(2019);
+        newerRecord.setPeriodEndYear(2024);
+        newerRecord.setDatasetRelease(newerRelease);
+
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(olderRecord, newerRecord));
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("improving_sites_trend");
+        request.setFilters(Map.of("datasetSource", "lawa.water_quality.trend.multi_year"));
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertEquals(1, factPack.getProvenance().getDatasetSources().size());
+        assertEquals("sha256:lawa_trend_new", factPack.getProvenance().getDatasetSources().getFirst().getContentHash());
+    }
+
     private DatasetRelease createDatasetRelease() {
+        return createDatasetRelease("sha256:lawa_trend123def456", LocalDateTime.of(2025, 1, 1, 0, 0));
+    }
+
+    private DatasetRelease createDatasetRelease(String contentHash, LocalDateTime importedAt) {
         DatasetRelease release = new DatasetRelease();
-        release.setContentHash("sha256:lawa_trend123def456");
+        release.setContentHash(contentHash);
         release.setPublishedDate(LocalDate.now());
+        release.setRetrievedAt(importedAt);
+        release.setImportedAt(importedAt);
         return release;
     }
 }
