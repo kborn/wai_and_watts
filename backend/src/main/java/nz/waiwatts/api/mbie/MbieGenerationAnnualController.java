@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Versioned public API controller under /api/v1.
+ */
 @RestController
 @RequestMapping("/api/v1/mbie")
 public class MbieGenerationAnnualController {

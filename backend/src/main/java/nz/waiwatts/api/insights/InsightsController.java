@@ -2,6 +2,7 @@ package nz.waiwatts.api.insights;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.file.Files;
@@ -10,9 +11,10 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 /**
- * API controller for returning curated insights.
+ * Versioned public API controller under /api/v1 for curated insights.
  */
 @RestController
+@RequestMapping("/api/v1")
 public class InsightsController {
 
     /**
@@ -20,7 +22,7 @@ public class InsightsController {
      * 
      * @return insights content as JSON with markdown field
      */
-    @GetMapping("/api/v1/insights")
+    @GetMapping("/insights")
     public ResponseEntity<Map<String, Object>> getInsights() {
         try {
             // Read Insights.md from project root (one level up from backend)

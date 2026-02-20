@@ -62,6 +62,12 @@ download → transform → ingest (CLI) → start backend → validate APIs
 - The backend server **IS required** for post-ingestion API validation (curl examples in the test drive).
 - Internal ingestion endpoints (dev/test) are not operator workflows and should not be referenced in operator docs.
 
+## API versioning policy
+
+- Public endpoints are versioned under `/api/v1/...`.
+- `v1` is the current stable contract prefix; route changes that break compatibility require a new major prefix (for example, `/api/v2/...`).
+- Internal/dev-only routes, when present, must be explicitly namespaced under `/api/v1/internal/...` and are not public API contracts.
+
 ## Supported datasets (Phase 10)
 
 - `mbie.generation.annual`

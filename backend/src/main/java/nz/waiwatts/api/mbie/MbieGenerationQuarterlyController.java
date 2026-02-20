@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Versioned public API controller under /api/v1.
+ */
 @RestController
 @RequestMapping("/api/v1/mbie")
 public class MbieGenerationQuarterlyController {
