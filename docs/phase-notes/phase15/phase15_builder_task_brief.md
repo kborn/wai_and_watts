@@ -77,7 +77,7 @@ Some prompts requesting ranking/argmax/share/threshold are mapped into a support
 
 ### Target behavior
 If the user asks for a derived analytic that is not explicitly present in Fact Packs:
-- refuse with `CAPABILITY_UNSUPPORTED`
+- refuse with `UNSUPPORTED_CAPABILITY`
 - do not answer a different question “as if” answered
 
 ### Examples to detect
@@ -86,7 +86,7 @@ If the user asks for a derived analytic that is not explicitly present in Fact P
 - "% of total", "share", "exceed", "threshold", "> 80%"
 
 ### Tests
-- Unit test: intent validation rejects derived-analytics prompts as CAPABILITY_UNSUPPORTED
+- Unit test: intent validation rejects derived-analytics prompts as UNSUPPORTED_CAPABILITY
 - End-to-end: those prompts do not return a trend answer
 
 ---

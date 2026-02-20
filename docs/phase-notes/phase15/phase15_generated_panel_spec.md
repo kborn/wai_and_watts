@@ -113,11 +113,11 @@ For each non-refusal:
 
 For each refusal:
 - `isRefusal=true`
-- refusal code ∈ {UNSUPPORTED_INTENT, UNABLE_TO_PARSE, CAPABILITY_UNSUPPORTED, DATASET_MISMATCH, MISSING_REQUIRED_FILTERS}
+- refusal code ∈ {UNSUPPORTED_INTENT, UNABLE_TO_PARSE, UNSUPPORTED_CAPABILITY, DATASET_MISMATCH, MISSING_REQUIRED_FILTERS}
 
 ### Panel-level thresholds
 - Supported prompts: ≥70% answered
-- Unsupported prompts: ≥95% refused as `UNSUPPORTED_INTENT` or `CAPABILITY_UNSUPPORTED`
+- Unsupported prompts: ≥95% refused as `UNSUPPORTED_INTENT` or `UNSUPPORTED_CAPABILITY`
 - Across 3 runs: outcome class stable; no INTERNAL_ERROR
 
 ---

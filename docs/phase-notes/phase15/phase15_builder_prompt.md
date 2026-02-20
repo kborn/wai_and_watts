@@ -38,7 +38,7 @@ The harness must:
 - Unit tests added for each patch
 - Harness runs locally and evaluator passes after fixes
 - No INTERNAL_ERROR in harness output
-- Derived analytics prompts refuse as CAPABILITY_UNSUPPORTED
+- Derived analytics prompts refuse as UNSUPPORTED_CAPABILITY
 - Documentation updated (if needed) without changing authority model
 
 ## Escalation

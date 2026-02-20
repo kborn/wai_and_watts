@@ -99,7 +99,7 @@ public class DatasetSelectionService {
                 );
             }
             return DatasetSelectionResult.refusal(
-                "CAPABILITY_UNSUPPORTED",
+                "UNSUPPORTED_CAPABILITY",
                 "No candidate datasets match the parsed question type.",
                 DatasetSelectionStrategy.LLM_CANDIDATES,
                 candidates
@@ -156,7 +156,7 @@ public class DatasetSelectionService {
         Optional<DatasetDescriptor> descriptor = datasetCatalog.findBySource(datasetSource);
         if (descriptor.isEmpty()) {
             return DatasetSelectionResult.refusal(
-                "CAPABILITY_UNSUPPORTED",
+                "UNSUPPORTED_CAPABILITY",
                 "Dataset not found in catalog.",
                 DatasetSelectionStrategy.LLM_CANDIDATES,
                 List.of(datasetSource)
@@ -167,19 +167,19 @@ public class DatasetSelectionService {
         String questionType = request != null ? request.getQuestionType() : null;
         if (questionType == null || !ds.supportedQuestionTypes().contains(questionType)) {
             return DatasetSelectionResult.refusal(
-                "CAPABILITY_UNSUPPORTED",
+                "UNSUPPORTED_CAPABILITY",
                 "Dataset " + datasetSource + " does not support " + questionType + ".",
                 DatasetSelectionStrategy.LLM_CANDIDATES,
                 List.of(datasetSource)
             );
         }
 
-        Map<String, Object> filters = request != null ? request.getFilters() : null;
+        Map<String, Object> filters = request.getFilters();
         if (filters != null) {
             for (String key : filters.keySet()) {
                 if (!ds.supportedFilters().contains(key)) {
                     return DatasetSelectionResult.refusal(
-                        "CAPABILITY_UNSUPPORTED",
+                        "UNSUPPORTED_CAPABILITY",
                         "Dataset " + datasetSource + " does not support filter: " + key,
                         DatasetSelectionStrategy.LLM_CANDIDATES,
                         List.of(datasetSource)

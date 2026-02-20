@@ -106,7 +106,7 @@ Status: Unresolved
 Category: Improvement
 Location: backend/src/main/java/nz/waiwatts/explanations/service/DatasetSelectionService.java:84 — Class `DatasetSelectionService`, method `selectDataset(String, ExplanationRequest)`
 Description:
-refusal code taxonomy is inconsistent (`UNSUPPORTED_CAPABILITY` and `CAPABILITY_UNSUPPORTED` both used in same class), which increases contract drift risk in `/ask` responses.
+refusal code taxonomy is inconsistent (`UNSUPPORTED_CAPABILITY` and `UNSUPPORTED_CAPABILITY` both used in same class), which increases contract drift risk in `/ask` responses.
 Status: Unresolved
 
 ### Finding A2-04
@@ -150,7 +150,7 @@ Status: Unresolved
 Category: Question
 Location: backend/src/main/java/nz/waiwatts/explanations/service/DatasetSelectionService.java:84 — Class `DatasetSelectionService`, method `selectDataset(String, ExplanationRequest)`
 Description:
-which refusal code spelling is canonical for unsupported capability (`UNSUPPORTED_CAPABILITY` vs `CAPABILITY_UNSUPPORTED`)?
+which refusal code spelling is canonical for unsupported capability (`UNSUPPORTED_CAPABILITY` vs `UNSUPPORTED_CAPABILITY`)?
 Status: Unresolved
 
 ### Finding A2-10
@@ -362,7 +362,7 @@ Status: Unresolved
 Category: Improvement
 Location: backend/src/test/java/nz/waiwatts/explanations/service/DatasetSelectionServiceTest.java:92 — Class `DatasetSelectionServiceTest`, method `refusesInvalidCandidate()`
 Description:
-expects `CAPABILITY_UNSUPPORTED`, while adjacent test expects `UNSUPPORTED_CAPABILITY` (`:130`), reflecting and normalizing refusal-code inconsistency instead of pinning a single canonical code.
+expects `UNSUPPORTED_CAPABILITY`, while adjacent test expects `UNSUPPORTED_CAPABILITY` (`:130`), reflecting and normalizing refusal-code inconsistency instead of pinning a single canonical code.
 Status: Unresolved
 
 ### Finding A5-04
