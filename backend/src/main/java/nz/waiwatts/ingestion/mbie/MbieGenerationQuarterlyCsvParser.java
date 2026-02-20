@@ -1,5 +1,6 @@
 package nz.waiwatts.ingestion.mbie;
 
+import nz.waiwatts.ingestion.util.AbstractCsvParser;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -9,12 +10,11 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Component
-public class MbieGenerationQuarterlyCsvParser implements MbieGenerationQuarterlyParser {
+public class MbieGenerationQuarterlyCsvParser extends AbstractCsvParser implements MbieGenerationQuarterlyParser {
 
     @Override
     public List<MbieGenerationQuarterlyParsedRecord> parse(InputStream input) throws IOException {
@@ -29,7 +29,7 @@ public class MbieGenerationQuarterlyCsvParser implements MbieGenerationQuarterly
             while ((line = reader.readLine()) != null) {
                 lineNo++;
                 if (line.isBlank()) continue;
-                String[] parts = splitCsv(line);
+                String[] parts = splitCsvLine(line);
                 if (isRowBlank(parts)) {
                     continue;
                 }
@@ -54,73 +54,13 @@ public class MbieGenerationQuarterlyCsvParser implements MbieGenerationQuarterly
         return result;
     }
 
-    private static String[] splitCsv(String line) {
+    @Override
+    protected String[] splitCsvLine(String line) {
         String[] parts = line.split(",", -1);
         for (int i = 0; i < parts.length; i++) {
             parts[i] = parts[i].trim();
         }
         return parts;
-    }
-
-    private static Map<String, Integer> parseHeader(String line, List<String> required) throws IOException {
-        String[] headerParts = splitCsv(line);
-        if (headerParts.length == 0) {
-            throw new IOException("Missing CSV header");
-        }
-        headerParts[0] = stripBom(headerParts[0]);
-        Map<String, Integer> index = new HashMap<>();
-        for (int i = 0; i < headerParts.length; i++) {
-            String key = normalizeHeader(headerParts[i]);
-            if (!key.isEmpty() && !index.containsKey(key)) {
-                index.put(key, i);
-            }
-        }
-        List<String> missing = new ArrayList<>();
-        for (String col : required) {
-            if (!index.containsKey(col)) {
-                missing.add(col);
-            }
-        }
-        if (!missing.isEmpty()) {
-            throw new IOException("Missing required columns: " + String.join(", ", missing));
-        }
-        return index;
-    }
-
-    private static String getRequired(String[] parts, Map<String, Integer> index, String column, int lineNo) throws IOException {
-        Integer idx = index.get(column);
-        if (idx == null || idx >= parts.length) {
-            throw new IOException("Invalid CSV at line " + lineNo + ": missing column '" + column + "'");
-        }
-        return parts[idx].trim();
-    }
-
-    private static String getOptional(String[] parts, Map<String, Integer> index, String column) {
-        Integer idx = index.get(column);
-        if (idx == null || idx >= parts.length) {
-            return "";
-        }
-        return parts[idx] == null ? "" : parts[idx].trim();
-    }
-
-    private static boolean isRowBlank(String[] parts) {
-        for (String part : parts) {
-            if (part != null && !part.trim().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static String normalizeHeader(String header) {
-        return header == null ? "" : header.trim().toLowerCase();
-    }
-
-    private static String stripBom(String value) {
-        if (value != null && !value.isEmpty() && value.charAt(0) == '\uFEFF') {
-            return value.substring(1);
-        }
-        return value;
     }
 
     private static final List<String> REQUIRED_COLUMNS = List.of(

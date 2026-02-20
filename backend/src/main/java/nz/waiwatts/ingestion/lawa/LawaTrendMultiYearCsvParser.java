@@ -1,5 +1,6 @@
 package nz.waiwatts.ingestion.lawa;
 
+import nz.waiwatts.ingestion.util.AbstractCsvParser;
 import nz.waiwatts.ingestion.util.CsvParser;
 
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class LawaTrendMultiYearCsvParser implements LawaTrendMultiYearParser {
+public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements LawaTrendMultiYearParser {
 
     @Override
     public List<LawaTrendMultiYearParsedRecord> parse(InputStream input) throws IOException {
@@ -68,58 +69,9 @@ public class LawaTrendMultiYearCsvParser implements LawaTrendMultiYearParser {
         return result;
     }
 
-    private static Map<String, Integer> parseHeader(String line, List<String> required) throws IOException {
-        String[] headerParts = CsvParser.parseLineTrimmed(line);
-        if (headerParts.length == 0) {
-            throw new IOException("Missing CSV header");
-        }
-        headerParts[0] = stripBom(headerParts[0]);
-        Map<String, Integer> index = new HashMap<>();
-        for (int i = 0; i < headerParts.length; i++) {
-            String key = normalizeHeader(headerParts[i]);
-            if (!key.isEmpty() && !index.containsKey(key)) {
-                index.put(key, i);
-            }
-        }
-        List<String> missing = new ArrayList<>();
-        for (String col : required) {
-            if (!index.containsKey(col)) {
-                missing.add(col);
-            }
-        }
-        if (!missing.isEmpty()) {
-            throw new IOException("Missing required columns: " + String.join(", ", missing));
-        }
-        return index;
-    }
-
-    private static String getRequired(String[] parts, Map<String, Integer> index, String column, int lineNo) throws IOException {
-        Integer idx = index.get(column);
-        if (idx == null || idx >= parts.length) {
-            throw new IOException("Invalid CSV at line " + lineNo + ": missing column '" + column + "'");
-        }
-        return parts[idx].trim();
-    }
-
-    private static String getOptional(String[] parts, Map<String, Integer> index, String column) {
-        Integer idx = index.get(column);
-        if (idx == null || idx >= parts.length) {
-            return "";
-        }
-        return parts[idx] == null ? "" : parts[idx].trim();
-    }
-
-    private static boolean isRowBlank(String[] parts) {
-        for (String part : parts) {
-            if (part != null && !part.trim().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static String normalizeHeader(String header) {
-        return header == null ? "" : header.trim().toLowerCase();
+    @Override
+    protected String[] splitCsvLine(String line) {
+        return CsvParser.parseLineTrimmed(line);
     }
 
     private static String normalizeIndicator(String indicatorRaw, String indicatorNormFromFile) {
@@ -148,27 +100,6 @@ public class LawaTrendMultiYearCsvParser implements LawaTrendMultiYearParser {
 
     private static String collapseWhitespace(String s) {
         return s.replaceAll("\\s+", " ");
-    }
-
-    private static BigDecimal parseBigDecimal(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        if (t.isEmpty()) return null;
-        return new BigDecimal(t);
-    }
-
-    private static Integer parseInteger(String s) {
-        if (s == null) return null;
-        String t = s.trim();
-        if (t.isEmpty()) return null;
-        return Integer.parseInt(t);
-    }
-
-    private static String stripBom(String s) {
-        if (s != null && !s.isEmpty() && s.charAt(0) == '\uFEFF') {
-            return s.substring(1);
-        }
-        return s;
     }
 
     private static final Map<String, String> INDICATOR_MAP = createIndicatorMap();
