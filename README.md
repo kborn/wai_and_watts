@@ -68,6 +68,13 @@ download → transform → ingest (CLI) → start backend → validate APIs
 - `v1` is the current stable contract prefix; route changes that break compatibility require a new major prefix (for example, `/api/v2/...`).
 - Internal/dev-only routes, when present, must be explicitly namespaced under `/api/v1/internal/...` and are not public API contracts.
 
+## `dataset_release` semantics
+
+- `dataset_release` is the lineage boundary for one ingested publisher artifact version.
+- Domain rows always link to exactly one `dataset_release_id`.
+- Read endpoints are release-transparent row APIs: they return stored rows and include `releaseId` on each row, rather than collapsing multiple releases into one synthesized aggregate.
+- Ask (`/api/v1/explanations/ask`) is release-pinned: Fact Pack builders deterministically select one canonical `dataset_release` per request before building facts/citations.
+
 ## Supported datasets (Phase 10)
 
 - `mbie.generation.annual`

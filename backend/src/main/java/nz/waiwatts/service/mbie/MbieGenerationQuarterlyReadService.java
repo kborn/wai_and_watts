@@ -6,6 +6,9 @@ import org.springframework.lang.Nullable;
 import java.util.List;
 
 public interface MbieGenerationQuarterlyReadService {
+    /**
+     * Returns persisted MBIE quarterly rows (release-transparent); each DTO carries its source releaseId.
+     */
     List<MbieGenerationQuarterlyRecordDto> find(@Nullable Integer fromYear,
                                                 @Nullable Integer toYear,
                                                 @Nullable Integer quarter,

@@ -6,6 +6,9 @@ import java.util.List;
 import org.springframework.lang.Nullable;
 
 public interface MbieGenerationAnnualReadService {
+    /**
+     * Returns persisted MBIE annual rows (release-transparent); each DTO carries its source releaseId.
+     */
     List<MbieGenerationAnnualRecordDto> find(@Nullable Integer fromYear,
                                              @Nullable Integer toYear,
                                              @Nullable String fuelType);
