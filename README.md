@@ -20,6 +20,15 @@ download → transform → ingest (CLI) → start backend → validate APIs
 - Raw telemetry ingestion and processing pipelines.
 - Autonomous AI code commits or AI-owned architectural decisions.
 
+## Architecture Evolution (Phases)
+
+- **Phases 1-5:** Established platform foundations, lineage-first modeling, ingestion lifecycle plumbing, and CI guardrails.
+- **Phases 6-9:** Added dataset-by-dataset ingestion expansion using the same lifecycle patterns (MBIE annual -> MBIE quarterly -> LAWA state -> LAWA trend) to prove extensibility without architectural reset.
+- **Phase 10:** Extended fixture-first ingestion into a real operator workflow (`download -> transform -> ingest`) while preserving contract-first parsing and idempotent release semantics.
+- **Phases 11-12:** Introduced grounded explanation architecture (Fact Pack boundary) and natural-language intent parsing as a constrained layer feeding the same backend-authoritative explanation pipeline.
+- **Phases 13-14C:** Added a thin frontend surface and UX/visualization polish over stable backend contracts, keeping domain/explanation authority on the backend.
+- **Phase 15 (current):** Focused on hardening, coverage, and presentation-quality convergence rather than architectural expansion.
+
 ## Start here
 
 **Canonical operator guide:**
