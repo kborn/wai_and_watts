@@ -892,6 +892,11 @@ Definition of Done
 - [x] Synthesize phase15_architectural_remediation_plan.md into a remediation plan (docs/phase-notes/phase15/phase15_architectural_remediation_plan.md)
 - [ ] Execute Phase 15 Architectural Remediation Plan (chronological plan)
 
+
+#### Tooling & Dependency Version Review
+- [ ] Perform an overall review of toolchain and dependency versions (JDK, Maven plugins, Spring Boot/BOM-managed dependencies, frontend toolchain) and document upgrade recommendations + risk level
+  - [ ] Address IDE warnings in pom.xml
+
 ### Feature Usage Review
 - [ ] Validate intention of version in endpoint
   - [ ] Are we using this feature as intended?
