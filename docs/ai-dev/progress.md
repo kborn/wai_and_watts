@@ -933,7 +933,13 @@ Definition of Done
 - [ ] Review current test coverage
   - [ ] Identify gaps in critical paths
   - [ ] Add tests for uncovered business logic
-
+- [ ] Add a Postgres-backed integration test 
+  - [ ] api serving sql queries
+  - [ ] /api/v1/explanations/ask that exercises nullable optional filters across MBIE and LAWA query paths, asserting no SQL grammar/type errors from JPQL bind parameters (e.g., LOWER/UPPER(:param) regressions). 
+    - [ ] Include cases where optional filter params are null and where case-insensitive text filters are provided (mixed case) to verify normalization + query behavior end-to-end.
+- [ ] Add data-release determinism integration test
+  - [ ] Seed multiple `dataset_release` versions for same dataset source
+  - [ ] Verify response is pinned to one canonical release (stable citations/provenance across repeated identical requests)
 ---
 
 ### Tier 1 — Must-Have Portfolio Narrative
