@@ -1,9 +1,5 @@
 package nz.waiwatts.api.datasets;
 
-import nz.waiwatts.domain.datasets.DatasetRelease;
-import nz.waiwatts.domain.datasets.DatasetSource;
-import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
-import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Versioned public API controller under /api/v1.
+ */
 @RestController
 @RequestMapping("/api/v1/datasets")
 public class DatasetCatalogController {

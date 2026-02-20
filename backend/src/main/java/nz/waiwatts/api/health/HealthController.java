@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * Global health endpoint for overall app liveness.
+ * Global health endpoint under /api/v1 for overall app liveness.
  */
 @RestController
 @RequestMapping("/api/v1")

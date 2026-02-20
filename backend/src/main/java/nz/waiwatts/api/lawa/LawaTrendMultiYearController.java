@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Versioned public API controller under /api/v1.
+ */
 @RestController
 @RequestMapping("/api/v1/lawa/water-quality")
 public class LawaTrendMultiYearController {

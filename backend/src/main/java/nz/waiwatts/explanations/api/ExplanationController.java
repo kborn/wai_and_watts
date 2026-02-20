@@ -25,6 +25,8 @@ import java.util.Map;
 /**
  * REST API controller for generating explanations from environmental data.
  * 
+ * Versioned public API controller under /api/v1.
+ *
  * Enforces structured question typing and prevents freeform chat prompts.
  * Only accepts question_type from supported classes and structured filters.
  */
