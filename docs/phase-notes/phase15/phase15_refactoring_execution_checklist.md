@@ -190,6 +190,14 @@ ambiguous error states.
 
 Objective: Clarify what Wai & Watts is and is not.
 
+Scope: - README.md only - Add Project Scope section - Add Non-Goals
+section - No restructuring of existing sections - No formatting
+overhaul
+
+Non-Scope: - Do not modify other documentation files - Do not rewrite
+README entirely - Do not adjust badges, formatting, or install
+instructions
+
 Definition of Done: - Scope section added. - Non-goals documented.
 
 ------------------------------------------------------------------------
@@ -198,6 +206,13 @@ Definition of Done: - Scope section added. - Non-goals documented.
 
 Objective: Explain architectural progression across phases.
 
+Scope: - README.md OR a new docs/architecture-evolution.md - Add
+narrative explaining progression across phases - Cross-reference
+existing phase numbers
+
+Non-Scope: - Do not edit progress.md - Do not change phase definitions
+- Do not reorganize docs folder
+
 Definition of Done: - Evolution documented clearly.
 
 ------------------------------------------------------------------------
@@ -205,6 +220,13 @@ Definition of Done: - Evolution documented clearly.
 ## Task 6.3 --- Add Demo Entry Point
 
 Objective: Create DEMO.md with curl examples and 5-minute walkthrough.
+
+Scope: - Create DEMO.md - Add local run instructions - Add example curl
+calls - Add example grounded LLM explanation - Add minimal linking from
+README
+
+Non-Scope: - Do not modify backend code - Do not change API contracts -
+Do not restructure README beyond linking DEMO.md
 
 Definition of Done: - Demo can be executed in \<5 minutes. - Example LLM
 explanation included.
