@@ -85,18 +85,7 @@ const MbieBrowsePage: React.FC = () => {
   }
 
   const handleExplainThis = () => {
-    const context =
-      viewType === 'annual'
-        ? 'Explain annual electricity generation data'
-        : 'Explain quarterly electricity generation data'
-
-    if (selectedFuels.length > 0) {
-      navigate('/ask', {
-        state: { prefill: `${context} for ${selectedFuels.join(', ')}` },
-      })
-    } else {
-      navigate('/ask', { state: { prefill: context } })
-    }
+    navigate('/ask')
   }
 
   const handleZoomChange = (startIndex: number, endIndex: number) => {

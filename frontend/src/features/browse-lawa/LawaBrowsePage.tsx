@@ -73,19 +73,7 @@ const LawaBrowsePage: React.FC = () => {
   const data = canLoadData ? rawData : []
 
   const handleExplainThis = () => {
-    const context =
-      viewType === 'state'
-        ? 'Explain water quality state data'
-        : 'Explain water quality trend data'
-
-    const filters = []
-    if (region) filters.push(`in ${region}`)
-    if (indicator) filters.push(`for ${indicator}`)
-
-    const question =
-      filters.length > 0 ? `${context} ${filters.join(' ')}` : context
-
-    navigate('/ask', { state: { prefill: question } })
+    navigate('/ask')
   }
 
   const normalizeTrendScore = useCallback(
