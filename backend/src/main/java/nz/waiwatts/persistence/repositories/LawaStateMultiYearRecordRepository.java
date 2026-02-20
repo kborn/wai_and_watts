@@ -16,8 +16,8 @@ public interface LawaStateMultiYearRecordRepository extends JpaRepository<LawaSt
             FROM LawaStateMultiYearRecord m
             WHERE (:fromYear IS NULL OR m.periodEndYear >= :fromYear)
               AND (:toYear IS NULL OR m.periodStartYear <= :toYear)
-              AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = LOWER(:indicatorNorm))
-              AND (:regionNorm IS NULL OR LOWER(m.region) = LOWER(:regionNorm))
+              AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = :indicatorNorm)
+              AND (:regionNorm IS NULL OR LOWER(m.region) = :regionNorm)
             ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm
             """)
     List<LawaStateMultiYearRecord> findForReadApi(@Param("fromYear") Integer fromYear,

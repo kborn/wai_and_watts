@@ -30,7 +30,7 @@ public class MbieGenerationAnnualReadServiceImpl implements MbieGenerationAnnual
     public List<MbieGenerationAnnualRecordDto> find(Integer fromYear,
                                                     Integer toYear,
                                                     String fuelType) {
-        String fuelTypeNorm = fuelType != null ? fuelType.trim().toUpperCase(Locale.ROOT) : null;
+        String fuelTypeNorm = fuelType != null ? fuelType.trim().toLowerCase(Locale.ROOT) : null;
 
         return repository.findForReadApi(fromYear, toYear, fuelTypeNorm).stream()
                 .map(MbieGenerationAnnualReadServiceImpl::toDto)

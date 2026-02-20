@@ -16,7 +16,7 @@ public interface MbieGenerationAnnualRecordRepository extends JpaRepository<Mbie
             FROM MbieGenerationAnnualRecord m
             WHERE (:fromYear IS NULL OR m.periodYear >= :fromYear)
               AND (:toYear IS NULL OR m.periodYear <= :toYear)
-              AND (:fuelTypeNorm IS NULL OR UPPER(m.fuelTypeNorm) = UPPER(:fuelTypeNorm))
+              AND (:fuelTypeNorm IS NULL OR LOWER(m.fuelTypeNorm) = :fuelTypeNorm)
             ORDER BY m.periodYear, m.fuelTypeNorm
             """)
     List<MbieGenerationAnnualRecord> findForReadApi(@Param("fromYear") Integer fromYear,

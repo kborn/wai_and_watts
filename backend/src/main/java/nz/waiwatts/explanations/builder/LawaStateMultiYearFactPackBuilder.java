@@ -6,6 +6,7 @@ import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Locale;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -111,49 +112,38 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     private List<LawaStateMultiYearRecord> getRecordsForRequest(ExplanationRequest request) {
-        // Phase 11: apply basic in-memory filtering for determinism without expanding repo surface
-        List<LawaStateMultiYearRecord> all = repository.findAll();
-
         Map<String, Object> filters = request != null ? request.getFilters() : null;
-        if (filters == null || filters.isEmpty()) {
-            return all;
-        }
-
         Integer startYear = null;
         Integer endYear = null;
-        try {
-            Object s = filters.get("startYear");
-            Object e = filters.get("endYear");
-            if (s != null) startYear = Integer.parseInt(s.toString());
-            if (e != null) endYear = Integer.parseInt(e.toString());
-        } catch (NumberFormatException ignore) {
-            // Leave bounds null; service-level validation already handles bad inputs
+        if (filters != null && !filters.isEmpty()) {
+            try {
+                Object s = filters.get("startYear");
+                Object e = filters.get("endYear");
+                if (s != null) startYear = Integer.parseInt(s.toString());
+                if (e != null) endYear = Integer.parseInt(e.toString());
+            } catch (NumberFormatException ignore) {
+                // Leave bounds null; service-level validation already handles bad inputs
+            }
         }
 
         String indicatorFilter = null;
-        Object indObj = filters.get("indicator");
-        if (indObj instanceof String str && !str.isBlank()) {
-            indicatorFilter = str.trim().toUpperCase();
+        if (filters != null && !filters.isEmpty()) {
+            Object indObj = filters.get("indicator");
+            if (indObj instanceof String str && !str.isBlank()) {
+                indicatorFilter = str.trim().toLowerCase(Locale.ROOT);
+            }
         }
 
         String regionFilter = null;
-        Object regObj = filters.get("region");
-        if (regObj instanceof String str && !str.isBlank()) {
-            regionFilter = str.trim();
+        if (filters != null && !filters.isEmpty()) {
+            Object regObj = filters.get("region");
+            if (regObj instanceof String str && !str.isBlank()) {
+                regionFilter = str.trim().toLowerCase(Locale.ROOT);
+            }
         }
 
-        final Integer fStart = startYear;
-        final Integer fEnd = endYear;
-        final String fIndicator = indicatorFilter;
-        final String fRegion = regionFilter;
-
-        return all.stream()
-            .filter(r -> fStart == null || r.getPeriodEndYear() >= fStart)
-            .filter(r -> fEnd == null || r.getPeriodStartYear() <= fEnd)
-            .filter(r -> fIndicator == null || fRegion == null || 
-                      (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(fIndicator)))
-            .filter(r -> fRegion == null || (r.getRegion() != null && r.getRegion().equalsIgnoreCase(fRegion)))
-            .toList();
+        String indicatorForQuery = regionFilter == null ? null : indicatorFilter;
+        return repository.findForReadApi(startYear, endYear, indicatorForQuery, regionFilter);
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaStateMultiYearRecord> records) {

@@ -29,7 +29,7 @@ public class MbieGenerationQuarterlyReadServiceImpl implements MbieGenerationQua
                                                        Integer toYear,
                                                        Integer quarter,
                                                        String fuelType) {
-        String fuelTypeNorm = fuelType != null ? fuelType.trim().toUpperCase(Locale.ROOT) : null;
+        String fuelTypeNorm = fuelType != null ? fuelType.trim().toLowerCase(Locale.ROOT) : null;
 
         return repository.findForReadApi(fromYear, toYear, quarter, fuelTypeNorm).stream()
                 .map(MbieGenerationQuarterlyReadServiceImpl::toDto)

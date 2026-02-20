@@ -45,7 +45,7 @@ class MbieGenerationReadServiceImplTest {
 
         when(repo.findForReadApi(null, null, null)).thenReturn(List.of(r1, r2));
         when(repo.findForReadApi(2023, null, null)).thenReturn(List.of(r2));
-        when(repo.findForReadApi(null, null, "HYDRO")).thenReturn(List.of(r1));
+        when(repo.findForReadApi(null, null, "hydro")).thenReturn(List.of(r1));
     }
 
     @Test
