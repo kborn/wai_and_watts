@@ -6,6 +6,20 @@ Phase 10 provides a **human-operated** operator workflow:
 
 download → transform → ingest (CLI) → start backend → validate APIs
 
+## Project Scope
+
+- Ingest and normalize published MBIE electricity and LAWA water-quality datasets.
+- Preserve dataset lineage and idempotent release handling as first-class system behavior.
+- Expose read APIs and grounded explanation APIs over persisted facts.
+- Keep ingestion operator-driven and reproducible (CLI-first workflow).
+
+## Non-Goals
+
+- Real-time data streaming, scheduling, or automated publisher polling.
+- Forecasting, predictive analytics, or ML-driven inference.
+- Raw telemetry ingestion and processing pipelines.
+- Autonomous AI code commits or AI-owned architectural decisions.
+
 ## Start here
 
 **Canonical operator guide:**
