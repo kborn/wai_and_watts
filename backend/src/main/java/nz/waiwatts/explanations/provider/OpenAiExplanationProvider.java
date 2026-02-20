@@ -4,17 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.service.CitationValidationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * OpenAI-backed ExplanationProvider.
  *
  * Uses the Responses API in JSON mode and returns a structured Explanation.
  * All facts must come from the provided FactPack.
+ * Citation validation uses the shared validation layer to stay aligned with stub behavior.
  */
 public class OpenAiExplanationProvider implements ExplanationProvider {
 
@@ -61,37 +62,13 @@ public class OpenAiExplanationProvider implements ExplanationProvider {
 
     @Override
     public boolean validateCitations(Explanation explanation, FactPack factPack) {
-        if (explanation == null || explanation.getCitations() == null) {
+        if (explanation == null) {
             return false;
         }
         List<String> required = factPack.getGuardrails() != null && factPack.getGuardrails().getRequiredCitations() != null
             ? factPack.getGuardrails().getRequiredCitations()
             : List.of();
-        List<String> actual = explanation.getCitations();
-        return required.stream().allMatch(req -> hasMatchingCitation(req, actual));
-    }
-
-    private boolean hasMatchingCitation(String requiredId, List<String> actualIds) {
-        if (requiredId == null || requiredId.isBlank()) return true;
-        if (actualIds == null || actualIds.isEmpty()) return false;
-        String req = requiredId.trim().toLowerCase(Locale.ROOT);
-        List<String> normalizedActualIds = actualIds.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .map(id -> id.trim().toLowerCase(Locale.ROOT))
-            .toList();
-        if (normalizedActualIds.contains(req)) return true;
-
-        if (req.endsWith(":*")) {
-            String wildcardPrefix = req.substring(0, req.length() - 1);
-            return normalizedActualIds.stream().anyMatch(act -> act.startsWith(wildcardPrefix));
-        }
-
-        boolean isLawaMetricOrClass = req.startsWith("metric:lawa:") || req.startsWith("class:lawa:");
-        if (!isLawaMetricOrClass) return false;
-        int lastColon = req.lastIndexOf(':');
-        if (lastColon <= 0) return false;
-        String familyPrefix = req.substring(0, lastColon + 1);
-        return normalizedActualIds.stream().anyMatch(act -> act.startsWith(familyPrefix));
+        return CitationValidationUtil.validateRequiredCitations(required, explanation.getCitations());
     }
 
     private Explanation parseExplanation(String output) {
