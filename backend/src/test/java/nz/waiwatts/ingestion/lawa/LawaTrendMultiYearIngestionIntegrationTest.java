@@ -110,6 +110,8 @@ class LawaTrendMultiYearIngestionIntegrationTest {
         // Verify domain records were created and linked
         List<LawaTrendMultiYearRecord> records = recordRepository.findByDatasetReleaseId(releaseId);
         assertThat(records).hasSize(2); // 2 rows in test file
+        assertThat(records).extracting(LawaTrendMultiYearRecord::getRegion)
+                .containsExactlyInAnyOrder("hawke's bay", "waikato");
 
         // Cleanup
         Files.deleteIfExists(tempFile);
