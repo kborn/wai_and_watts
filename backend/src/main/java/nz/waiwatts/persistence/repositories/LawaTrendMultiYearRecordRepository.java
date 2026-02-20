@@ -24,6 +24,22 @@ public interface LawaTrendMultiYearRecordRepository extends JpaRepository<LawaTr
                                                   @Param("toYear") Integer toYear,
                                                   @Param("indicatorNorm") String indicatorNorm,
                                                   @Param("regionNorm") String regionNorm);
+
+    @Query("""
+            SELECT m
+            FROM LawaTrendMultiYearRecord m
+            WHERE (:fromYear IS NULL OR m.periodEndYear >= :fromYear)
+              AND (:toYear IS NULL OR m.periodStartYear <= :toYear)
+              AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = LOWER(:indicatorNorm))
+              AND (:regionNorm IS NULL OR LOWER(m.region) = LOWER(:regionNorm))
+              AND (:trendNorm IS NULL OR UPPER(m.trendNorm) = UPPER(:trendNorm))
+            ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm
+            """)
+    List<LawaTrendMultiYearRecord> findForAsk(@Param("fromYear") Integer fromYear,
+                                              @Param("toYear") Integer toYear,
+                                              @Param("indicatorNorm") String indicatorNorm,
+                                              @Param("regionNorm") String regionNorm,
+                                              @Param("trendNorm") String trendNorm);
     
     @Query("SELECT DISTINCT m.region FROM LawaTrendMultiYearRecord m ORDER BY m.region")
     List<String> findDistinctRegionOrderByRegion();

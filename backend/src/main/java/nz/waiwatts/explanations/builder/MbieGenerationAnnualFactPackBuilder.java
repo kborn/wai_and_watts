@@ -101,23 +101,18 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
     }
 
     private List<MbieGenerationAnnualRecord> getRecordsForRequest(ExplanationRequest request) {
-        // Phase 11: apply basic in-memory filtering for determinism without expanding repo surface
-        List<MbieGenerationAnnualRecord> all = repository.findAll();
-
         Map<String, Object> filters = request != null ? request.getFilters() : null;
-        if (filters == null || filters.isEmpty()) {
-            return all;
-        }
-
         Integer startYear = null;
         Integer endYear = null;
-        try {
-            Object s = filters.get("startYear");
-            Object e = filters.get("endYear");
-            if (s != null) startYear = Integer.parseInt(s.toString());
-            if (e != null) endYear = Integer.parseInt(e.toString());
-        } catch (NumberFormatException ignore) {
-            // Leave bounds null; service-level validation already handles bad inputs
+        if (filters != null && !filters.isEmpty()) {
+            try {
+                Object s = filters.get("startYear");
+                Object e = filters.get("endYear");
+                if (s != null) startYear = Integer.parseInt(s.toString());
+                if (e != null) endYear = Integer.parseInt(e.toString());
+            } catch (NumberFormatException ignore) {
+                // Leave bounds null; service-level validation already handles bad inputs
+            }
         }
 
         // Only apply a fuelType filter for question types that actually need a single-fuel focus
@@ -125,22 +120,15 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         String questionType = (request != null) ? request.getQuestionType() : null;
         boolean applyFuelType = "hydro_generation_trend".equals(questionType);
         String fuelType = null;
-        if (applyFuelType) {
+        if (applyFuelType && filters != null) {
             Object ftObj = filters.get("fuelType");
             if (ftObj instanceof String str && !str.isBlank()) {
                 fuelType = str.trim().toUpperCase();
             }
         }
 
-        final Integer fStart = startYear;
-        final Integer fEnd = endYear;
-        final String fFuel = fuelType;
-
-        return all.stream()
-            .filter(r -> fStart == null || r.getPeriodYear() >= fStart)
-            .filter(r -> fEnd == null || r.getPeriodYear() <= fEnd)
-            .filter(r -> !applyFuelType || fFuel == null || (r.getFuelTypeNorm() != null && r.getFuelTypeNorm().equalsIgnoreCase(fFuel)))
-            .toList();
+        String fuelTypeForQuery = applyFuelType ? fuelType : null;
+        return repository.findForReadApi(startYear, endYear, fuelTypeForQuery);
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationAnnualRecord> records) {

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -63,7 +64,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
     @Test
     void testBuildFactPack_EmptyRecords_ReturnsBasicFactsWithEmptyGuardrails() {
         // Setup empty repository
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of());
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -134,7 +135,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         record4.setDatasetRelease(release);
 
         // Use four records (two Excellent/A, one Good/B, one Poor/D)
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3, record4));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3, record4));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -208,7 +209,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         record3.setPeriodEndYear(2021);
         record3.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -278,7 +279,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         record3.setPeriodEndYear(2024);
         record3.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -364,19 +365,8 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         record_included3.setPeriodEndYear(2024);
         record_included3.setDatasetRelease(release);
 
-        // Record that should be filtered out (before 2020)
-        LawaStateMultiYearRecord record_excluded = new LawaStateMultiYearRecord();
-        record_excluded.setLawaSiteId("SITE004");
-        record_excluded.setSiteName("Site SITE004");
-        record_excluded.setRegion("Canterbury");
-        record_excluded.setAttributeBand("A");
-        record_excluded.setStateNorm("EXCELLENT");
-        record_excluded.setPeriodType("HYDRO_NYR_WINDOW");
-        record_excluded.setPeriodStartYear(2015);
-        record_excluded.setPeriodEndYear(2019);
-        record_excluded.setDatasetRelease(release);
-
-        when(repository.findAll()).thenReturn(List.of(record_included1, record_included2, record_included3, record_excluded));
+        when(repository.findForReadApi(2020, 2024, null, null))
+            .thenReturn(List.of(record_included1, record_included2, record_included3));
 
         // Create request with time range filter
         ExplanationRequest request = new ExplanationRequest();
@@ -419,7 +409,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         record.setPeriodEndYear(2023);
         record.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record));
 
         // Create request with unsupported question type
         ExplanationRequest request = new ExplanationRequest();
@@ -469,7 +459,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         record.setPeriodEndYear(2023);
         record.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record));
 
         // Create identical requests
         ExplanationRequest request1 = new ExplanationRequest();
@@ -538,10 +528,10 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         request.setQuestionType("regional_water_quality");
         request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
 
-        when(repository.findAll()).thenReturn(List.of(canterburyExcellent, waikatoPoor, otagoGood));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(canterburyExcellent, waikatoPoor, otagoGood));
         FactPack first = builder.buildFactPack(request);
 
-        when(repository.findAll()).thenReturn(List.of(otagoGood, waikatoPoor, canterburyExcellent));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(otagoGood, waikatoPoor, canterburyExcellent));
         FactPack second = builder.buildFactPack(request);
 
         assertEquals(
@@ -573,7 +563,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         request.setQuestionType("regional_water_quality");
         request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
 
-        when(repository.findAll()).thenReturn(records);
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(records);
         FactPack factPack = builder.buildFactPack(request);
 
         long metricRegionCount = factPack.getFacts().getMetrics().stream()
