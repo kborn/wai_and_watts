@@ -118,7 +118,7 @@ If there is “pick N” logic, replace non-deterministic picks:
 Some prompts requesting Phase-16 analytics (“fastest”, “largest”, “which fuel grew most”, “share >80%”) are mapped into a supported trend question and answered with generic narrative.
 
 ### Goal
-Detect derived-analytics language and refuse with `CAPABILITY_UNSUPPORTED` (or `UNSUPPORTED_INTENT` if you treat all derived analytics as “unsupported intent”).
+Detect derived-analytics language and refuse with `UNSUPPORTED_CAPABILITY` (or `UNSUPPORTED_INTENT` if you treat all derived analytics as “unsupported intent”).
 Do **not** answer a different question “as if” answered.
 
 ### Where to implement
@@ -127,7 +127,7 @@ You want refusal before dataset selection / fact pack construction if possible.
 
 ### Locate code (ripgrep hints)
 - `rg -n "IntentParser|parse.*intent|QuestionType" backend/src/main/java`
-- `rg -n "RequestValidation|validate.*filters|CAPABILITY_UNSUPPORTED" backend/src/main/java`
+- `rg -n "RequestValidation|validate.*filters|UNSUPPORTED_CAPABILITY" backend/src/main/java`
 - `rg -n "explanations/ask" backend/src/main/java`
 
 ### Detection (minimal heuristic)
@@ -142,14 +142,14 @@ Pseudo:
 
 ```diff
 + if (looksLikeDerivedAnalytics(rawQuestion)) {
-+   return refusal(CAPABILITY_UNSUPPORTED, "Derived analytics are Phase 16.");
++   return refusal(UNSUPPORTED_CAPABILITY, "Derived analytics are Phase 16.");
 + }
 ```
 
 ### Tests
-- “When did wind generation grow the fastest over any 3-year period?” => refusal CAPABILITY_UNSUPPORTED
-- “Which fuel has grown the most since 2005?” => refusal CAPABILITY_UNSUPPORTED
-- “When did renewables first exceed 80% of total generation?” => refusal CAPABILITY_UNSUPPORTED
+- “When did wind generation grow the fastest over any 3-year period?” => refusal UNSUPPORTED_CAPABILITY
+- “Which fuel has grown the most since 2005?” => refusal UNSUPPORTED_CAPABILITY
+- “When did renewables first exceed 80% of total generation?” => refusal UNSUPPORTED_CAPABILITY
 
 ---
 

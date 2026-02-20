@@ -64,7 +64,7 @@ public class IntentParserServiceImpl implements IntentParserService {
 
         if (unsupportedIntentDetector.isDerivedAnalyticsUnsupported(question)) {
             IntentParseResponse response = IntentParseResponse.refusal(
-                "CAPABILITY_UNSUPPORTED",
+                "UNSUPPORTED_CAPABILITY",
                 "That requires derived analytics (ranking/argmax/share thresholds), which is not supported in this phase."
             );
             response.setParserUsed("LLM");
