@@ -1478,3 +1478,21 @@ Rationale:
 Implications:
 - Fact Pack builders must continue canonical release pinning before fact construction.
 - Read endpoints return persisted rows with `releaseId` and do not apply hidden “latest release” collapsing semantics.
+
+---
+
+### Phase 15 — Independent SE Status Audit and Remediation PR Strategy
+Date: 2026-02-20
+
+Decision:
+Run a full independent Staff Engineer audit of the current Phase 15 remediation status against architectural findings, and implement any unresolved corrective work in explicit follow-up PRs rather than burying changes through history rewriting.
+
+Rationale:
+- A full SE status check provides an authoritative verification of what is truly fixed vs still open.
+- Separate remediation PRs preserve a transparent engineering narrative for portfolio review.
+- Hiding corrective work in rewritten history reduces traceability and weakens reviewability.
+
+Implications:
+- The SE audit artifact is treated as an explicit checkpoint input for remaining Phase 15 work.
+- Unresolved findings are addressed in new, reviewable PRs scoped to concrete remediation steps.
+- Commit history remains honest about discovery and correction flow; no “fixup to hide findings” workflow for this remediation pass.

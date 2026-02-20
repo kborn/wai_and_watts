@@ -814,6 +814,8 @@ Notes:
 - Updated DatasetCatalog/runtime alignment, preserved explicit dataset refusal reasons, sanitized LLM filter "null" values, stabilized /ask response envelope, and added dataset-scoped capabilities data.
 - Fixed CAPABILITY_UNSUPPORTED refusals for valid MBIE annual trend questions and preserved accurate refusal messages for explicit dataset failures.
 - Tests: `mvn test`
+- Staff Engineer performed a full Phase 15 status audit against `docs/phase-notes/phase15/phase15_architectural_review_findings.md`; unresolved items are tracked in `docs/phase-notes/phase15/phase15_unaddressed_findings_audit.md`.
+- Remaining architectural corrections are being delivered as explicit follow-up remediation PRs (transparent review path), not hidden via history rewrite/fixup-only squashing.
 
 ---
 
