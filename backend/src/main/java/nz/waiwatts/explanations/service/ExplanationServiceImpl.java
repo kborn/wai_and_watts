@@ -326,10 +326,29 @@ public class ExplanationServiceImpl implements ExplanationService {
     }
 
     private FactPackBuilder selectFactPackBuilder(ExplanationRequest request) {
-        return factPackBuilders.stream()
+        List<FactPackBuilder> matches = factPackBuilders.stream()
             .filter(builder -> builder.canHandle(request))
-            .findFirst()
-            .orElse(null);
+            .toList();
+
+        if (matches.isEmpty()) {
+            return null;
+        }
+
+        if (matches.size() > 1) {
+            String questionType = request != null ? request.getQuestionType() : null;
+            String datasetSource = request != null ? request.getDatasetSource() : null;
+            throw new IllegalStateException(
+                "Ambiguous FactPackBuilder resolution: expected exactly 1 match but found "
+                    + matches.size()
+                    + " for questionType="
+                    + questionType
+                    + ", datasetSource="
+                    + datasetSource
+            );
+        }
+
+        // Deterministic rule: exactly one builder must match; ambiguity fails fast.
+        return matches.getFirst();
     }
 
     private void logFactPackShape(FactPack factPack) {

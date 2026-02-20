@@ -98,6 +98,32 @@ class ExplanationServiceImplEdgeCaseTest {
     }
 
     @Test
+    void testMultipleMatchingBuildersFailFast() {
+        FactPackBuilder builderA = mock(FactPackBuilder.class);
+        FactPackBuilder builderB = mock(FactPackBuilder.class);
+        ExplanationService ambiguousService = new ExplanationServiceImpl(
+            List.of(builderA, builderB), explanationProvider
+        );
+
+        ExplanationRequest request = new ExplanationRequest(
+            "hydro_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
+        );
+
+        when(builderA.canHandle(request)).thenReturn(true);
+        when(builderB.canHandle(request)).thenReturn(true);
+
+        IllegalStateException ex = assertThrows(
+            IllegalStateException.class,
+            () -> ambiguousService.generateExplanation(request)
+        );
+        assertTrue(ex.getMessage().contains("Ambiguous FactPackBuilder resolution"));
+        verify(builderA, never()).buildFactPack(any());
+        verify(builderB, never()).buildFactPack(any());
+        verify(explanationProvider, never()).generateExplanation(any(), any());
+    }
+
+    @Test
     void testBuilderReturnsNullFactPack() {
         ExplanationRequest request = new ExplanationRequest(
             "hydro_generation_trend",
