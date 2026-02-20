@@ -86,6 +86,7 @@ public class ExplanationController {
      * Process a natural language question and generate an explanation.
      * 
      * Phase 12 endpoint: Parses natural language → validates → generates explanation.
+     * Fact pack builders pin data to one canonical dataset_release per request.
      * Follows same refusal behavior as structured endpoint.
      * 
      * @param body request containing natural language question

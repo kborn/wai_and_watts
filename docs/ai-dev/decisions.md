@@ -1462,3 +1462,19 @@ Implications:
 - `phase15_architectural_remediation_plan.md` is the authoritative execution contract.
 - `progress.md` references the remediation plan but does not duplicate its tasks.
 - Findings not promoted into the remediation plan are considered intentionally accepted design tradeoffs.
+
+---
+
+### Phase 15 — dataset_release Semantics Across Ask and Read
+Date: 2026-02-20
+
+Decision:
+`dataset_release` is the explicit lineage boundary; ask flows pin to one canonical release per request, while read APIs remain release-transparent row retrieval and expose per-row `releaseId`.
+
+Rationale:
+- Ask answers and citations must be deterministic and provenance-stable.
+- Read endpoints are retrieval interfaces and should not silently synthesize cross-release aggregates.
+
+Implications:
+- Fact Pack builders must continue canonical release pinning before fact construction.
+- Read endpoints return persisted rows with `releaseId` and do not apply hidden “latest release” collapsing semantics.

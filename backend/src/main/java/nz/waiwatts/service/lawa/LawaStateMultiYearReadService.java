@@ -7,6 +7,9 @@ import java.util.List;
 import org.springframework.lang.Nullable;
 
 public interface LawaStateMultiYearReadService {
+    /**
+     * Returns persisted LAWA state rows (release-transparent); each DTO carries its source releaseId.
+     */
     List<LawaStateMultiYearRecordDto> find(@Nullable Integer fromYear,
                                            @Nullable Integer toYear,
                                            @Nullable String indicator,

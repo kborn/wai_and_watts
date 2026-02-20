@@ -6,6 +6,9 @@ import org.springframework.lang.Nullable;
 import java.util.List;
 
 public interface LawaTrendMultiYearReadService {
+    /**
+     * Returns persisted LAWA trend rows (release-transparent); each DTO carries its source releaseId.
+     */
     List<LawaTrendMultiYearRecordDto> find(@Nullable Integer fromYear,
                                            @Nullable Integer toYear,
                                            @Nullable String indicator,

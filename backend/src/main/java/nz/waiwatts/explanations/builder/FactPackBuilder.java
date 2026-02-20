@@ -8,6 +8,8 @@ import nz.waiwatts.explanations.dto.ExplanationRequest;
  * 
  * Fact Pack Builders are dataset-specific, deterministic, and must only query the database.
  * They must not call LLMs or contain explanation prose.
+ * For ask flows, builders must pin records to one canonical dataset_release before
+ * constructing facts/citations to keep provenance and outputs deterministic.
  * 
  * Ensures stable ordering and deterministic outputs for testing.
  */
