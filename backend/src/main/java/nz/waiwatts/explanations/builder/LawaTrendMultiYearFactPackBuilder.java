@@ -111,57 +111,46 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     private List<LawaTrendMultiYearRecord> getRecordsForRequest(ExplanationRequest request) {
-        // Phase 11: apply basic in-memory filtering for determinism without expanding repo surface
-        List<LawaTrendMultiYearRecord> all = repository.findAll();
-
         Map<String, Object> filters = request != null ? request.getFilters() : null;
-        if (filters == null || filters.isEmpty()) {
-            return all;
-        }
-
         Integer startYear = null;
         Integer endYear = null;
-        try {
-            Object s = filters.get("startYear");
-            Object e = filters.get("endYear");
-            if (s != null) startYear = Integer.parseInt(s.toString());
-            if (e != null) endYear = Integer.parseInt(e.toString());
-        } catch (NumberFormatException ignore) {
-            // Leave bounds null; service-level validation already handles bad inputs
+        if (filters != null && !filters.isEmpty()) {
+            try {
+                Object s = filters.get("startYear");
+                Object e = filters.get("endYear");
+                if (s != null) startYear = Integer.parseInt(s.toString());
+                if (e != null) endYear = Integer.parseInt(e.toString());
+            } catch (NumberFormatException ignore) {
+                // Leave bounds null; service-level validation already handles bad inputs
+            }
         }
 
         String indicatorFilter = null;
-        Object indObj = filters.get("indicator");
-        if (indObj instanceof String str && !str.isBlank()) {
-            indicatorFilter = str.trim().toUpperCase();
+        if (filters != null && !filters.isEmpty()) {
+            Object indObj = filters.get("indicator");
+            if (indObj instanceof String str && !str.isBlank()) {
+                indicatorFilter = str.trim().toUpperCase();
+            }
         }
 
         String regionFilter = null;
-        Object regObj = filters.get("region");
-        if (regObj instanceof String str && !str.isBlank()) {
-            regionFilter = str.trim();
+        if (filters != null && !filters.isEmpty()) {
+            Object regObj = filters.get("region");
+            if (regObj instanceof String str && !str.isBlank()) {
+                regionFilter = str.trim();
+            }
         }
 
         String trendFilter = null;
-        Object trendObj = filters.get("trend");
-        if (trendObj instanceof String str && !str.isBlank()) {
-            trendFilter = str.trim().toUpperCase();
+        if (filters != null && !filters.isEmpty()) {
+            Object trendObj = filters.get("trend");
+            if (trendObj instanceof String str && !str.isBlank()) {
+                trendFilter = str.trim().toUpperCase();
+            }
         }
 
-        final Integer fStart = startYear;
-        final Integer fEnd = endYear;
-        final String fIndicator = indicatorFilter;
-        final String fRegion = regionFilter;
-        final String fTrend = trendFilter;
-
-        return all.stream()
-            .filter(r -> fStart == null || r.getPeriodEndYear() >= fStart)
-            .filter(r -> fEnd == null || r.getPeriodStartYear() <= fEnd)
-            .filter(r -> fIndicator == null || fRegion == null || 
-                      (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(fIndicator)))
-            .filter(r -> fRegion == null || (r.getRegion() != null && r.getRegion().equalsIgnoreCase(fRegion)))
-            .filter(r -> fTrend == null || (r.getTrendNorm() != null && r.getTrendNorm().equalsIgnoreCase(fTrend)))
-            .toList();
+        String indicatorForQuery = regionFilter == null ? null : indicatorFilter;
+        return repository.findForAsk(startYear, endYear, indicatorForQuery, regionFilter, trendFilter);
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaTrendMultiYearRecord> records) {

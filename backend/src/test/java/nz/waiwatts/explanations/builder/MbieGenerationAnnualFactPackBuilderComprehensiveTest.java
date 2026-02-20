@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -59,7 +60,7 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(List.of());
 
         FactPack factPack1 = builder.buildFactPack(request);
         FactPack factPack2 = builder.buildFactPack(request);
@@ -103,10 +104,10 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
             createRecord(2023, "WIND", new BigDecimal("6000"))
         );
 
-        when(repository.findAll()).thenReturn(unorderedRecords);
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(unorderedRecords);
         FactPack factPack1 = builder.buildFactPack(request);
 
-        when(repository.findAll()).thenReturn(reversedRecords);
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(reversedRecords);
         FactPack factPack2 = builder.buildFactPack(request);
 
         // Should produce identical results regardless of input ordering
@@ -143,7 +144,7 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
             createRecord(2023, "HYDRO", new BigDecimal("26000"))
         );
 
-        when(repository.findAll()).thenReturn(records);
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(records);
 
         FactPack factPack1 = builder.buildFactPack(request);
         FactPack factPack2 = builder.buildFactPack(request);
@@ -194,7 +195,7 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
             createRecord(2022, "GEOTHERMAL", new BigDecimal("7200"))
         );
 
-        when(repository.findAll()).thenReturn(records);
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(records);
 
         FactPack factPack = builder.buildFactPack(request);
 
@@ -212,7 +213,7 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        when(repository.findAll()).thenReturn(List.of(
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(List.of(
             createRecord(2023, "HYDRO", new BigDecimal("25000"))
         ));
 
@@ -237,7 +238,7 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        when(repository.findAll()).thenReturn(List.of(
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(List.of(
             createRecord(2022, "HYDRO", new BigDecimal("25000")),
             createRecord(2023, "HYDRO", new BigDecimal("26000"))
         ));

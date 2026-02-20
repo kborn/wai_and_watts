@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -93,7 +94,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record4.setFuelTypeNorm("SOLAR");
         record4.setGenerationGwh(new BigDecimal("400"));
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3, record4));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3, record4));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -159,7 +160,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record4.setFuelTypeNorm("HYDRO");
         record4.setGenerationGwh(new BigDecimal("7200"));
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3, record4));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3, record4));
 
         // Create request with fuel type filter
         ExplanationRequest request = new ExplanationRequest();
@@ -233,7 +234,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record4.setFuelTypeNorm("GAS");
         record4.setGenerationGwh(new BigDecimal("800"));
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3, record4));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3, record4));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -307,15 +308,8 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record_included3.setFuelTypeNorm("HYDRO");
         record_included3.setGenerationGwh(new BigDecimal("6800"));
 
-        // Record that should be filtered out (before 2023)
-        MbieGenerationQuarterlyRecord record_excluded = new MbieGenerationQuarterlyRecord();
-        record_excluded.setDatasetRelease(release);
-        record_excluded.setPeriodYear(2022);
-        record_excluded.setPeriodQuarter(4);
-        record_excluded.setFuelTypeNorm("HYDRO");
-        record_excluded.setGenerationGwh(new BigDecimal("7200"));
-
-        when(repository.findAll()).thenReturn(List.of(record_included1, record_included2, record_included3, record_excluded));
+        when(repository.findForReadApi(2023, 2023, null, null))
+            .thenReturn(List.of(record_included1, record_included2, record_included3));
 
         // Create request with time range filter
         ExplanationRequest request = new ExplanationRequest();
@@ -346,7 +340,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
     @Test
     void testBuildFactPack_EmptyRecords_ReturnsBasicFactsWithEmptyGuardrails() {
         // Setup empty repository
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of());
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -380,7 +374,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record.setFuelTypeNorm("HYDRO");
         record.setGenerationGwh(new BigDecimal("6500"));
 
-        when(repository.findAll()).thenReturn(List.of(record));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record));
 
         // Create request with unsupported question type
         ExplanationRequest request = new ExplanationRequest();
@@ -418,7 +412,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record.setFuelTypeNorm("HYDRO");
         record.setGenerationGwh(new BigDecimal("6500"));
 
-        when(repository.findAll()).thenReturn(List.of(record));
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(record));
 
         // Create identical requests
         ExplanationRequest request1 = new ExplanationRequest();

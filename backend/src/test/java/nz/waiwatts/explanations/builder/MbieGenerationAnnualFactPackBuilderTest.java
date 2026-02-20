@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -61,7 +62,7 @@ class MbieGenerationAnnualFactPackBuilderTest {
 
         // Setup mock data
         List<MbieGenerationAnnualRecord> records = createTestRecords();
-        when(repository.findAll()).thenReturn(records);
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(records);
 
         // Build Fact Pack twice
         FactPack factPack1 = builder.buildFactPack(request);
@@ -75,8 +76,8 @@ class MbieGenerationAnnualFactPackBuilderTest {
         // Check that time series facts are identical
         assertEquals(factPack1.getFacts().getTimeSeries().size(), factPack2.getFacts().getTimeSeries().size());
         if (!factPack1.getFacts().getTimeSeries().isEmpty()) {
-            var ts1 = factPack1.getFacts().getTimeSeries().get(0);
-            var ts2 = factPack2.getFacts().getTimeSeries().get(0);
+            var ts1 = factPack1.getFacts().getTimeSeries().getFirst();
+            var ts2 = factPack2.getFacts().getTimeSeries().getFirst();
             assertEquals(ts1.getId(), ts2.getId());
             assertEquals(ts1.getMetricName(), ts2.getMetricName());
             assertEquals(ts1.getUnit(), ts2.getUnit());

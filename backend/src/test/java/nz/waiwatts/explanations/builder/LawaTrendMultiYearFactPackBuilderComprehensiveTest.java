@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -63,7 +64,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
     @Test
     void testBuildFactPack_EmptyRecords_ReturnsBasicFactsWithEmptyGuardrails() {
         // Setup empty repository
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of());
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -137,7 +138,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         record4.setPeriodEndYear(2024);
         record4.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3, record4));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3, record4));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -208,7 +209,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         record2.setPeriodEndYear(2024);
         record2.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(record1, record2));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -278,7 +279,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         record3.setPeriodEndYear(2024);
         record3.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record1, record2, record3));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(record1, record2, record3));
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
@@ -348,19 +349,8 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         record_improving.setPeriodEndYear(2023);
         record_improving.setDatasetRelease(release);
 
-        LawaTrendMultiYearRecord record_degrading = new LawaTrendMultiYearRecord();
-        record_degrading.setLawaSiteId("SITE002");
-        record_degrading.setSiteName("Site SITE002");
-        record_degrading.setRegion("Waikato");
-        record_degrading.setTrendNorm("DEGRADING");
-        record_degrading.setTrendScore(-2);
-        record_degrading.setTrendPeriodYears(10);
-        record_degrading.setPeriodType("HYDRO_NYR_WINDOW");
-        record_degrading.setPeriodStartYear(2018);
-        record_degrading.setPeriodEndYear(2022);
-        record_degrading.setDatasetRelease(release);
-
-        when(repository.findAll()).thenReturn(List.of(record_improving, record_degrading));
+        when(repository.findForAsk(null, null, null, null, "IMPROVING"))
+            .thenReturn(List.of(record_improving));
 
         // Create request with trend filter
         ExplanationRequest request = new ExplanationRequest();
@@ -412,7 +402,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         record.setPeriodEndYear(2023);
         record.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(record));
 
         // Create request with unsupported question type
         ExplanationRequest request = new ExplanationRequest();
@@ -463,7 +453,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         record.setPeriodEndYear(2023);
         record.setDatasetRelease(release);
 
-        when(repository.findAll()).thenReturn(List.of(record));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(record));
 
         // Create identical requests
         ExplanationRequest request1 = new ExplanationRequest();
@@ -535,10 +525,10 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         request.setQuestionType("regional_trend_comparison");
         request.setFilters(Map.of("datasetSource", "lawa.water_quality.trend.multi_year"));
 
-        when(repository.findAll()).thenReturn(List.of(canterburyImproving, waikatoDegrading, otagoInsufficient));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(canterburyImproving, waikatoDegrading, otagoInsufficient));
         FactPack first = builder.buildFactPack(request);
 
-        when(repository.findAll()).thenReturn(List.of(otagoInsufficient, waikatoDegrading, canterburyImproving));
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of(otagoInsufficient, waikatoDegrading, canterburyImproving));
         FactPack second = builder.buildFactPack(request);
 
         assertEquals(
@@ -570,7 +560,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         request.setQuestionType("regional_trend_comparison");
         request.setFilters(Map.of("datasetSource", "lawa.water_quality.trend.multi_year"));
 
-        when(repository.findAll()).thenReturn(records);
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(records);
         FactPack factPack = builder.buildFactPack(request);
 
         long metricRegionCount = factPack.getFacts().getMetrics().stream()
