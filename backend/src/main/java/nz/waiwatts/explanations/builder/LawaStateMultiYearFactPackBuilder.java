@@ -143,8 +143,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             }
         }
 
-        String indicatorForQuery = regionFilter == null ? null : indicatorFilter;
-        return repository.findForReadApi(startYear, endYear, indicatorForQuery, regionFilter);
+        return repository.findForReadApi(startYear, endYear, indicatorFilter, regionFilter);
     }
 
     private List<LawaStateMultiYearRecord> pinToCanonicalRelease(List<LawaStateMultiYearRecord> records) {

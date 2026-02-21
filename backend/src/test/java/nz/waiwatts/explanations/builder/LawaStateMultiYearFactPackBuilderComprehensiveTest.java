@@ -21,6 +21,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 /**
  * Additional comprehensive tests for LawaStateMultiYearFactPackBuilder
@@ -84,6 +85,22 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         assertTrue(factPack.getGuardrails().getAllowedClaims().isEmpty());
         assertTrue(factPack.getGuardrails().getForbiddenClaims().contains("forecast"));
         assertTrue(factPack.getGuardrails().getForbiddenClaims().contains("site_specific_advice"));
+    }
+
+    @Test
+    void testBuildFactPack_WithIndicatorOnlyFilter_PassesIndicatorToRepository() {
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of());
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("water_quality_overview");
+        request.setFilters(Map.of(
+            "datasetSource", "lawa.water_quality.state.multi_year",
+            "indicator", "Nitrogen"
+        ));
+
+        builder.buildFactPack(request);
+
+        verify(repository).findForReadApi(null, null, "nitrogen", null);
     }
 
     @Test

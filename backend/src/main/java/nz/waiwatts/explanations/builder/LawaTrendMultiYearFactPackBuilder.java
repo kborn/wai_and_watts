@@ -151,8 +151,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
             }
         }
 
-        String indicatorForQuery = regionFilter == null ? null : indicatorFilter;
-        return repository.findForAsk(startYear, endYear, indicatorForQuery, regionFilter, trendFilter);
+        return repository.findForAsk(startYear, endYear, indicatorFilter, regionFilter, trendFilter);
     }
 
     private List<LawaTrendMultiYearRecord> pinToCanonicalRelease(List<LawaTrendMultiYearRecord> records) {
