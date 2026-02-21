@@ -73,7 +73,22 @@ public class OpenAiExplanationProvider implements ExplanationProvider {
 
     private Explanation parseExplanation(String output) {
         try {
-            return objectMapper.readValue(output, Explanation.class);
+            Explanation parsed = objectMapper.readValue(output, Explanation.class);
+            if (parsed == null) {
+                return null;
+            }
+
+            // Non-refusal responses must contain a non-empty explanation text.
+            // This keeps provider/stub contracts aligned and avoids silent malformed payloads.
+            if (!parsed.isRefusal()) {
+                String explanationText = parsed.getExplanationText();
+                if (explanationText == null || explanationText.isBlank()) {
+                    log.warn("LLM JSON output missing explanationText for non-refusal response");
+                    return null;
+                }
+            }
+
+            return parsed;
         } catch (Exception e) {
             log.warn("Failed to parse LLM JSON output: {}", e.getMessage());
             return null;
