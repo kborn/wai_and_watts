@@ -195,8 +195,10 @@ class ExplanationServiceImplEdgeCaseTest {
         when(factPackBuilder.buildFactPack(request))
             .thenThrow(new RuntimeException("Database connection failed"));
 
-        // Should propagate exception
-        assertThrows(RuntimeException.class, () -> service.generateExplanation(request));
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Unable to build FactPack for the requested question", result.getRefusalReason());
+        verify(explanationProvider, never()).generateExplanation(any(), any());
     }
 
     @Test
@@ -215,8 +217,9 @@ class ExplanationServiceImplEdgeCaseTest {
         when(explanationProvider.generateExplanation(any(), any()))
             .thenThrow(new RuntimeException("LLM provider unavailable"));
 
-        // Should propagate exception
-        assertThrows(RuntimeException.class, () -> service.generateExplanation(request));
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Explanation provider failed to generate an explanation", result.getRefusalReason());
     }
 
     @Test

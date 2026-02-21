@@ -71,7 +71,14 @@ public class ExplanationServiceImpl implements ExplanationService {
         } catch (Exception ignore) {
             // do not fail due to logging
         }
-        FactPack factPack = builder.buildFactPack(request);
+        FactPack factPack;
+        try {
+            factPack = builder.buildFactPack(request);
+        } catch (RuntimeException e) {
+            log.error("FactPack builder failed for questionType={} datasetSource={}: {}",
+                    request.getQuestionType(), request.getDatasetSource(), e.getMessage(), e);
+            return Explanation.refusal("Unable to build FactPack for the requested question");
+        }
 
         // Handle null Fact Pack from builder → refuse rather than crash
         if (factPack == null) {
@@ -114,7 +121,14 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         // Generate explanation using provider (question derived from questionType)
-        Explanation explanation = explanationProvider.generateExplanation(request.getQuestionType(), factPack);
+        Explanation explanation;
+        try {
+            explanation = explanationProvider.generateExplanation(request.getQuestionType(), factPack);
+        } catch (RuntimeException e) {
+            log.error("Explanation provider failed for questionType={} datasetSource={}: {}",
+                    request.getQuestionType(), request.getDatasetSource(), e.getMessage(), e);
+            return Explanation.refusal("Explanation provider failed to generate an explanation");
+        }
 
         // Handle null explanation from provider
         if (explanation == null) {
