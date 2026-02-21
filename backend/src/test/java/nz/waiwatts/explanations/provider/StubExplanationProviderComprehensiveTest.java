@@ -2,6 +2,7 @@ package nz.waiwatts.explanations.provider;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.dto.ClassificationFact;
 import nz.waiwatts.explanations.dto.TimeSeriesFact;
 import nz.waiwatts.explanations.dto.MetricFact;
 import org.junit.jupiter.api.BeforeEach;
@@ -189,6 +190,20 @@ class StubExplanationProviderComprehensiveTest {
         assertEquals("Question type not supported in Phase 11: unknown_question_type", explanation.getRefusalReason());
     }
 
+    @Test
+    void testWaterQualityOverviewIncludesMetricCitationsForNumericClaims() {
+        FactPack factPack = createWaterQualityOverviewFactPack();
+
+        Explanation explanation = provider.generateExplanation("water_quality_overview", factPack);
+
+        assertFalse(explanation.isRefusal());
+        assertTrue(explanation.getExplanationText().contains("42.50%"));
+        assertTrue(explanation.getExplanationText().contains("11.00%"));
+        assertTrue(explanation.getCitations().contains("metric:lawa:excellent_sites_percentage:canterbury"));
+        assertTrue(explanation.getCitations().contains("metric:lawa:poor_sites_percentage:canterbury"));
+        assertTrue(provider.validateCitations(explanation, factPack));
+    }
+
     private FactPack createHydroFactPack() {
         FactPack factPack = new FactPack();
         
@@ -285,6 +300,61 @@ class StubExplanationProviderComprehensiveTest {
             "metric:mbie:generation_gwh:2023:GEOTHERMAL"
         ));
         
+        return factPack;
+    }
+
+    private FactPack createWaterQualityOverviewFactPack() {
+        FactPack factPack = new FactPack();
+
+        var requestContext = new FactPack.RequestContext();
+        requestContext.setQuestionType("water_quality_overview");
+        factPack.setRequestContext(requestContext);
+
+        factPack.getFacts().getClassifications().add(new ClassificationFact(
+            "class:lawa:water_quality_state:EXCELLENT",
+            "water_quality_state",
+            "water_quality_state",
+            "EXCELLENT",
+            null,
+            null,
+            Map.of("scope", "NZ", "dataset", "state_multi_year")
+        ));
+
+        factPack.getFacts().getClassifications().add(new ClassificationFact(
+            "class:lawa:water_quality_state:POOR",
+            "water_quality_state",
+            "water_quality_state",
+            "POOR",
+            null,
+            null,
+            Map.of("scope", "NZ", "dataset", "state_multi_year")
+        ));
+
+        factPack.getFacts().getMetrics().add(new MetricFact(
+            "metric:lawa:excellent_sites_percentage:canterbury",
+            "excellent_sites_percentage",
+            new BigDecimal("42.50"),
+            "%",
+            "current_period",
+            Map.of("scope", "NZ")
+        ));
+
+        factPack.getFacts().getMetrics().add(new MetricFact(
+            "metric:lawa:poor_sites_percentage:canterbury",
+            "poor_sites_percentage",
+            new BigDecimal("11.00"),
+            "%",
+            "current_period",
+            Map.of("scope", "NZ")
+        ));
+
+        factPack.getGuardrails().setAllowedClaims(List.of("distribution", "regional_signal"));
+        factPack.getGuardrails().setRequiredCitations(List.of(
+            "class:lawa:water_quality_state:EXCELLENT",
+            "metric:lawa:excellent_sites_percentage:canterbury",
+            "metric:lawa:poor_sites_percentage:canterbury"
+        ));
+
         return factPack;
     }
 }

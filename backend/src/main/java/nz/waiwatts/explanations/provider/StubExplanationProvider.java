@@ -6,6 +6,7 @@ import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.dto.MetricFact;
 import nz.waiwatts.explanations.dto.TimeSeriesFact;
 import nz.waiwatts.explanations.service.CitationValidationUtil;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -296,6 +297,7 @@ public class StubExplanationProvider implements ExplanationProvider {
             explanation.append("multiple classification categories across monitoring sites. ");
             
             // Add metrics if available
+            List<String> metricCitations = new ArrayList<>();
             if (!factPack.getFacts().getMetrics().isEmpty()) {
                 var metrics = factPack.getFacts().getMetrics();
                 explanation.append("Approximately ");
@@ -304,25 +306,32 @@ public class StubExplanationProvider implements ExplanationProvider {
                     .filter(m -> m.getId().contains("excellent"))
                     .findFirst();
 
-                excellentMetric.ifPresent(metricFact -> explanation.append(metricFact.getValue())
-                        .append("% of sites are classified as having excellent water quality, while "));
+                excellentMetric.ifPresent(metricFact -> {
+                    explanation.append(metricFact.getValue())
+                        .append("% of sites are classified as having excellent water quality, while ");
+                    metricCitations.add(metricFact.getId());
+                });
 
                 // Find poor percentage metric
                 var poorMetric = metrics.stream()
                     .filter(m -> m.getId().contains("poor"))
                     .findFirst();
 
-                poorMetric.ifPresent(metricFact -> explanation.append(metricFact.getValue())
-                        .append("% are classified as having poor water quality."));
+                poorMetric.ifPresent(metricFact -> {
+                    explanation.append(metricFact.getValue())
+                        .append("% are classified as having poor water quality.");
+                    metricCitations.add(metricFact.getId());
+                });
             }
             
             // Return explanation with citations
-            List<String> citations = classifications.stream()
+            List<String> citations = new ArrayList<>(classifications.stream()
                 .limit(3)
                 .map(ClassificationFact::getId)
-                .toList();
+                .toList());
+            citations.addAll(metricCitations);
             
-            return new Explanation(explanation.toString(), citations);
+            return new Explanation(explanation.toString(), citations.stream().distinct().toList());
         }
         
         return Explanation.refusal("Insufficient water quality data for overview analysis");
