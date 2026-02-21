@@ -135,15 +135,6 @@ public class RequestValidationService {
             }
         }
         
-        // Validate year filters
-        Integer startYear = (Integer) filters.get("startYear");
-        Integer endYear = (Integer) filters.get("endYear");
-        
-        if (startYear != null && endYear != null && startYear > endYear) {
-            return ValidationResult.failure("VALIDATION_FAILED", 
-                "startYear must be less than or equal to endYear");
-        }
-        
         // Validate filter types
         for (Map.Entry<String, Object> entry : filters.entrySet()) {
             String key = entry.getKey();
@@ -161,6 +152,14 @@ public class RequestValidationService {
                         key + " must be a string");
                 }
             }
+        }
+
+        // Validate year filters after type checks to avoid ClassCastException
+        Integer startYear = (Integer) filters.get("startYear");
+        Integer endYear = (Integer) filters.get("endYear");
+        if (startYear != null && endYear != null && startYear > endYear) {
+            return ValidationResult.failure("VALIDATION_FAILED",
+                "startYear must be less than or equal to endYear");
         }
 
         // Question-type specific filter requirements
