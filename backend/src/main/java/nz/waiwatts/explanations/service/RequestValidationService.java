@@ -134,7 +134,7 @@ public class RequestValidationService {
                     "Unknown filter key: " + key);
             }
         }
-        
+
         // Validate filter types
         for (Map.Entry<String, Object> entry : filters.entrySet()) {
             String key = entry.getKey();
