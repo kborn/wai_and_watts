@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,8 +18,15 @@ public class CitationMapper {
         if (citationIds == null || citationIds.isEmpty()) {
             return List.of();
         }
-        List<Citation> citations = new ArrayList<>();
-        for (String id : citationIds) {
+        List<String> canonicalIds = citationIds.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .map(String::trim)
+            .distinct()
+            .sorted(Comparator.comparing(id -> id.toLowerCase(Locale.ROOT)))
+            .toList();
+
+        List<Citation> citations = new ArrayList<>(canonicalIds.size());
+        for (String id : canonicalIds) {
             if (id == null || id.isBlank()) {
                 continue;
             }
@@ -43,47 +51,52 @@ public class CitationMapper {
         Integer periodYear = null;
         Citation.Period period = null;
 
-        if ("ts".equals(prefix)) {
-            // Examples:
-            // ts:mbie:generation_gwh:HYDRO:1974_2024
-            // ts:mbie:renewable_generation_gwh_quarterly:2020-Q1_to_2024-Q4
-            if (parts.length >= 3) {
-                field = parts[2];
+        switch (prefix) {
+            case "ts" -> {
+                // Examples:
+                // ts:mbie:generation_gwh:HYDRO:1974_2024
+                // ts:mbie:renewable_generation_gwh_quarterly:2020-Q1_to_2024-Q4
+                if (parts.length >= 3) {
+                    field = parts[2];
+                }
+                if (parts.length >= 4 && parts[3] != null && !parts[3].contains("_to_") && !parts[3].contains("_")) {
+                    fuelType = parts[3];
+                }
+                String coverage = parts.length >= 5 ? parts[4] : (parts.length >= 4 ? parts[3] : null);
+                period = parseCoverage(coverage);
             }
-            if (parts.length >= 4 && parts[3] != null && !parts[3].contains("_to_") && !parts[3].contains("_")) {
-                fuelType = parts[3];
+            case "metric" -> {
+                // Examples:
+                // metric:mbie:generation_gwh:2024:COAL
+                if (parts.length >= 3) {
+                    field = parts[2];
+                }
+                if (parts.length >= 4) {
+                    periodYear = parseYear(parts[3]).orElse(null);
+                }
+                if (parts.length >= 5) {
+                    fuelType = parts[4];
+                }
             }
-            String coverage = parts.length >= 5 ? parts[4] : (parts.length >= 4 ? parts[3] : null);
-            period = parseCoverage(coverage);
-        } else if ("metric".equals(prefix)) {
-            // Examples:
-            // metric:mbie:generation_gwh:2024:COAL
-            if (parts.length >= 3) {
-                field = parts[2];
+            case "class" -> {
+                // Examples:
+                // class:lawa:water_quality_trend:DEGRADING
+                if (parts.length >= 3) {
+                    field = parts[2];
+                }
             }
-            if (parts.length >= 4) {
-                periodYear = parseYear(parts[3]).orElse(null);
-            }
-            if (parts.length >= 5) {
-                fuelType = parts[4];
-            }
-        } else if ("class".equals(prefix)) {
-            // Examples:
-            // class:lawa:water_quality_trend:DEGRADING
-            if (parts.length >= 3) {
-                field = parts[2];
-            }
-        } else if ("cmp".equals(prefix)) {
-            // Examples:
-            // cmp:mbie:generation_gwh:HYDRO:2024_vs_2023
-            if (parts.length >= 3) {
-                field = parts[2];
-            }
-            if (parts.length >= 4) {
-                fuelType = parts[3];
-            }
-            if (parts.length >= 5) {
-                period = parseCoverage(parts[4]);
+            case "cmp" -> {
+                // Examples:
+                // cmp:mbie:generation_gwh:HYDRO:2024_vs_2023
+                if (parts.length >= 3) {
+                    field = parts[2];
+                }
+                if (parts.length >= 4) {
+                    fuelType = parts[3];
+                }
+                if (parts.length >= 5) {
+                    period = parseCoverage(parts[4]);
+                }
             }
         }
 
