@@ -22,7 +22,9 @@ public class FactPack {
     private Guardrails guardrails;
 
     public FactPack() {
-        this.generatedAtUtc = OffsetDateTime.now();
+        // Keep unset by default so FactPack construction remains deterministic.
+        // Callers can set this explicitly if a stable timestamp source is required.
+        this.generatedAtUtc = null;
         this.facts = new Facts();
         this.guardrails = new Guardrails();
     }
