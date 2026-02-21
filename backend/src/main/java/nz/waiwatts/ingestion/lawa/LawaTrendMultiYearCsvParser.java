@@ -45,7 +45,6 @@ public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements La
                 BigDecimal longitude = parseBigDecimal(getOptional(parts, headerIndex, "longitude"));
                 String indicatorRaw = getRequired(parts, headerIndex, "indicator_raw", lineNo);
                 String indicatorNorm = normalizeIndicator(indicatorRaw, getOptional(parts, headerIndex, "indicator_norm"));
-                String units = getRequired(parts, headerIndex, "units", lineNo);
                 String trendRaw = getRequired(parts, headerIndex, "trend_raw", lineNo);
                 String trendNorm = normalizeTrend(trendRaw, getOptional(parts, headerIndex, "trend_norm"));
                 Integer trendScore = parseInteger(getOptional(parts, headerIndex, "trend_score"));
@@ -57,7 +56,7 @@ public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements La
 
                 result.add(new LawaTrendMultiYearParsedRecord(
                         lawaSiteId, siteName, region, latitude, longitude,
-                        indicatorRaw, indicatorNorm, units,
+                        indicatorRaw, indicatorNorm,
                         trendRaw, trendNorm, trendScore, trendPeriodYears,
                         trendDataFrequency, periodType, periodStartYear, periodEndYear
                 ));
@@ -124,7 +123,6 @@ public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements La
             "longitude",
             "indicator_raw",
             "indicator_norm",
-            "units",
             "trend_raw",
             "trend_norm",
             "trend_score",

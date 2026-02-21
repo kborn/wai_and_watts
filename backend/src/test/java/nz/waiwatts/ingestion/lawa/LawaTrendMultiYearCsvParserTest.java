@@ -106,6 +106,18 @@ class LawaTrendMultiYearCsvParserTest {
         assertThat(records).hasSize(1);
     }
 
+    @Test
+    void parse_withoutUnitsColumn_passes() throws Exception {
+        String csv = """
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
+            """;
+        LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
+        List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
+        assertThat(records).hasSize(1);
+        assertThat(records.getFirst().getIndicatorNorm()).isEqualTo("ECOLI");
+    }
+
     private InputStream toStream(String csv) {
         return new ByteArrayInputStream(csv.getBytes(StandardCharsets.UTF_8));
     }
