@@ -56,7 +56,7 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
+            <version>5.4.1</version>
         </dependency>
 
         <!-- Test deps -->
@@ -116,6 +116,27 @@
                                         </limit>
                                     </limits>
                                 </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-java-21-runtime</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[21,22)</version>
+                                    <message>Maven must run on Java 21.x (not just compile with --release 21). Check `mvn -v` and set JAVA_HOME accordingly.</message>
+                                </requireJavaVersion>
                             </rules>
                         </configuration>
                     </execution>
