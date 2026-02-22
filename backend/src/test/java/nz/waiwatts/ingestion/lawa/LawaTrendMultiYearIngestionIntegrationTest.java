@@ -51,7 +51,6 @@ class LawaTrendMultiYearIngestionIntegrationTest {
         sourceRepository.deleteAll();
 
         DatasetSource src = new DatasetSource();
-        src.setId(UUID.randomUUID());
         src.setName("LAWA Trend Multi Year");
         src.setPublisher(Publisher.LAWA);
         src.setCode(SOURCE_CODE);

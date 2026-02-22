@@ -53,7 +53,6 @@ class LawaStateMultiYearIngestionIntegrationTest {
         sourceRepository.deleteAll();
 
         DatasetSource src = new DatasetSource();
-        src.setId(UUID.randomUUID());
         src.setName("Lawa State Multi Year");
         src.setPublisher(Publisher.LAWA);
         src.setCode(SOURCE_CODE);

@@ -28,7 +28,6 @@ public class LawaStateMultiYearRecordRepositoryTest {
     void saveAndRead() {
 
         DatasetSource src = new DatasetSource();
-        src.setId(UUID.randomUUID());
         src.setName("LAWA Water Quality State (Multi-Year) Test");
         src.setPublisher(Publisher.LAWA);
         src.setCode("test.lawa.water_quality.state.multi_year");

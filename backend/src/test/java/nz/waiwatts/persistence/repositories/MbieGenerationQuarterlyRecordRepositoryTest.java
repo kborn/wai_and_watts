@@ -29,7 +29,6 @@ class MbieGenerationQuarterlyRecordRepositoryTest {
     void saveAndReadQuarterlyRecord() {
         // Arrange: create lineage
         DatasetSource src = new DatasetSource();
-        src.setId(UUID.randomUUID());
         src.setName("MBIE Electricity Generation (Fuel Type, Quarterly) Test");
         src.setPublisher(Publisher.MBIE);
         src.setCode("test.mbie.generation.quarterly");
