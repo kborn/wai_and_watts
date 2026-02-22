@@ -55,6 +55,12 @@ download → transform → ingest (CLI) → start backend → validate APIs
    
    # Install and start Postgres locally
    ```
+   Both commands must report Java 21. If `mvn -v` reports a different Java runtime, set `JAVA_HOME` to a JDK 21 installation before running tests/builds.
+
+   Example (macOS):
+   ```bash
+   export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+   ```
 
 2. **Environment Setup**
    ```bash

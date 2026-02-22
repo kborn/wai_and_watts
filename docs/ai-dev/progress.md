@@ -894,13 +894,17 @@ Definition of Done
 - [x] Synthesize phase15_architectural_remediation_plan.md into a remediation plan (docs/phase-notes/phase15/phase15_architectural_remediation_plan.md)
 - [x] Execute Phase 15 Architectural Remediation Plan (chronological plan)
   - [x] Final closure verification recorded in:
-    - `docs/phase-notes/phase15/phase15_second_round_verification_findings.md` (with 2026-02-21 addendum)
+    - `docs/phase-notes/phase15/phase15_second_round_verification_findings.md` (with 2026-02-22 final addendum)
     - `docs/phase-notes/phase15/phase15_refactoring_execution_checklist.md` (status set to complete)
 
 
 #### Tooling & Dependency Version Review
-- [ ] Perform an overall review of toolchain and dependency versions (JDK, Maven plugins, Spring Boot/BOM-managed dependencies, frontend toolchain) and document upgrade recommendations + risk level
-  - [ ] Address IDE warnings in pom.xml
+- [x] Perform an overall review of toolchain and dependency versions (JDK, Maven plugins, Spring Boot/BOM-managed dependencies, frontend toolchain) and document upgrade recommendations + risk level
+  - [x] Documented in `docs/phase-notes/phase15/phase15_tooling_dependency_version_review.md`
+  - [x] Address IDE warnings in pom.xml
+    - [x] Refreshed Spring Boot BOM line (root `pom.xml`) to patched Spring Framework 6.2.x line (`spring-boot.version=3.4.10`)
+    - [x] Refreshed Apache POI dependency version
+    - [x] Added Maven runtime Java 21 enforcer guardrail to prevent local Java mismatch issues during test execution
 
 ### Feature Usage Review
 - [ ] Validate intention of version in endpoint

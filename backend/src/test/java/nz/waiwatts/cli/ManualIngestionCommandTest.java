@@ -69,7 +69,6 @@ class ManualIngestionCommandTest {
         sourceRepository.deleteAll();
 
         DatasetSource src = new DatasetSource();
-        src.setId(UUID.randomUUID());
         src.setName("MBIE Electricity Generation (Fuel Type, Annual)");
         src.setPublisher(Publisher.MBIE);
         src.setCode(SOURCE_CODE);
