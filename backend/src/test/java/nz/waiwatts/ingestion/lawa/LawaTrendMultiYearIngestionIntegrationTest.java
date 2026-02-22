@@ -186,7 +186,7 @@ class LawaTrendMultiYearIngestionIntegrationTest {
 
     @Test
     void ingestFile_whenHeaderOnly_failsValidation() throws IOException {
-        String content = "lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year\n";
+        String content = "lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year\n";
         Path tempFile = createTempLawaTrendFileWithContent(content, "lawa-trend-header-only");
 
         RuntimeException exception = assertThrows(
@@ -199,7 +199,7 @@ class LawaTrendMultiYearIngestionIntegrationTest {
     @Test
     void ingestFile_whenTruncatedRow_failsValidation() throws IOException {
         String content = """
-            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
             R001,Kaituna River,Hawke's Bay,-40.95,175.55,E.coli
             """;
         Path tempFile = createTempLawaTrendFileWithContent(content, "lawa-trend-truncated");
@@ -238,9 +238,9 @@ class LawaTrendMultiYearIngestionIntegrationTest {
 
     private String lawaTrendContent() {
         return """
-            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
-            R001,Kaituna River,Hawke's Bay,-40.95,175.55,E.coli,E_COLI,CFU/100mL,Degrading,DEGRADING,2,10,Annual,HYDRO_NYR_WINDOW,2013,2022
-            R002,Waikato River,Waikato,-37.85,175.35,E.coli,E_COLI,CFU/100mL,Improving,IMPROVING,1,9,Annual,HYDRO_NYR_WINDOW,2014,2022
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+            R001,Kaituna River,Hawke's Bay,-40.95,175.55,E.coli,E_COLI,Degrading,DEGRADING,2,10,Annual,HYDRO_NYR_WINDOW,2013,2022
+            R002,Waikato River,Waikato,-37.85,175.35,E.coli,E_COLI,Improving,IMPROVING,1,9,Annual,HYDRO_NYR_WINDOW,2014,2022
             """;
     }
 }

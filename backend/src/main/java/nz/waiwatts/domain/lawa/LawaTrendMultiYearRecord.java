@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import nz.waiwatts.domain.datasets.DatasetRelease;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lawa_water_quality_trend_multi_year_record",
@@ -64,6 +65,9 @@ public class LawaTrendMultiYearRecord {
     @Column(name = "period_end_year", nullable = false)
     private Integer periodEndYear;
 
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
+
     public Long getId() { return id; }
     public DatasetRelease getDatasetRelease() { return datasetRelease; }
     public void setDatasetRelease(DatasetRelease datasetRelease) { this.datasetRelease = datasetRelease; }
@@ -97,4 +101,6 @@ public class LawaTrendMultiYearRecord {
     public void setPeriodStartYear(Integer periodStartYear) { this.periodStartYear = periodStartYear; }
     public Integer getPeriodEndYear() { return periodEndYear; }
     public void setPeriodEndYear(Integer periodEndYear) { this.periodEndYear = periodEndYear; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

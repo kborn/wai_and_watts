@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import nz.waiwatts.domain.datasets.DatasetRelease;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "lawa_state_multi_year_record")
@@ -67,6 +68,9 @@ public class LawaStateMultiYearRecord {
 
     @Column(name = "period_end_year", nullable = false)
     private int periodEndYear;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     public Long getId() {
         return id;
@@ -218,5 +222,13 @@ public class LawaStateMultiYearRecord {
 
     public void setPeriodEndYear(int periodEndYear) {
         this.periodEndYear = periodEndYear;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

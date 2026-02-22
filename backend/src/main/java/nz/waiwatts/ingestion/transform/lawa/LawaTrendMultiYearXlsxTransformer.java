@@ -41,7 +41,7 @@ public class LawaTrendMultiYearXlsxTransformer {
 
     public byte[] transform(InputStream input) throws IOException {
         try (Workbook workbook = WorkbookFactory.create(input)) {
-            int asOfYear = resolveAsOfYear(workbook);
+            int periodEnd = resolveAsOfYear(workbook);
             Sheet sheet = workbook.getSheet(SHEET_TREND);
             if (sheet == null) {
                 throw new IOException("Sheet not found: " + SHEET_TREND);
@@ -76,8 +76,7 @@ public class LawaTrendMultiYearXlsxTransformer {
 
                 String indicatorNorm = normalizeIndicator(indicatorRaw);
                 String trendNorm = normalizeTrend(trendRaw);
-                int periodStart = asOfYear - trendPeriodYears;
-                int periodEnd = asOfYear;
+                int periodStart = periodEnd - trendPeriodYears;
 
                 rows.add(List.of(
                         lawaSiteId,
@@ -87,7 +86,6 @@ public class LawaTrendMultiYearXlsxTransformer {
                         longitude,
                         indicatorRaw,
                         indicatorNorm,
-                        "",
                         trendRaw,
                         trendNorm,
                         trendScore == null ? "" : String.valueOf(trendScore),
@@ -100,9 +98,9 @@ public class LawaTrendMultiYearXlsxTransformer {
             }
             rows.sort(Comparator
                     .comparing((List<String> r) -> r.get(2), Comparator.nullsLast(String::compareTo))
-                    .thenComparing(r -> r.get(0))
+                    .thenComparing(List::getFirst)
                     .thenComparing(r -> r.get(6))
-                    .thenComparing(r -> parseSortInt(r.get(11))));
+                    .thenComparing(r -> parseSortInt(r.get(10))));
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             String header = CsvTransformUtil.toCsvLine(List.of(
@@ -113,7 +111,6 @@ public class LawaTrendMultiYearXlsxTransformer {
                     "longitude",
                     "indicator_raw",
                     "indicator_norm",
-                    "units",
                     "trend_raw",
                     "trend_norm",
                     "trend_score",
