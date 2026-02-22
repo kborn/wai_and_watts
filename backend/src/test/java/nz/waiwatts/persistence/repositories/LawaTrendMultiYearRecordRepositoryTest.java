@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,5 +71,109 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         assertThat(saved.getTrendNorm()).isEqualTo("IMPROVING");
         assertThat(saved.getTrendScore()).isEqualTo(3);
 
+    }
+
+    @Test
+    void findForReadApi_regionFilter_isCaseInsensitive() {
+        DatasetSource src = new DatasetSource();
+        src.setName("LAWA Water Quality Trend (Multi-Year) Test");
+        src.setPublisher(Publisher.LAWA);
+        src.setCode("test.lawa.water_quality.trend.multi_year.case");
+        src.setSourceUrl("https://example.com/lawa-trend-case-" + UUID.randomUUID());
+        src.setExpectedFormat(ExpectedFormat.CSV);
+        src.setUpdateCadence("annual");
+        src = sourceRepo.saveAndFlush(src);
+
+        DatasetRelease rel = new DatasetRelease();
+        rel.setDatasetSource(src);
+        rel.setPublishedDate(LocalDate.of(2025, 1, 1));
+        rel.setReleaseLabel("LAWA Trend 2025");
+        rel.setRetrievedAt(LocalDateTime.now());
+        rel.setContentHash("sha256:dummy-lawa-trend-case");
+        rel.setStatus(ReleaseStatus.PENDING);
+        rel = releaseRepo.saveAndFlush(rel);
+
+        LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
+        rec.setDatasetRelease(rel);
+        rec.setLawaSiteId("arc-00037");
+        rec.setSiteName("Case Test Site");
+        rec.setRegion("Auckland");
+        rec.setIndicatorRaw("E. coli");
+        rec.setIndicatorNorm("e_coli");
+        rec.setTrendRaw("Improving");
+        rec.setTrendNorm("improving");
+        rec.setTrendScore(3);
+        rec.setTrendPeriodYears(5);
+        rec.setTrendDataFrequency("Monthly");
+        rec.setPeriodType("HYDRO_5YR_ROLLING");
+        rec.setPeriodEndYear(2024);
+        rec.setPeriodStartYear(2019);
+        lawaTrendMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForReadApi(
+                null, null, null, "auckland");
+
+        assertThat(out).hasSize(1);
+        assertThat(out.getFirst().getRegion()).isEqualTo("Auckland");
+    }
+
+    @Test
+    void findDistinctRegionOrderByRegion_returnsNormalizedLowercaseValues() {
+        DatasetSource src = new DatasetSource();
+        src.setName("LAWA Water Quality Trend (Multi-Year) Test");
+        src.setPublisher(Publisher.LAWA);
+        src.setCode("test.lawa.water_quality.trend.multi_year.regions");
+        src.setSourceUrl("https://example.com/lawa-trend-regions-" + UUID.randomUUID());
+        src.setExpectedFormat(ExpectedFormat.CSV);
+        src.setUpdateCadence("annual");
+        src = sourceRepo.saveAndFlush(src);
+
+        DatasetRelease rel = new DatasetRelease();
+        rel.setDatasetSource(src);
+        rel.setPublishedDate(LocalDate.of(2025, 1, 1));
+        rel.setReleaseLabel("LAWA Trend 2025");
+        rel.setRetrievedAt(LocalDateTime.now());
+        rel.setContentHash("sha256:dummy-lawa-trend-regions");
+        rel.setStatus(ReleaseStatus.PENDING);
+        rel = releaseRepo.saveAndFlush(rel);
+
+        LawaTrendMultiYearRecord rec1 = new LawaTrendMultiYearRecord();
+        rec1.setDatasetRelease(rel);
+        rec1.setLawaSiteId("arc-00038");
+        rec1.setSiteName("Region A");
+        rec1.setRegion("Auckland");
+        rec1.setIndicatorRaw("E. coli");
+        rec1.setIndicatorNorm("e_coli");
+        rec1.setTrendRaw("Improving");
+        rec1.setTrendNorm("improving");
+        rec1.setTrendScore(3);
+        rec1.setTrendPeriodYears(5);
+        rec1.setTrendDataFrequency("Monthly");
+        rec1.setPeriodType("HYDRO_5YR_ROLLING");
+        rec1.setPeriodEndYear(2024);
+        rec1.setPeriodStartYear(2019);
+
+        LawaTrendMultiYearRecord rec2 = new LawaTrendMultiYearRecord();
+        rec2.setDatasetRelease(rel);
+        rec2.setLawaSiteId("arc-00039");
+        rec2.setSiteName("Region B");
+        rec2.setRegion("auckland");
+        rec2.setIndicatorRaw("E. coli");
+        rec2.setIndicatorNorm("e_coli");
+        rec2.setTrendRaw("Improving");
+        rec2.setTrendNorm("improving");
+        rec2.setTrendScore(3);
+        rec2.setTrendPeriodYears(5);
+        rec2.setTrendDataFrequency("Monthly");
+        rec2.setPeriodType("HYDRO_5YR_ROLLING");
+        rec2.setPeriodEndYear(2024);
+        rec2.setPeriodStartYear(2019);
+
+        lawaTrendMultiYearRepo.saveAndFlush(rec1);
+        lawaTrendMultiYearRepo.saveAndFlush(rec2);
+
+        List<String> regions = lawaTrendMultiYearRepo.findDistinctRegionOrderByRegion();
+        assertThat(regions).contains("auckland");
+        assertThat(regions).doesNotContain("Auckland");
     }
 }

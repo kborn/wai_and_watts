@@ -34,6 +34,31 @@ const createHatchPattern = (): HTMLCanvasElement | undefined => {
   return canvas
 }
 
+const formatRegionDisplay = (region: string): string => {
+  return region
+    .trim()
+    .split(/\s+/)
+    .map(word =>
+      word
+        .split('-')
+        .map(segment =>
+          segment
+            .split("'")
+            .map((part, index) => {
+              const lower = part.toLowerCase()
+              if (!lower) return lower
+              if (index > 0 && (lower === 's' || lower === 't')) {
+                return lower
+              }
+              return `${lower.charAt(0).toUpperCase()}${lower.slice(1)}`
+            })
+            .join("'")
+        )
+        .join('-')
+    )
+    .join(' ')
+}
+
 const LawaBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'state' | 'trend'>('state')
   const [region, setRegion] = useState('')
@@ -519,7 +544,7 @@ const LawaBrowsePage: React.FC = () => {
                   : trendRegions.data
                 )?.map(r => (
                   <option key={r} value={r}>
-                    {r}
+                    {formatRegionDisplay(r)}
                   </option>
                 ))}
               </select>
@@ -657,7 +682,7 @@ const LawaBrowsePage: React.FC = () => {
                         State Band Distribution
                       </h3>
                       <p className="text-xs text-neutral-500 mt-1">
-                        {region && `Region: ${region}`}
+                        {region && `Region: ${formatRegionDisplay(region)}`}
                         {region && indicator && ' | '}
                         {indicator && `Indicator: ${indicator}`}
                       </p>
@@ -704,7 +729,7 @@ const LawaBrowsePage: React.FC = () => {
                       Trend Classification Distribution
                     </h3>
                     <p className="text-xs text-neutral-500 mt-1">
-                      {region && `Region: ${region}`}
+                      {region && `Region: ${formatRegionDisplay(region)}`}
                       {region && indicator && ' | '}
                       {indicator && `Indicator: ${indicator}`}
                     </p>
@@ -816,7 +841,9 @@ const LawaBrowsePage: React.FC = () => {
                         <td className="table-cell font-medium">
                           {row.periodStartYear}-{row.periodEndYear}
                         </td>
-                        <td className="table-cell">{row.region}</td>
+                        <td className="table-cell">
+                          {formatRegionDisplay(row.region)}
+                        </td>
                         <td className="table-cell">{row.siteName}</td>
                         <td className="table-cell text-neutral-500">
                           {row.lawaSiteId}

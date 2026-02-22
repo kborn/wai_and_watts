@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import nz.waiwatts.domain.datasets.DatasetRelease;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "mbie_generation_quarterly_record")
@@ -31,6 +32,9 @@ public class MbieGenerationQuarterlyRecord {
 
     @Column(name = "generation_gwh", nullable = false, precision = 18, scale = 3)
     private BigDecimal generationGwh;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     public Long getId() {
         return id;
@@ -86,5 +90,13 @@ public class MbieGenerationQuarterlyRecord {
 
     public void setGenerationGwh(BigDecimal generationGwh) {
         this.generationGwh = generationGwh;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

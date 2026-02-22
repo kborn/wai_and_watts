@@ -17,7 +17,7 @@ public interface LawaStateMultiYearRecordRepository extends JpaRepository<LawaSt
             WHERE (:fromYear IS NULL OR m.periodEndYear >= :fromYear)
               AND (:toYear IS NULL OR m.periodStartYear <= :toYear)
               AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = :indicatorNorm)
-              AND (:regionNorm IS NULL OR m.region = :regionNorm)
+              AND (:regionNorm IS NULL OR LOWER(m.region) = :regionNorm)
             ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm, m.datasetRelease.id
             """)
     List<LawaStateMultiYearRecord> findForReadApi(@Param("fromYear") Integer fromYear,
@@ -25,7 +25,7 @@ public interface LawaStateMultiYearRecordRepository extends JpaRepository<LawaSt
                                                   @Param("indicatorNorm") String indicatorNorm,
                                                   @Param("regionNorm") String regionNorm);
     
-    @Query("SELECT DISTINCT m.region FROM LawaStateMultiYearRecord m ORDER BY m.region")
+    @Query("SELECT DISTINCT LOWER(m.region) FROM LawaStateMultiYearRecord m ORDER BY LOWER(m.region)")
     List<String> findDistinctRegionOrderByRegion();
     
     @Query("SELECT DISTINCT m.indicatorNorm FROM LawaStateMultiYearRecord m ORDER BY m.indicatorNorm")
