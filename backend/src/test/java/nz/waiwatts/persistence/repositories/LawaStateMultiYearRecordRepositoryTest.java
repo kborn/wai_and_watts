@@ -162,4 +162,88 @@ public class LawaStateMultiYearRecordRepositoryTest {
         assertThat(regions).contains("auckland");
         assertThat(regions).doesNotContain("Auckland");
     }
+
+    @Test
+    void findForReadApi_withAllOptionalFiltersNull_returnsRecords() {
+        DatasetSource src = new DatasetSource();
+        src.setName("LAWA Water Quality State (Multi-Year) Null Filters");
+        src.setPublisher(Publisher.LAWA);
+        src.setCode("test.lawa.water_quality.state.multi_year.null");
+        src.setSourceUrl("https://example.com/lawa-state-null-" + UUID.randomUUID());
+        src.setExpectedFormat(ExpectedFormat.CSV);
+        src.setUpdateCadence("annual");
+        src = sourceRepo.saveAndFlush(src);
+
+        DatasetRelease rel = new DatasetRelease();
+        rel.setDatasetSource(src);
+        rel.setPublishedDate(LocalDate.of(2025, 1, 1));
+        rel.setReleaseLabel("LAWA State 2025");
+        rel.setRetrievedAt(LocalDateTime.now());
+        rel.setContentHash("sha256:dummy-lawa-state-null");
+        rel.setStatus(ReleaseStatus.PENDING);
+        rel = releaseRepo.saveAndFlush(rel);
+
+        LawaStateMultiYearRecord rec = new LawaStateMultiYearRecord();
+        rec.setDatasetRelease(rel);
+        rec.setLawaSiteId("arc-state-null");
+        rec.setSiteName("State Null Site");
+        rec.setRegion("Auckland");
+        rec.setIndicatorRaw("E. coli");
+        rec.setIndicatorNorm("ECOLI");
+        rec.setAttributeBand("B");
+        rec.setStateNorm("GOOD");
+        rec.setPeriodType("HYDRO_5YR_ROLLING");
+        rec.setPeriodStartYear(2019);
+        rec.setPeriodEndYear(2024);
+        lawaStateMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaStateMultiYearRecord> out = lawaStateMultiYearRepo.findForReadApi(
+                null, null, null, null
+        );
+
+        assertThat(out).isNotEmpty();
+        assertThat(out).anyMatch(r -> "arc-state-null".equals(r.getLawaSiteId()));
+    }
+
+    @Test
+    void findForReadApi_indicatorFilter_isCaseInsensitive() {
+        DatasetSource src = new DatasetSource();
+        src.setName("LAWA Water Quality State (Multi-Year) Indicator Case");
+        src.setPublisher(Publisher.LAWA);
+        src.setCode("test.lawa.water_quality.state.multi_year.indicator.case");
+        src.setSourceUrl("https://example.com/lawa-state-indicator-case-" + UUID.randomUUID());
+        src.setExpectedFormat(ExpectedFormat.CSV);
+        src.setUpdateCadence("annual");
+        src = sourceRepo.saveAndFlush(src);
+
+        DatasetRelease rel = new DatasetRelease();
+        rel.setDatasetSource(src);
+        rel.setPublishedDate(LocalDate.of(2025, 1, 1));
+        rel.setReleaseLabel("LAWA State 2025");
+        rel.setRetrievedAt(LocalDateTime.now());
+        rel.setContentHash("sha256:dummy-lawa-state-indicator-case");
+        rel.setStatus(ReleaseStatus.PENDING);
+        rel = releaseRepo.saveAndFlush(rel);
+
+        LawaStateMultiYearRecord rec = new LawaStateMultiYearRecord();
+        rec.setDatasetRelease(rel);
+        rec.setLawaSiteId("arc-state-ind");
+        rec.setSiteName("Indicator Case Site");
+        rec.setRegion("Auckland");
+        rec.setIndicatorRaw("E. coli");
+        rec.setIndicatorNorm("ECOLI");
+        rec.setAttributeBand("B");
+        rec.setStateNorm("GOOD");
+        rec.setPeriodType("HYDRO_5YR_ROLLING");
+        rec.setPeriodStartYear(2019);
+        rec.setPeriodEndYear(2024);
+        lawaStateMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaStateMultiYearRecord> out = lawaStateMultiYearRepo.findForReadApi(
+                2019, 2024, "ecoli", "auckland"
+        );
+
+        assertThat(out).hasSize(1);
+        assertThat(out.getFirst().getLawaSiteId()).isEqualTo("arc-state-ind");
+    }
 }

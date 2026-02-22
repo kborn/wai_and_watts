@@ -943,20 +943,24 @@ Definition of Done
 
 
 #### Test Coverage
-- [ ] Add code coverage reporting (Jacoco or similar)
-  - [ ] Configure Maven plugin
-  - [ ] Add minimum coverage threshold (e.g., 70% or 80%)
-  - [ ] CI fails if threshold not met
-- [ ] Review current test coverage
-  - [ ] Identify gaps in critical paths
-  - [ ] Add tests for uncovered business logic
-- [ ] Add a Postgres-backed integration test 
-  - [ ] api serving sql queries
-  - [ ] /api/v1/explanations/ask that exercises nullable optional filters across MBIE and LAWA query paths, asserting no SQL grammar/type errors from JPQL bind parameters (e.g., LOWER/UPPER(:param) regressions). 
-    - [ ] Include cases where optional filter params are null and where case-insensitive text filters are provided (mixed case) to verify normalization + query behavior end-to-end.
-- [ ] Add data-release determinism integration test
-  - [ ] Seed multiple `dataset_release` versions for same dataset source
-  - [ ] Verify response is pinned to one canonical release (stable citations/provenance across repeated identical requests)
+- [x] Add code coverage reporting (Jacoco or similar)
+  - [x] Configure Maven plugin
+  - [x] Add minimum coverage threshold (70%)
+  - [x] CI fails if threshold not met
+- [x] Review current test coverage
+  - [x] Identify gaps in critical paths
+  - [x] Add tests for uncovered business logic
+- [x] Add a Postgres-backed integration test
+  - [x] API-serving SQL query paths execute under PostgreSQL dialect via Testcontainers (`ExplanationPostgresIntegrationTest`)
+  - [x] `/api/v1/explanations/ask` MBIE and LAWA execution paths are exercised with nullable/mixed-case filters by driving parsed requests through the real controller/service pipeline (parser mocked only to force deterministic ask-shape inputs)
+  - [x] Included optional null-filter and mixed-case filter coverage to protect against JPQL bind regressions (e.g., case-folding/null-guard predicates)
+- [x] Add data-release determinism integration test
+  - [x] Seed multiple `dataset_release` versions for same dataset source
+  - [x] Verify response is pinned to one canonical release (stable citations/provenance across repeated identical requests)
+
+Notes:
+- H2-backed integration tests remain the default local fast path; PostgreSQL-dialect tests run via Testcontainers (skip automatically when Docker is unavailable).
+- Determinism assertions are covered for both explanation text/citations and Fact Pack provenance release IDs.
 ---
 
 ### Tier 1 — Must-Have Portfolio Narrative
