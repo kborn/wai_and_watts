@@ -131,6 +131,7 @@ public class FactPack {
      */
     public static class DatasetSourceProvenance {
         private String datasetSourceCode;
+        // UUID string when available; fallback values use "hash:<contentHash>" or "unknown".
         private String datasetReleaseId;
         private String contentHash;
         private String periodCoverage;

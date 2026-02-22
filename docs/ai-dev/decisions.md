@@ -1496,3 +1496,22 @@ Implications:
 - The SE audit artifact is treated as an explicit checkpoint input for remaining Phase 15 work.
 - Unresolved findings are addressed in new, reviewable PRs scoped to concrete remediation steps.
 - Commit history remains honest about discovery and correction flow; no “fixup to hide findings” workflow for this remediation pass.
+
+
+### Title: API v1 Namespace Semantics + Dataset Release Semantics Alignment (Phase 15)
+Date: 2026-02-21
+
+Decision:
+- /api/v1 is a path-based stability namespace (URL namespacing), not a runtime multi-version mechanism (no header/content-negotiation routing implied). 
+- dataset_release is a first-class ingestion/lineage key.
+- Ask (/explanations/ask) must pin to one canonical dataset_release per request for determinism.
+- Read endpoints are intentionally release-transparent and may return rows across multiple releases, exposing releaseId per row as provenance.
+
+Rationale:
+This matches current implementation and supports deterministic grounded explanations without expanding scope into a version lifecycle / negotiation framework.
+
+Implications / Follow-ups (Phase 15):
+1. Standardize FactPack provenance datasetReleaseId format across builders (prefer UUID string; define explicit fallback). 
+2. Document read endpoint semantics: multi-release transparency is expected; releaseId is a provenance key. 
+3. Make read ordering deterministic when duplicates across releases are possible by including releaseId (or equivalent) as a tie-breaker in repository ORDER BY clauses. 
+4. Remove any brittle coupling to literal /api/v1 text where feasible (or explicitly document it as a convention dependency).

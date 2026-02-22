@@ -9,6 +9,7 @@ import org.springframework.lang.Nullable;
 public interface LawaStateMultiYearReadService {
     /**
      * Returns persisted LAWA state rows (release-transparent); each DTO carries its source releaseId.
+     * Result sets may include rows from multiple dataset releases.
      */
     List<LawaStateMultiYearRecordDto> find(@Nullable Integer fromYear,
                                            @Nullable Integer toYear,

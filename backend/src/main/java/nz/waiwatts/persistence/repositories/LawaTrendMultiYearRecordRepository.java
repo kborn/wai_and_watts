@@ -18,7 +18,7 @@ public interface LawaTrendMultiYearRecordRepository extends JpaRepository<LawaTr
               AND (:toYear IS NULL OR m.periodStartYear <= :toYear)
               AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = :indicatorNorm)
               AND (:regionNorm IS NULL OR m.region = :regionNorm)
-            ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm
+            ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm, m.datasetRelease.id
             """)
     List<LawaTrendMultiYearRecord> findForReadApi(@Param("fromYear") Integer fromYear,
                                                   @Param("toYear") Integer toYear,
@@ -33,7 +33,7 @@ public interface LawaTrendMultiYearRecordRepository extends JpaRepository<LawaTr
               AND (:indicatorNorm IS NULL OR LOWER(m.indicatorNorm) = :indicatorNorm)
               AND (:regionNorm IS NULL OR m.region = :regionNorm)
               AND (:trendNorm IS NULL OR LOWER(m.trendNorm) = :trendNorm)
-            ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm
+            ORDER BY m.periodEndYear, m.region, m.lawaSiteId, m.indicatorNorm, m.datasetRelease.id
             """)
     List<LawaTrendMultiYearRecord> findForAsk(@Param("fromYear") Integer fromYear,
                                               @Param("toYear") Integer toYear,

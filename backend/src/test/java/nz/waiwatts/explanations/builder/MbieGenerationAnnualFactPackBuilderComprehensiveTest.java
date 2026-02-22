@@ -258,6 +258,31 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
     }
 
     @Test
+    void testProvenanceReleaseIdFallsBackToContentHashWhenUuidMissing() {
+        ExplanationRequest request = new ExplanationRequest(
+            "renewable_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
+        );
+
+        DatasetRelease releaseWithoutId = new DatasetRelease();
+        releaseWithoutId.setDatasetSource(datasetSource);
+        releaseWithoutId.setContentHash("sha256:noid");
+        releaseWithoutId.setRetrievedAt(LocalDateTime.of(2025, 1, 1, 0, 0));
+        releaseWithoutId.setImportedAt(LocalDateTime.of(2025, 1, 1, 0, 0));
+        releaseWithoutId.setStatus(ReleaseStatus.IMPORTED);
+
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(List.of(
+            createRecord(2024, "HYDRO", new BigDecimal("26000"), releaseWithoutId)
+        ));
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertEquals(1, factPack.getProvenance().getDatasetSources().size());
+        assertEquals("hash:sha256:noid", factPack.getProvenance().getDatasetSources().getFirst().getDatasetReleaseId());
+        assertEquals("sha256:noid", factPack.getProvenance().getDatasetSources().getFirst().getContentHash());
+    }
+
+    @Test
     void testPinsToSingleCanonicalReleaseForAsk() {
         ExplanationRequest request = new ExplanationRequest(
             "hydro_generation_trend",

@@ -8,6 +8,7 @@ import java.util.List;
 public interface LawaTrendMultiYearReadService {
     /**
      * Returns persisted LAWA trend rows (release-transparent); each DTO carries its source releaseId.
+     * Result sets may include rows from multiple dataset releases.
      */
     List<LawaTrendMultiYearRecordDto> find(@Nullable Integer fromYear,
                                            @Nullable Integer toYear,

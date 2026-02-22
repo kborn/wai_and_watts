@@ -43,19 +43,20 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         // TODO(Phase 12+): Replace with distinct release lookup to avoid heavy loads
         List<MbieGenerationAnnualRecord> records = pinToCanonicalRelease(getRecordsForRequest(request));
         if (!records.isEmpty()) {
-            // Group by dataset release to ensure correct contentHash and per-release coverage
-            Map<UUID, List<MbieGenerationAnnualRecord>> byRelease = records.stream()
-                .collect(Collectors.groupingBy(r -> r.getDatasetRelease().getId()));
+            // Group by dataset release to ensure correct contentHash and per-release coverage.
+            // Use a stable key: UUID string when available, else hash fallback.
+            Map<String, List<MbieGenerationAnnualRecord>> byReleaseKey = records.stream()
+                .filter(r -> r.getDatasetRelease() != null)
+                .collect(Collectors.groupingBy(r -> releaseKey(r.getDatasetRelease())));
 
-            byRelease.entrySet().stream()
-                // Deterministic ordering by UUID string for stability
-                .sorted(Map.Entry.comparingByKey(Comparator.comparing(UUID::toString)))
+            byReleaseKey.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> {
-                    UUID releaseId = entry.getKey();
+                    String releaseKey = entry.getKey();
                     List<MbieGenerationAnnualRecord> group = entry.getValue();
                     FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
                     source.setDatasetSourceCode("mbie.generation.annual");
-                    source.setDatasetReleaseId(releaseId.toString());
+                    source.setDatasetReleaseId(releaseKey);
                     // contentHash from this release specifically
                     if (!group.isEmpty() && group.getFirst().getDatasetRelease() != null) {
                         source.setContentHash(group.getFirst().getDatasetRelease().getContentHash());
@@ -182,6 +183,19 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
             return left.getId().equals(right.getId());
         }
         return Objects.equals(left.getContentHash(), right.getContentHash());
+    }
+
+    private String releaseKey(DatasetRelease release) {
+        if (release == null) {
+            return "unknown";
+        }
+        if (release.getId() != null) {
+            return release.getId().toString();
+        }
+        if (release.getContentHash() != null && !release.getContentHash().isBlank()) {
+            return "hash:" + release.getContentHash();
+        }
+        return "unknown";
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationAnnualRecord> records) {

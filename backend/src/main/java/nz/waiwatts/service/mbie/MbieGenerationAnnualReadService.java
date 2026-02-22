@@ -8,6 +8,7 @@ import org.springframework.lang.Nullable;
 public interface MbieGenerationAnnualReadService {
     /**
      * Returns persisted MBIE annual rows (release-transparent); each DTO carries its source releaseId.
+     * Result sets may include rows from multiple dataset releases.
      */
     List<MbieGenerationAnnualRecordDto> find(@Nullable Integer fromYear,
                                              @Nullable Integer toYear,
