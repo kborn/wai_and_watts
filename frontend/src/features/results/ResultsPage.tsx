@@ -14,7 +14,7 @@ const getRefusalPresentation = (code?: string) => {
     }
   }
 
-  if (code === 'CAPABILITY_UNSUPPORTED' || code === 'UNSUPPORTED_CAPABILITY') {
+  if (code === 'UNSUPPORTED_CAPABILITY') {
     return {
       title: 'Capability Not Available',
       variant: 'warning' as const,

@@ -192,7 +192,7 @@ describe('ResultsPage Component', () => {
                 explanation: {
                   isRefusal: true,
                   refusal: {
-                    code: 'CAPABILITY_UNSUPPORTED',
+                    code: 'UNSUPPORTED_CAPABILITY',
                     message: 'This capability is not available.',
                   },
                   parsedRequest: null,
