@@ -919,8 +919,8 @@ Definition of Done
 
 
 #### Data Normalization
-- [ ] Normalize metadata columns across all tables
-- [ ] Fix region string case issues
+- [x] Normalize metadata columns across all tables
+- [x] Fix region string case issues
 
 #### Code Cleanup
 - [ ] Create abstract CSV parser
