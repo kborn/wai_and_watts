@@ -27,6 +27,9 @@ public class LawaStateMultiYearRecord {
     @Column(name = "region", nullable = false)
     private String region;
 
+    @Column(name = "catchment")
+    private String catchment;
+
     @Column(name = "latitude", precision = 9, scale = 6)
     private BigDecimal latitude;
 
@@ -110,6 +113,14 @@ public class LawaStateMultiYearRecord {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public String getCatchment() {
+        return catchment;
+    }
+
+    public void setCatchment(String catchment) {
+        this.catchment = catchment;
     }
 
     public BigDecimal getLatitude() {

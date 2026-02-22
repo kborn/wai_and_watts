@@ -5,7 +5,7 @@ import nz.waiwatts.service.lawa.LawaStateMultiYearReadService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,14 +26,14 @@ public class LawaStateMultiYearControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private LawaStateMultiYearReadService readService;
 
     @Test
     void getGeneration_returnsOk_withPayload() throws Exception {
         UUID relId = UUID.randomUUID();
         List<LawaStateMultiYearRecordDto> payload = List.of(
-                new LawaStateMultiYearRecordDto("arc-00001","Cascades LTB","auckland", new BigDecimal("-36.88888973"), new BigDecimal("174.52211474"),"Ammonical nitrogen / Ammonia (toxicity)","AMMONIA_TOXICITY","mg/L","A","EXCELLENT",new BigDecimal("0.0015"), new BigDecimal("0.005"), new BigDecimal("88.135593220339"), new BigDecimal("61.4035087719298"),"HYDRO_5YR_ROLLING",2019,2024, relId)
+                new LawaStateMultiYearRecordDto("arc-00001","Cascades LTB","auckland","cascade stream", new BigDecimal("-36.88888973"), new BigDecimal("174.52211474"),"Ammonical nitrogen / Ammonia (toxicity)","AMMONIA_TOXICITY","mg/L","A","EXCELLENT",new BigDecimal("0.0015"), new BigDecimal("0.005"), new BigDecimal("88.135593220339"), new BigDecimal("61.4035087719298"),"HYDRO_5YR_ROLLING",2019,2024, relId)
         );
         when(readService.find(any(), any(), any(), any())).thenReturn(payload);
 
@@ -44,6 +44,7 @@ public class LawaStateMultiYearControllerTest {
                 .andExpect(jsonPath("$[0].lawaSiteId").value("arc-00001"))
                 .andExpect(jsonPath("$[0].siteName").value("Cascades LTB"))
                 .andExpect(jsonPath("$[0].region").value("auckland"))
+                .andExpect(jsonPath("$[0].catchment").value("cascade stream"))
                 .andExpect(jsonPath("$[0].latitude").value(-36.88888973))
                 .andExpect(jsonPath("$[0].longitude").value(174.52211474))
                 .andExpect(jsonPath("$[0].indicatorRaw").value("Ammonical nitrogen / Ammonia (toxicity)"))

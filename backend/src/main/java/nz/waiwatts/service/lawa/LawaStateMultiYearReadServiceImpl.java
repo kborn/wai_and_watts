@@ -45,6 +45,7 @@ public class LawaStateMultiYearReadServiceImpl implements LawaStateMultiYearRead
                 e.getLawaSiteId(),
                 e.getSiteName(),
                 e.getRegion(),
+                e.getCatchment(),
                 e.getLatitude(),
                 e.getLongitude(),
                 e.getIndicatorRaw(),

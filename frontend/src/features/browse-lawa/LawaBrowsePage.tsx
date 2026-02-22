@@ -214,7 +214,7 @@ const LawaBrowsePage: React.FC = () => {
           const val = params.value ?? 0
           const percent =
             params.data?.percent ?? (total > 0 ? (val / total) * 100 : 0)
-          return `${name}<br/>${val} sites<br/>${percent.toFixed(1)}% of monitored sites`
+          return `${name}<br/>${val} monitoring sites<br/>${percent.toFixed(1)}% of monitored sites`
         },
       },
       grid: {
@@ -371,7 +371,7 @@ const LawaBrowsePage: React.FC = () => {
           const val = params.value ?? 0
           const percent =
             params.data?.percent ?? (total > 0 ? (val / total) * 100 : 0)
-          return `${name}<br/>${val} sites<br/>${percent.toFixed(1)}% of total`
+          return `${name}<br/>${val} monitoring sites<br/>${percent.toFixed(1)}% of total`
         },
       },
       grid: {
@@ -512,8 +512,8 @@ const LawaBrowsePage: React.FC = () => {
           LAWA Water Quality
         </h1>
         <p className="text-body text-neutral-600">
-          Explore New Zealand's water quality state and trend data by region and
-          indicator.
+          Explore New Zealand river monitoring site state and trend data by
+          region and indicator.
         </p>
       </div>
 
@@ -592,6 +592,10 @@ const LawaBrowsePage: React.FC = () => {
                   Loading indicators...
                 </div>
               )}
+              <div className="text-xs text-neutral-500 mt-1">
+                Indicator codes are dataset-specific and differ between State
+                and Trend views.
+              </div>
             </div>
 
             <Button onClick={handleExplainThis}>Explain This Data</Button>
@@ -629,6 +633,7 @@ const LawaBrowsePage: React.FC = () => {
               <button
                 onClick={() => {
                   setViewType('state')
+                  setIndicator('')
                   setSelectedSite(null)
                   setTrendClassificationFilter(null)
                   setStateBandFilter(null)
@@ -644,6 +649,7 @@ const LawaBrowsePage: React.FC = () => {
               <button
                 onClick={() => {
                   setViewType('trend')
+                  setIndicator('')
                   setSelectedSite(null)
                   setTrendClassificationFilter(null)
                   setStateBandFilter(null)
@@ -688,7 +694,7 @@ const LawaBrowsePage: React.FC = () => {
                       </p>
                     </div>
                     <span className="text-sm text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full">
-                      {stateTotalSites} sites total
+                      {stateTotalSites} monitoring sites total
                     </span>
                   </div>
                   {stateBandFilter && (
@@ -735,7 +741,7 @@ const LawaBrowsePage: React.FC = () => {
                     </p>
                   </div>
                   <span className="text-sm text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full">
-                    {trendTotalSites} sites total
+                    {trendTotalSites} monitoring sites total
                   </span>
                 </div>
                 {trendClassificationFilter && (
@@ -774,6 +780,7 @@ const LawaBrowsePage: React.FC = () => {
                 <tr className="table-header">
                   <th className="px-4 py-3">Period</th>
                   <th className="px-4 py-3">Region</th>
+                  <th className="px-4 py-3">Catchment</th>
                   <th className="px-4 py-3">Site</th>
                   <th className="px-4 py-3">Site ID</th>
                   <th className="px-4 py-3">Indicator</th>
@@ -799,7 +806,7 @@ const LawaBrowsePage: React.FC = () => {
               <tbody className="divide-y divide-neutral-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-8 text-center">
+                    <td colSpan={11} className="px-6 py-8 text-center">
                       <div className="spinner w-6 h-6 mx-auto mb-2"></div>
                       <p className="text-neutral-500 text-sm">
                         Loading data...
@@ -808,7 +815,7 @@ const LawaBrowsePage: React.FC = () => {
                   </tr>
                 ) : error ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-8 text-center">
+                    <td colSpan={11} className="px-6 py-8 text-center">
                       <p className="text-error-600 text-sm">
                         Error loading data: {error?.message || 'Unknown error'}
                       </p>
@@ -816,7 +823,7 @@ const LawaBrowsePage: React.FC = () => {
                   </tr>
                 ) : !displayData || displayData.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-6 py-8 text-center">
+                    <td colSpan={11} className="px-6 py-8 text-center">
                       <p className="text-neutral-500 text-sm">
                         No data available
                       </p>
@@ -843,6 +850,11 @@ const LawaBrowsePage: React.FC = () => {
                         </td>
                         <td className="table-cell">
                           {formatRegionDisplay(row.region)}
+                        </td>
+                        <td className="table-cell">
+                          {row.catchment
+                            ? formatRegionDisplay(row.catchment)
+                            : '-'}
                         </td>
                         <td className="table-cell">{row.siteName}</td>
                         <td className="table-cell text-neutral-500">

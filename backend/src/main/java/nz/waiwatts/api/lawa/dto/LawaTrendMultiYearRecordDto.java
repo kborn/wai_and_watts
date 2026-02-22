@@ -7,6 +7,7 @@ public class LawaTrendMultiYearRecordDto {
     private String lawaSiteId;
     private String siteName;
     private String region;
+    private String catchment;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private String indicatorRaw;
@@ -23,7 +24,7 @@ public class LawaTrendMultiYearRecordDto {
 
     public LawaTrendMultiYearRecordDto() {}
 
-    public LawaTrendMultiYearRecordDto(String lawaSiteId, String siteName, String region, BigDecimal latitude, BigDecimal longitude,
+    public LawaTrendMultiYearRecordDto(String lawaSiteId, String siteName, String region, String catchment, BigDecimal latitude, BigDecimal longitude,
                                        String indicatorRaw, String indicatorNorm,
                                        String trendRaw, String trendNorm, Integer trendScore, Integer trendPeriodYears,
                                        String trendDataFrequency, String periodType, int periodStartYear, int periodEndYear,
@@ -31,6 +32,7 @@ public class LawaTrendMultiYearRecordDto {
         this.lawaSiteId = lawaSiteId;
         this.siteName = siteName;
         this.region = region;
+        this.catchment = catchment;
         this.latitude = latitude;
         this.longitude = longitude;
         this.indicatorRaw = indicatorRaw;
@@ -52,6 +54,8 @@ public class LawaTrendMultiYearRecordDto {
     public void setSiteName(String siteName) { this.siteName = siteName; }
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
+    public String getCatchment() { return catchment; }
+    public void setCatchment(String catchment) { this.catchment = catchment; }
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
     public BigDecimal getLongitude() { return longitude; }

@@ -5,11 +5,10 @@ import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.datasets.ExpectedFormat;
 import nz.waiwatts.domain.datasets.Publisher;
 import nz.waiwatts.domain.datasets.ReleaseStatus;
-import nz.waiwatts.service.datasets.DatasetCatalogService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -29,7 +28,7 @@ class DatasetCatalogControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private nz.waiwatts.service.datasets.DatasetCatalogService datasetSourceService;
 
     @Test

@@ -6,6 +6,7 @@ public class LawaTrendMultiYearParsedRecord {
     private final String lawaSiteId;
     private final String siteName;
     private final String region;
+    private final String catchment;
     private final BigDecimal latitude;
     private final BigDecimal longitude;
     private final String indicatorRaw;
@@ -19,13 +20,14 @@ public class LawaTrendMultiYearParsedRecord {
     private final int periodStartYear;
     private final int periodEndYear;
 
-    public LawaTrendMultiYearParsedRecord(String lawaSiteId, String siteName, String region, BigDecimal latitude, BigDecimal longitude,
+    public LawaTrendMultiYearParsedRecord(String lawaSiteId, String siteName, String region, String catchment, BigDecimal latitude, BigDecimal longitude,
                                           String indicatorRaw, String indicatorNorm,
                                           String trendRaw, String trendNorm, Integer trendScore, Integer trendPeriodYears,
                                           String trendDataFrequency, String periodType, int periodStartYear, int periodEndYear) {
         this.lawaSiteId = lawaSiteId;
         this.siteName = siteName;
         this.region = region;
+        this.catchment = catchment;
         this.latitude = latitude;
         this.longitude = longitude;
         this.indicatorRaw = indicatorRaw;
@@ -43,6 +45,7 @@ public class LawaTrendMultiYearParsedRecord {
     public String getLawaSiteId() { return lawaSiteId; }
     public String getSiteName() { return siteName; }
     public String getRegion() { return region; }
+    public String getCatchment() { return catchment; }
     public BigDecimal getLatitude() { return latitude; }
     public BigDecimal getLongitude() { return longitude; }
     public String getIndicatorRaw() { return indicatorRaw; }

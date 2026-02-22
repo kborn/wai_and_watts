@@ -39,6 +39,7 @@ public class LawaStateMultiYearCsvParser extends AbstractCsvParser implements La
                 String lawaSiteId = getRequired(parts, headerIndex, "lawa_site_id", lineNo);
                 String siteName = getRequired(parts, headerIndex, "site_name", lineNo);
                 String region = getRequired(parts, headerIndex, "region", lineNo);
+                String catchment = getOptional(parts, headerIndex, "catchment");
                 BigDecimal latitude = parseBigDecimal(getOptional(parts, headerIndex, "latitude"));
                 BigDecimal longitude = parseBigDecimal(getOptional(parts, headerIndex, "longitude"));
                 String indicatorRaw = getRequired(parts, headerIndex, "indicator_raw", lineNo);
@@ -54,7 +55,7 @@ public class LawaStateMultiYearCsvParser extends AbstractCsvParser implements La
                 int periodStartYear = Integer.parseInt(getRequired(parts, headerIndex, "period_start_year", lineNo));
                 int periodEndYear = Integer.parseInt(getRequired(parts, headerIndex, "period_end_year", lineNo));
 
-                result.add(new LawaStateMultiYearParsedRecord(lawaSiteId, siteName, region, latitude, longitude, indicatorRaw, indicatorNorm, units, attributeBand, stateNorm, median, p95, recHealth260, recHealth540, periodType, periodStartYear, periodEndYear));
+                result.add(new LawaStateMultiYearParsedRecord(lawaSiteId, siteName, region, catchment, latitude, longitude, indicatorRaw, indicatorNorm, units, attributeBand, stateNorm, median, p95, recHealth260, recHealth540, periodType, periodStartYear, periodEndYear));
             }
         }
         if (result.isEmpty()) {
