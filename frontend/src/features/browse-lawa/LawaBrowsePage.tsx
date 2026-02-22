@@ -519,7 +519,7 @@ const LawaBrowsePage: React.FC = () => {
 
       <Card className="mb-6">
         <CardContent>
-          <div className="flex flex-wrap gap-4 items-end">
+          <div className="grid gap-4 items-end sm:grid-cols-[minmax(160px,1fr)_minmax(180px,1fr)_auto]">
             <div className="min-w-[160px]">
               <label className="block text-sm font-medium text-neutral-700 mb-1">
                 Region
@@ -592,13 +592,14 @@ const LawaBrowsePage: React.FC = () => {
                   Loading indicators...
                 </div>
               )}
-              <div className="text-xs text-neutral-500 mt-1">
-                Indicator codes are dataset-specific and differ between State
-                and Trend views.
-              </div>
             </div>
 
             <Button onClick={handleExplainThis}>Explain This Data</Button>
+
+            <div className="text-xs text-neutral-500 sm:col-start-2 sm:col-end-4">
+              Indicator codes are dataset-specific and differ between State and
+              Trend views.
+            </div>
           </div>
 
           {viewType === 'trend' && trendClassificationFilter && (
@@ -716,7 +717,7 @@ const LawaBrowsePage: React.FC = () => {
               </Card>
             )}
 
-          {viewType === 'state' && (!region || !indicator) && (
+          {viewType === 'state' && !region && !indicator && (
             <Card className="mb-6">
               <CardContent>
                 <p className="text-sm text-neutral-500 py-4 text-center">

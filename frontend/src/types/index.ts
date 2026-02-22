@@ -140,6 +140,15 @@ export interface CapabilitiesResponse {
   supportedDatasetSources: Record<string, string>
   requiredFilters: Record<string, string>
   filterStructure: Record<string, string>
+  datasets?: CapabilityDataset[]
+}
+
+export interface CapabilityDataset {
+  datasetSource: string
+  displayName: string
+  description: string
+  supportedQuestionTypes: string[]
+  supportedFilters: string[]
 }
 
 // Region Context Types

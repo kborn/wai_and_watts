@@ -10,7 +10,7 @@ const getRefusalPresentation = (code?: string) => {
       title: 'Internal Processing Error',
       variant: 'error' as const,
       fallbackMessage:
-        'An internal error occurred while processing your request. Please try again.',
+        'We hit a technical issue while processing your question. Please try again.',
     }
   }
 
@@ -38,9 +38,31 @@ const ResultsPage: React.FC = () => {
     | undefined
   const refusalCode = state?.explanation?.refusal?.code
   const refusalPresentation = getRefusalPresentation(refusalCode)
+  const parserUsed = state?.explanation?.debug?.parserUsed
+  const isDemoMode = parserUsed === 'DEMO'
+  const isDemoFallback = parserUsed === 'LLM_FALLBACK_DEMO'
 
   return (
     <div className="section-container max-w-3xl mx-auto">
+      {(isDemoMode || isDemoFallback) && (
+        <Card className="mb-6">
+          <CardContent>
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm font-medium text-amber-900">
+                {isDemoMode
+                  ? 'Demo mode active (LLM not configured)'
+                  : 'LLM fallback mode active'}
+              </p>
+              <p className="text-sm text-amber-800 mt-1">
+                {isDemoMode
+                  ? 'This answer was produced using the deterministic demo parser/provider path, not a live LLM call.'
+                  : 'The live LLM parser was unavailable, so the request used deterministic demo fallback behavior.'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {state?.question && (
         <Card className="mb-6">
           <CardContent>
@@ -99,9 +121,23 @@ const ResultsPage: React.FC = () => {
             state.explanation.citations.length > 0 && (
               <Card>
                 <CardContent>
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-                    Citations
+                  <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                    Evidence (Citations)
                   </h3>
+                  <p className="text-sm text-neutral-600 mb-3">
+                    Citations are dataset fact IDs used to ground this answer.
+                    They show the evidence the model relied on.
+                  </p>
+                  <details className="mb-4 rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
+                    <summary className="cursor-pointer text-sm font-medium text-neutral-700">
+                      What is this?
+                    </summary>
+                    <p className="mt-2 text-sm text-neutral-600">
+                      These are internal dataset evidence references, not
+                      external links. They make explanations traceable and help
+                      verify the answer is grounded in stored facts.
+                    </p>
+                  </details>
                   {state.explanation.citations.length === 0 ? (
                     <p className="text-neutral-600">No citations available</p>
                   ) : (

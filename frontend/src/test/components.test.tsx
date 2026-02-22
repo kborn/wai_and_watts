@@ -20,6 +20,16 @@ vi.mock('../api/hooks', () => ({
     }),
     isPending: false,
   })),
+  useCapabilities: vi.fn(() => ({
+    data: {
+      supportedQuestionTypes: {},
+      unsupportedQuestionTypes: {},
+      supportedDatasetSources: {},
+      requiredFilters: {},
+      filterStructure: {},
+    },
+    isLoading: false,
+  })),
 }))
 
 describe('AskPage Component', () => {
