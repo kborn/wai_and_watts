@@ -204,6 +204,33 @@ class StubExplanationProviderComprehensiveTest {
         assertTrue(provider.validateCitations(explanation, factPack));
     }
 
+    @Test
+    void testClassificationOnlyFactPackDoesNotRefuseWhenCitationsAreRequired() {
+        FactPack factPack = new FactPack();
+        var requestContext = new FactPack.RequestContext();
+        requestContext.setQuestionType("water_quality_trends");
+        factPack.setRequestContext(requestContext);
+
+        factPack.getFacts().getClassifications().add(new ClassificationFact(
+            "class:lawa:water_quality_trend:IMPROVING",
+            "water_quality_trend",
+            "water_quality_trend",
+            "IMPROVING",
+            null,
+            null,
+            Map.of("scope", "NZ", "dataset", "trend_multi_year")
+        ));
+
+        factPack.getGuardrails().setAllowedClaims(List.of("trend_distribution", "classification_summary"));
+        factPack.getGuardrails().setRequiredCitations(List.of("class:lawa:water_quality_trend:IMPROVING"));
+
+        Explanation explanation = provider.generateExplanation("water_quality_trends", factPack);
+
+        assertFalse(explanation.isRefusal());
+        assertTrue(explanation.getExplanationText().contains("distribution of trend directions"));
+        assertTrue(provider.validateCitations(explanation, factPack));
+    }
+
     private FactPack createHydroFactPack() {
         FactPack factPack = new FactPack();
         

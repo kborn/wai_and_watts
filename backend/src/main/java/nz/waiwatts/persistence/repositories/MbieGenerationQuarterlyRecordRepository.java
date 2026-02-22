@@ -18,7 +18,7 @@ public interface MbieGenerationQuarterlyRecordRepository extends JpaRepository<M
               AND (:toYear IS NULL OR m.periodYear <= :toYear)
               AND (:quarter IS NULL OR m.periodQuarter = :quarter)
               AND (:fuelTypeNorm IS NULL OR LOWER(m.fuelTypeNorm) = :fuelTypeNorm)
-            ORDER BY m.periodYear, m.periodQuarter, m.fuelTypeNorm
+            ORDER BY m.periodYear, m.periodQuarter, m.fuelTypeNorm, m.datasetRelease.id
             """)
     List<MbieGenerationQuarterlyRecord> findForReadApi(@Param("fromYear") Integer fromYear,
                                                        @Param("toYear") Integer toYear,
