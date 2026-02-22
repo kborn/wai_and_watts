@@ -892,7 +892,10 @@ Definition of Done
 - [x] High level but thorough review of frontend architecture and implementation for 'sane-ness'
   - [x] write output to docs/phase-notes/phase15/phase15_architectural_review_findings.md
 - [x] Synthesize phase15_architectural_remediation_plan.md into a remediation plan (docs/phase-notes/phase15/phase15_architectural_remediation_plan.md)
-- [ ] Execute Phase 15 Architectural Remediation Plan (chronological plan)
+- [x] Execute Phase 15 Architectural Remediation Plan (chronological plan)
+  - [x] Final closure verification recorded in:
+    - `docs/phase-notes/phase15/phase15_second_round_verification_findings.md` (with 2026-02-21 addendum)
+    - `docs/phase-notes/phase15/phase15_refactoring_execution_checklist.md` (status set to complete)
 
 
 #### Tooling & Dependency Version Review

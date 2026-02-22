@@ -1,5 +1,8 @@
 # Phase 15 Refactoring --- Execution Checklist
 
+Status: Complete
+Completed: 2026-02-21
+
 This document converts the Phase 15 Architectural Remediation Plan into
 atomic, Builder-executable tasks.
 
@@ -241,3 +244,14 @@ Phase 15 completes when:
 -   No architectural concerns remain unresolved.
 -   Codebase is portfolio-ready.
 -   Phase 16 can focus exclusively on NL/LLM expansion.
+
+---
+
+## Final Closure Notes (2026-02-22)
+
+- Final residual hardening issue closed:
+  - Canonicalized refusal taxonomy usage to `UNSUPPORTED_CAPABILITY` in frontend rendering/tests.
+  - Updated files:
+    - `frontend/src/features/results/ResultsPage.tsx`
+    - `frontend/src/test/components.test.tsx`
+- This closure resolves the remaining Step 1.1 definition-of-done nuance ("no dual spelling remains") in the user-facing layer.

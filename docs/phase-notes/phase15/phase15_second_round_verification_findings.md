@@ -113,3 +113,18 @@ Result:
 
 Note:
 - JaCoCo emitted JDK instrumentation warnings during test run, but tests completed successfully.
+
+---
+
+## Final Closure Addendum (2026-02-21)
+
+Follow-up review identified one residual taxonomy drift in frontend refusal-code handling:
+- `frontend/src/features/results/ResultsPage.tsx` accepted both `CAPABILITY_UNSUPPORTED` and `UNSUPPORTED_CAPABILITY`.
+- `frontend/src/test/components.test.tsx` still used `CAPABILITY_UNSUPPORTED`.
+
+Remediation applied:
+- Canonicalized frontend and test fixture to `UNSUPPORTED_CAPABILITY` only.
+
+Closure:
+- All previously reported actionable Phase 15 review findings and follow-up audit items are now closed.
+- Phase 15 architectural remediation execution is complete.
