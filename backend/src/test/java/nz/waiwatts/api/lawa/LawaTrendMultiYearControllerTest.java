@@ -5,7 +5,7 @@ import nz.waiwatts.service.lawa.LawaTrendMultiYearReadService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,14 +26,14 @@ public class LawaTrendMultiYearControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private LawaTrendMultiYearReadService readService;
 
     @Test
     void getTrend_returnsOk_withPayload() throws Exception {
         UUID relId = UUID.randomUUID();
         List<LawaTrendMultiYearRecordDto> payload = List.of(
-                new LawaTrendMultiYearRecordDto("arc-00036","Avondale @ Shadbolt","auckland",
+                new LawaTrendMultiYearRecordDto("arc-00036","Avondale @ Shadbolt","auckland","avondale",
                         new BigDecimal("-36.9232796"), new BigDecimal("174.69177898"),
                         "E.coli","ECOLI",
                         "Improving","IMPROVING", 3, 5, "monthly",
@@ -47,6 +47,7 @@ public class LawaTrendMultiYearControllerTest {
                 .andExpect(jsonPath("$[0].lawaSiteId").value("arc-00036"))
                 .andExpect(jsonPath("$[0].siteName").value("Avondale @ Shadbolt"))
                 .andExpect(jsonPath("$[0].region").value("auckland"))
+                .andExpect(jsonPath("$[0].catchment").value("avondale"))
                 .andExpect(jsonPath("$[0].latitude").value(-36.9232796))
                 .andExpect(jsonPath("$[0].longitude").value(174.69177898))
                 .andExpect(jsonPath("$[0].indicatorRaw").value("E.coli"))

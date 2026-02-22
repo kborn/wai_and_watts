@@ -928,9 +928,8 @@ Definition of Done
 - [x] Refactor common logic from LAWA state and trend (if time permits)
 
 #### Investigation (defer unless critical)
-- [ ] Investigate potential use of LAWA catchment field
-- [ ] Investigate different normalized indicators between trend and state
-- [ ] Add concept of FilterConfidence OR FilterDerivationNotes
+- [x] Investigate potential use of LAWA catchment field
+- [x] Investigate different normalized indicators between trend and state
 
 #### UI Polish
 - [ ] Additional 'Select Region or Indicator to view State band distribution.' in LAWA state
@@ -1033,5 +1032,8 @@ Successfully answer:
 - [ ] Which region has seen the largest improvement in water quality over the last decade?
 - [ ] Has renewable electricity growth accelerated in the last decade compared to the previous decade?
 - [ ] Make LAWA regional evidence subset selection configurable (replace hardcoded top/bottom K with property-driven config for `regional_water_quality` and `regional_trend_comparison`).
+- [ ] Add parser filter transparency metadata for NL requests:
+  - include `filterDerivationNotes` (how each filter/value was inferred from the user question), and/or `filterConfidence` (per-filter confidence score)
+  - use for ambiguity handling and debugging/explainability, not as a replacement for deterministic validation/refusal rules
 
 ---

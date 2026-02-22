@@ -1514,4 +1514,22 @@ Implications / Follow-ups (Phase 15):
 1. Standardize FactPack provenance datasetReleaseId format across builders (prefer UUID string; define explicit fallback). 
 2. Document read endpoint semantics: multi-release transparency is expected; releaseId is a provenance key. 
 3. Make read ordering deterministic when duplicates across releases are possible by including releaseId (or equivalent) as a tie-breaker in repository ORDER BY clauses. 
-4. Remove any brittle coupling to literal /api/v1 text where feasible (or explicitly document it as a convention dependency).
+4. Remove any brittle coupling to literal /api/v1 text where feasible (or explicitly document it as a convention dependency). 
+
+---
+
+### Phase 15 — LAWA State/Trend Indicator Vocabulary Split Is Intentional
+Date: 2026-02-22
+
+Decision:
+LAWA indicator normalization remains dataset-specific: state and trend maintain independent normalized indicator vocabularies, and cross-view indicator reuse is not assumed.
+
+Rationale:
+- LAWA state and trend source datasets use different indicator semantics and naming conventions.
+- Forcing premature unification would introduce ambiguous mappings and risk semantic drift in Phase 15 scope.
+- Current backend behavior already treats the two indicator lists as independent (`/state/.../indicators` and `/trend/.../indicators` from separate tables).
+
+Implications:
+- Frontend must treat indicator filters as view-specific and avoid carrying stale indicator values across State/Trend view switches.
+- UI copy should explicitly state that indicator codes can differ by dataset view.
+- Any future canonical cross-dataset indicator taxonomy requires a separate explicit decision and migration plan.

@@ -96,6 +96,7 @@ public class LawaStateMultiYearIngestion {
             e.setLawaSiteId(r.getLawaSiteId());
             e.setSiteName(r.getSiteName());
             e.setRegion(normalizeRegion(r.getRegion()));
+            e.setCatchment(normalizeCatchment(r.getCatchment()));
             e.setLatitude(r.getLatitude());
             e.setLongitude(r.getLongitude());
             e.setIndicatorRaw(r.getIndicatorRaw());
@@ -167,6 +168,7 @@ public class LawaStateMultiYearIngestion {
             e.setLawaSiteId(r.getLawaSiteId());
             e.setSiteName(r.getSiteName());
             e.setRegion(normalizeRegion(r.getRegion()));
+            e.setCatchment(normalizeCatchment(r.getCatchment()));
             e.setLatitude(r.getLatitude());
             e.setLongitude(r.getLongitude());
             e.setIndicatorRaw(r.getIndicatorRaw());
@@ -220,5 +222,9 @@ public class LawaStateMultiYearIngestion {
 
     private static String normalizeRegion(String region) {
         return region == null ? null : region.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+    }
+
+    private static String normalizeCatchment(String catchment) {
+        return catchment == null ? null : catchment.trim().replaceAll("\\s+", " ");
     }
 }

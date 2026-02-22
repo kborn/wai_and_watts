@@ -27,6 +27,7 @@ public class LawaTrendMultiYearXlsxTransformer {
     private static final String SHEET_STATE = "State Attribute Band";
 
     private static final String H_REGION = "region";
+    private static final String H_CATCHMENT = "catchment";
     private static final String H_LAWA_SITE_ID = "lawasiteid";
     private static final String H_SITE_ID = "siteid";
     private static final String H_LATITUDE = "latitude";
@@ -64,6 +65,7 @@ public class LawaTrendMultiYearXlsxTransformer {
                 }
                 String siteName = XlsxTransformUtil.cellString(row, headerMatch.headerIndex().get(H_SITE_ID), formatter);
                 String region = XlsxTransformUtil.cellString(row, headerMatch.headerIndex().get(H_REGION), formatter);
+                String catchment = XlsxTransformUtil.cellString(row, headerMatch.headerIndex().get(H_CATCHMENT), formatter);
                 String latitude = toPlain(parseDecimalCell(row, headerMatch.headerIndex().get(H_LATITUDE), formatter));
                 String longitude = toPlain(parseDecimalCell(row, headerMatch.headerIndex().get(H_LONGITUDE), formatter));
                 String trendRaw = XlsxTransformUtil.cellString(row, headerMatch.headerIndex().get(H_TREND_RAW), formatter);
@@ -82,6 +84,7 @@ public class LawaTrendMultiYearXlsxTransformer {
                         lawaSiteId,
                         siteName,
                         region,
+                        catchment,
                         latitude,
                         longitude,
                         indicatorRaw,
@@ -99,14 +102,15 @@ public class LawaTrendMultiYearXlsxTransformer {
             rows.sort(Comparator
                     .comparing((List<String> r) -> r.get(2), Comparator.nullsLast(String::compareTo))
                     .thenComparing(List::getFirst)
-                    .thenComparing(r -> r.get(6))
-                    .thenComparing(r -> parseSortInt(r.get(10))));
+                    .thenComparing(r -> r.get(7))
+                    .thenComparing(r -> parseSortInt(r.get(11))));
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             String header = CsvTransformUtil.toCsvLine(List.of(
                     "lawa_site_id",
                     "site_name",
                     "region",
+                    "catchment",
                     "latitude",
                     "longitude",
                     "indicator_raw",

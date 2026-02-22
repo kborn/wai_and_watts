@@ -96,6 +96,7 @@ export interface LawaStateMultiYearRecord {
   periodEndYear: number
   periodType: string
   region: string
+  catchment: string | null
   siteName: string
   lawaSiteId: string
   indicatorRaw: string
@@ -117,6 +118,7 @@ export interface LawaTrendMultiYearRecord {
   periodEndYear: number
   periodType: string
   region: string
+  catchment: string | null
   siteName: string
   lawaSiteId: string
   indicatorRaw: string

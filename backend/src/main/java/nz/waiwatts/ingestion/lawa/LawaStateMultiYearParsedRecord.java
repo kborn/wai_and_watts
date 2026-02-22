@@ -6,6 +6,7 @@ public class LawaStateMultiYearParsedRecord {
     private final String lawaSiteId;
     private final String siteName;
     private final String region;
+    private final String catchment;
     private final BigDecimal latitude;
     private final BigDecimal longitude;
     private final String indicatorRaw;
@@ -21,10 +22,11 @@ public class LawaStateMultiYearParsedRecord {
     private final int periodStartYear;
     private final int periodEndYear;
 
-    public LawaStateMultiYearParsedRecord(String lawaSiteId, String siteName, String region, BigDecimal latitude, BigDecimal longitude, String indicatorRaw, String indicatorNorm, String units, String attributeBand, String stateNorm, BigDecimal median, BigDecimal p95, BigDecimal recHealthExceed260Pct, BigDecimal recHealthExceed540Pct, String periodType, int periodStartYear, int periodEndYear) {
+    public LawaStateMultiYearParsedRecord(String lawaSiteId, String siteName, String region, String catchment, BigDecimal latitude, BigDecimal longitude, String indicatorRaw, String indicatorNorm, String units, String attributeBand, String stateNorm, BigDecimal median, BigDecimal p95, BigDecimal recHealthExceed260Pct, BigDecimal recHealthExceed540Pct, String periodType, int periodStartYear, int periodEndYear) {
         this.lawaSiteId = lawaSiteId;
         this.siteName = siteName;
         this.region = region;
+        this.catchment = catchment;
         this.latitude = latitude;
         this.longitude = longitude;
         this.indicatorRaw = indicatorRaw;
@@ -51,6 +53,10 @@ public class LawaStateMultiYearParsedRecord {
 
     public String getRegion() {
         return region;
+    }
+
+    public String getCatchment() {
+        return catchment;
     }
 
     public BigDecimal getLatitude() {

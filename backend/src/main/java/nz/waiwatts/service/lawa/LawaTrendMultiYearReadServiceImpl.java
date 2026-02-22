@@ -40,6 +40,7 @@ public class LawaTrendMultiYearReadServiceImpl implements LawaTrendMultiYearRead
                 e.getLawaSiteId(),
                 e.getSiteName(),
                 e.getRegion(),
+                e.getCatchment(),
                 e.getLatitude(),
                 e.getLongitude(),
                 e.getIndicatorRaw(),

@@ -29,6 +29,9 @@ public class LawaTrendMultiYearRecord {
     @Column(name = "region", nullable = false)
     private String region;
 
+    @Column(name = "catchment")
+    private String catchment;
+
     @Column(name = "latitude")
     private BigDecimal latitude;
 
@@ -77,6 +80,8 @@ public class LawaTrendMultiYearRecord {
     public void setSiteName(String siteName) { this.siteName = siteName; }
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
+    public String getCatchment() { return catchment; }
+    public void setCatchment(String catchment) { this.catchment = catchment; }
     public BigDecimal getLatitude() { return latitude; }
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
     public BigDecimal getLongitude() { return longitude; }
