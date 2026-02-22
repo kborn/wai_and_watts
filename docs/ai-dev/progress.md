@@ -932,15 +932,15 @@ Definition of Done
 - [x] Investigate different normalized indicators between trend and state
 
 #### UI Polish
-- [ ] Additional 'Select Region or Indicator to view State band distribution.' in LAWA state
+- [x] Additional 'Select Region or Indicator to view State band distribution.' in LAWA state
 - [ ] Ensure consistency throughout UI pages
-- [ ] Ask page
-  - [ ]  "I can't answer that using the available dataset facts. If you want, I can explain what facts would be needed. vs "Failed to process question. Please try again." page
-  - [ ] what are "citations" Is it useful? can it be more useful?
-  - [ ] signal for when no llm provider is configured
-  - [ ] Overall question -> response -> question flow is awkward'
-  - [ ] Some explainer as to what the data is, what kinds of qustions to ask (not just samples)
-  - 
+- [x] Ask page
+  - [x] "I can't answer that using the available dataset facts. If you want, I can explain what facts would be needed. vs "Failed to process question. Please try again." page
+  - [x] what are "citations" Is it useful? can it be more useful?
+  - [x] signal for when no llm provider is configured
+  - [x] Overall question -> response -> question flow is awkward'
+  - [x] Some explainer as to what the data is, what kinds of qustions to ask (not just samples)
+
 
 #### Test Coverage
 - [ ] Add code coverage reporting (Jacoco or similar)

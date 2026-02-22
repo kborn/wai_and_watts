@@ -41,6 +41,8 @@ replay_pid*
 /downloads/
 /transforms/
 
+.env
+
 .DS_Store
 
 # Frontend

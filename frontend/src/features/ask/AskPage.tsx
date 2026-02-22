@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAskQuestion } from '../../api/hooks'
+import { useAskQuestion, useCapabilities } from '../../api/hooks'
 import type { AskRequest } from '../../types'
 
 const AskPage: React.FC = () => {
@@ -9,6 +9,7 @@ const AskPage: React.FC = () => {
   const navigate = useNavigate()
 
   const askQuestion = useAskQuestion()
+  const capabilities = useCapabilities()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +33,9 @@ const AskPage: React.FC = () => {
         },
       })
     } catch {
-      setError('Failed to process question. Please try again.')
+      setError(
+        'We hit a technical issue while contacting the explanation service. Please try again.'
+      )
     }
   }
 
@@ -42,6 +45,16 @@ const AskPage: React.FC = () => {
     'Compare hydro and geothermal generation patterns',
     'Explain hydro generation trends between 2018 and 2023',
   ]
+
+  const supportedQuestions = Object.values(
+    capabilities.data?.supportedQuestionTypes || {}
+  )
+  const unsupportedQuestions = Object.values(
+    capabilities.data?.unsupportedQuestionTypes || {}
+  )
+  const supportedDatasets = Object.values(
+    capabilities.data?.supportedDatasetSources || {}
+  )
 
   return (
     <div className="section-container">
@@ -54,6 +67,83 @@ const AskPage: React.FC = () => {
           Get insights about New Zealand's electricity generation and water
           quality data from authoritative sources.
         </p>
+      </div>
+
+      <div className="content-card mb-6">
+        <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+          What You Can Ask Here
+        </h3>
+        <p className="text-sm text-neutral-600 mb-3">
+          Ask factual questions about MBIE electricity generation and LAWA water
+          quality datasets. Responses are grounded in stored dataset facts.
+        </p>
+        <details className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
+          <summary className="cursor-pointer text-sm font-medium text-neutral-700">
+            Supported scope and limits
+          </summary>
+          <div className="mt-3 space-y-3 text-sm text-neutral-700">
+            <div>
+              <div className="font-medium text-neutral-800">Data scope</div>
+              {capabilities.isLoading ? (
+                <div className="text-neutral-500 mt-1">Loading scope...</div>
+              ) : supportedDatasets.length > 0 ? (
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  {supportedDatasets.map(dataset => (
+                    <li key={dataset}>{dataset}</li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-neutral-500 mt-1">
+                  MBIE generation and LAWA water quality datasets
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="font-medium text-neutral-800">
+                Question types currently supported
+              </div>
+              {capabilities.isLoading ? (
+                <div className="text-neutral-500 mt-1">
+                  Loading supported question types...
+                </div>
+              ) : supportedQuestions.length > 0 ? (
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  {supportedQuestions.slice(0, 6).map(questionType => (
+                    <li key={questionType}>{questionType}</li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-neutral-500 mt-1">
+                  Trend, comparison, and overview questions over available
+                  datasets
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="font-medium text-neutral-800">
+                Not currently supported
+              </div>
+              {capabilities.isLoading ? (
+                <div className="text-neutral-500 mt-1">
+                  Loading unsupported categories...
+                </div>
+              ) : unsupportedQuestions.length > 0 ? (
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  {unsupportedQuestions.slice(0, 5).map(questionType => (
+                    <li key={questionType}>{questionType}</li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="text-neutral-500 mt-1">
+                  Forecasting, causation, policy recommendations, and
+                  hypothetical scenarios
+                </div>
+              )}
+            </div>
+          </div>
+        </details>
       </div>
 
       {/* Main Form */}
