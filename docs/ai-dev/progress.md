@@ -907,11 +907,15 @@ Definition of Done
     - [x] Added Maven runtime Java 21 enforcer guardrail to prevent local Java mismatch issues during test execution
 
 ### Feature Usage Review
-- [ ] Validate intention of version in endpoint
-  - [ ] Are we using this feature as intended?
-- [ ] Validate intention of dataset_release
-  - [ ] Are we using this feature as intended?
-- [ ] Review LLM stub functionality
+- [x] Validate intention of version in endpoint
+  - [x] Are we using this feature as intended?
+- [x] Validate intention of dataset_release
+  - [x] Are we using this feature as intended?
+- [x] Review LLM stub functionality
+  - [x] Confirmed current intended semantics and tightened consistency:
+    - API versioning is path-namespace semantics (`/api/v1`) rather than negotiated multi-version runtime.
+    - `dataset_release` semantics are intentional split: ask flow pins one canonical release; read endpoints are release-transparent with per-row `releaseId`.
+    - Stub provider fact-presence parity fixed so classification-only Fact Packs with required citations do not false-refuse (aligned with shared FactPack/service semantics).
 
 
 #### Data Normalization

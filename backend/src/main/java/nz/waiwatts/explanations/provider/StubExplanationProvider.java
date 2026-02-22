@@ -50,7 +50,8 @@ public class StubExplanationProvider implements ExplanationProvider {
         return !requiredCitations.isEmpty() && 
                factPack.getFacts().getTimeSeries().isEmpty() && 
                factPack.getFacts().getMetrics().isEmpty() &&
-               factPack.getFacts().getComparisons().isEmpty();
+               factPack.getFacts().getComparisons().isEmpty() &&
+               factPack.getFacts().getClassifications().isEmpty();
     }
 
     private Explanation generateDeterministicExplanation(String questionType, FactPack factPack) {
