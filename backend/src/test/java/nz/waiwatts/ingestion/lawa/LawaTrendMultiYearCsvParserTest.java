@@ -48,8 +48,8 @@ class LawaTrendMultiYearCsvParserTest {
     @Test
     void parse_missingRequiredColumn_fails() {
         String csv = """
-            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year
-            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,mg/L,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year
+            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014
             """;
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         assertThatThrownBy(() -> parser.parse(toStream(csv)))
@@ -61,8 +61,8 @@ class LawaTrendMultiYearCsvParserTest {
     @Test
     void parse_extraColumn_passes() throws Exception {
         String csv = """
-            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year,extra_col
-            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,mg/L,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024,ignored
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year,extra_col
+            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024,ignored
             """;
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
@@ -73,8 +73,8 @@ class LawaTrendMultiYearCsvParserTest {
     @Test
     void parse_reorderedColumns_passes() throws Exception {
         String csv = """
-            region,lawa_site_id,site_name,longitude,latitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
-            region,arc-1,Site,174.1,-36.1,E.coli,ECOLI,mg/L,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
+            region,lawa_site_id,site_name,longitude,latitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+            region,arc-1,Site,174.1,-36.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
             """;
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
@@ -85,8 +85,8 @@ class LawaTrendMultiYearCsvParserTest {
     @Test
     void parse_bomHeader_passes() throws Exception {
         String csv = """
-            \uFEFFlawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
-            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,mg/L,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
+            \uFEFFlawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
             """;
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
@@ -96,10 +96,10 @@ class LawaTrendMultiYearCsvParserTest {
     @Test
     void parse_blankRows_skipped() throws Exception {
         String csv = """
-            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,units,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
+            lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
 
                \s
-            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,mg/L,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
+            arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024
             """;
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
@@ -107,7 +107,7 @@ class LawaTrendMultiYearCsvParserTest {
     }
 
     @Test
-    void parse_withoutUnitsColumn_passes() throws Exception {
+    void parse_contractWithoutUnitsColumn_passes() throws Exception {
         String csv = """
             lawa_site_id,site_name,region,latitude,longitude,indicator_raw,indicator_norm,trend_raw,trend_norm,trend_score,trend_period_years,trend_data_frequency,period_type,period_start_year,period_end_year
             arc-1,Site,region,-36.1,174.1,E.coli,ECOLI,Improving,IMPROVING,10,10,Annual,HYDRO_NYR_WINDOW,2014,2024

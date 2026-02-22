@@ -74,16 +74,11 @@ public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements La
     }
 
     private static String normalizeIndicator(String indicatorRaw, String indicatorNormFromFile) {
-        if (isNotBlank(indicatorNormFromFile)) {
-            return indicatorNormFromFile.trim();
-        }
-        String raw = indicatorRaw == null ? "" : collapseWhitespace(indicatorRaw.trim());
-        String mapped = INDICATOR_MAP.get(raw);
-        return mapped != null ? mapped : "OTHER";
+        return LawaCsvNormalization.normalizeIndicator(indicatorRaw, indicatorNormFromFile, INDICATOR_MAP);
     }
 
     private static String normalizeTrend(String trendRaw, String trendNormFromFile) {
-        if (isNotBlank(trendNormFromFile)) {
+        if (LawaCsvNormalization.isNotBlank(trendNormFromFile)) {
             return trendNormFromFile.trim();
         }
         String raw = trendRaw == null ? "" : trendRaw.trim().toLowerCase();
@@ -91,14 +86,6 @@ public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements La
         if (raw.contains("degrad")) return "DEGRADING";
         if (raw.contains("no change")) return "NO_CHANGE";
         return "INSUFFICIENT_DATA";
-    }
-
-    private static boolean isNotBlank(String s) {
-        return s != null && !s.trim().isEmpty();
-    }
-
-    private static String collapseWhitespace(String s) {
-        return s.replaceAll("\\s+", " ");
     }
 
     private static final Map<String, String> INDICATOR_MAP = createIndicatorMap();

@@ -923,9 +923,9 @@ Definition of Done
 - [x] Fix region string case issues
 
 #### Code Cleanup
-- [ ] Create abstract CSV parser
-- [ ] Remove unused 'units' field from LAWA trend table, DTOs, etc
-- [ ] Refactor common logic from LAWA state and trend (if time permits)
+- [x] Create abstract CSV parser
+- [x] Remove unused 'units' field from LAWA trend table, DTOs, etc
+- [x] Refactor common logic from LAWA state and trend (if time permits)
 
 #### Investigation (defer unless critical)
 - [ ] Investigate potential use of LAWA catchment field

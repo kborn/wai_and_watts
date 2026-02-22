@@ -69,21 +69,12 @@ public class LawaStateMultiYearCsvParser extends AbstractCsvParser implements La
     }
 
     private static String normalizeIndicator(String indicatorRaw, String indicatorNormFromFile) {
-        // If the CSV already provides a normalized value, trust it (trim only)
-        if (isNotBlank(indicatorNormFromFile)) {
-            return indicatorNormFromFile.trim();
-        }
-
-        String raw = indicatorRaw == null ? "" : collapseWhitespace(indicatorRaw.trim());
-
-        // Mapping from design/007-lawa-state-multi-year-schema.md
-        String mapped = INDICATOR_MAP.get(raw);
-        return mapped != null ? mapped : "OTHER";
+        return LawaCsvNormalization.normalizeIndicator(indicatorRaw, indicatorNormFromFile, INDICATOR_MAP);
     }
 
     private static String normalizeState(String attributeBand, String stateNormFromFile) {
         // If the CSV already provides normalized state, trust it (trim only)
-        if (isNotBlank(stateNormFromFile)) {
+        if (LawaCsvNormalization.isNotBlank(stateNormFromFile)) {
             return stateNormFromFile.trim();
         }
 
@@ -96,14 +87,6 @@ public class LawaStateMultiYearCsvParser extends AbstractCsvParser implements La
             case "E" -> "VERY_POOR";
             default -> "UNKNOWN"; // fail-safe default to satisfy NOT NULL contract; unknown bands should be surfaced upstream
         };
-    }
-
-    private static boolean isNotBlank(String s) {
-        return s != null && !s.trim().isEmpty();
-    }
-
-    private static String collapseWhitespace(String s) {
-        return s.replaceAll("\\s+", " ");
     }
 
     private static final Map<String, String> INDICATOR_MAP = createIndicatorMap();
