@@ -176,4 +176,94 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         assertThat(regions).contains("auckland");
         assertThat(regions).doesNotContain("Auckland");
     }
+
+    @Test
+    void findForAsk_withAllOptionalFiltersNull_returnsRecords() {
+        DatasetSource src = new DatasetSource();
+        src.setName("LAWA Water Quality Trend (Multi-Year) Ask Null Filters");
+        src.setPublisher(Publisher.LAWA);
+        src.setCode("test.lawa.water_quality.trend.multi_year.ask.null");
+        src.setSourceUrl("https://example.com/lawa-trend-ask-null-" + UUID.randomUUID());
+        src.setExpectedFormat(ExpectedFormat.CSV);
+        src.setUpdateCadence("annual");
+        src = sourceRepo.saveAndFlush(src);
+
+        DatasetRelease rel = new DatasetRelease();
+        rel.setDatasetSource(src);
+        rel.setPublishedDate(LocalDate.of(2025, 1, 1));
+        rel.setReleaseLabel("LAWA Trend 2025");
+        rel.setRetrievedAt(LocalDateTime.now());
+        rel.setContentHash("sha256:dummy-lawa-trend-ask-null");
+        rel.setStatus(ReleaseStatus.PENDING);
+        rel = releaseRepo.saveAndFlush(rel);
+
+        LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
+        rec.setDatasetRelease(rel);
+        rec.setLawaSiteId("arc-ask-null");
+        rec.setSiteName("Ask Null Site");
+        rec.setRegion("Auckland");
+        rec.setIndicatorRaw("E. coli");
+        rec.setIndicatorNorm("ECOLI");
+        rec.setTrendRaw("Likely improving");
+        rec.setTrendNorm("IMPROVING");
+        rec.setTrendScore(1);
+        rec.setTrendPeriodYears(5);
+        rec.setTrendDataFrequency("Monthly");
+        rec.setPeriodType("HYDRO_5YR_ROLLING");
+        rec.setPeriodStartYear(2019);
+        rec.setPeriodEndYear(2024);
+        lawaTrendMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForAsk(
+                null, null, null, null, null
+        );
+
+        assertThat(out).isNotEmpty();
+        assertThat(out).anyMatch(r -> "arc-ask-null".equals(r.getLawaSiteId()));
+    }
+
+    @Test
+    void findForAsk_filtersAreCaseInsensitive() {
+        DatasetSource src = new DatasetSource();
+        src.setName("LAWA Water Quality Trend (Multi-Year) Ask Case");
+        src.setPublisher(Publisher.LAWA);
+        src.setCode("test.lawa.water_quality.trend.multi_year.ask.case");
+        src.setSourceUrl("https://example.com/lawa-trend-ask-case-" + UUID.randomUUID());
+        src.setExpectedFormat(ExpectedFormat.CSV);
+        src.setUpdateCadence("annual");
+        src = sourceRepo.saveAndFlush(src);
+
+        DatasetRelease rel = new DatasetRelease();
+        rel.setDatasetSource(src);
+        rel.setPublishedDate(LocalDate.of(2025, 1, 1));
+        rel.setReleaseLabel("LAWA Trend 2025");
+        rel.setRetrievedAt(LocalDateTime.now());
+        rel.setContentHash("sha256:dummy-lawa-trend-ask-case");
+        rel.setStatus(ReleaseStatus.PENDING);
+        rel = releaseRepo.saveAndFlush(rel);
+
+        LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
+        rec.setDatasetRelease(rel);
+        rec.setLawaSiteId("arc-ask-case");
+        rec.setSiteName("Ask Case Site");
+        rec.setRegion("Auckland");
+        rec.setIndicatorRaw("E. coli");
+        rec.setIndicatorNorm("ECOLI");
+        rec.setTrendRaw("Likely improving");
+        rec.setTrendNorm("IMPROVING");
+        rec.setTrendScore(1);
+        rec.setTrendPeriodYears(5);
+        rec.setTrendDataFrequency("Monthly");
+        rec.setPeriodType("HYDRO_5YR_ROLLING");
+        rec.setPeriodStartYear(2019);
+        rec.setPeriodEndYear(2024);
+        lawaTrendMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForAsk(
+                2019, 2024, "ecoli", "auckland", "improving"
+        );
+
+        assertThat(out).hasSize(1);
+        assertThat(out.getFirst().getLawaSiteId()).isEqualTo("arc-ask-case");
+    }
 }
