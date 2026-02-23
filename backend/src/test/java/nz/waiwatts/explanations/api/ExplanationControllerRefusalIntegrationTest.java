@@ -87,7 +87,7 @@ class ExplanationControllerRefusalIntegrationTest {
             .thenReturn(refusalExplanation);
 
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend", 
+            "fuel_generation_trend", 
             Map.of("datasetSource", "nonexistent.source")
         );
 
@@ -107,7 +107,7 @@ class ExplanationControllerRefusalIntegrationTest {
             .thenReturn(refusalExplanation);
 
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend", 
+            "fuel_generation_trend", 
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -125,14 +125,16 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.supportedQuestionTypes").exists())
                 .andExpect(jsonPath("$.supportedQuestionTypes.renewable_generation_trend").exists())
-                .andExpect(jsonPath("$.supportedQuestionTypes.hydro_generation_trend").exists())
+                .andExpect(jsonPath("$.supportedQuestionTypes.fuel_generation_trend").exists())
                 .andExpect(jsonPath("$.supportedQuestionTypes.fuel_type_comparison").exists())
                 .andExpect(jsonPath("$.supportedQuestionTypes.generation_mix_overview").exists())
                 .andExpect(jsonPath("$.unsupportedQuestionTypes").exists())
                 .andExpect(jsonPath("$.unsupportedQuestionTypes.forecasting").exists())
                 .andExpect(jsonPath("$.unsupportedQuestionTypes.causation").exists())
                 .andExpect(jsonPath("$.requiredFilters.datasetSource").exists())
-                .andExpect(jsonPath("$.filterStructure").exists());
+                .andExpect(jsonPath("$.filterStructure").exists())
+                .andExpect(jsonPath("$.metricTypes").exists())
+                .andExpect(jsonPath("$.capabilities").isArray());
     }
 
     @Test
@@ -140,8 +142,8 @@ class ExplanationControllerRefusalIntegrationTest {
         mockMvc.perform(get("/api/v1/capabilities"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.supportedQuestionTypes").exists())
-            .andExpect(jsonPath("$.datasets").isArray())
-            .andExpect(jsonPath("$.supportedDatasetSources").exists());
+            .andExpect(jsonPath("$.metricTypes.renewable_generation_trend").isArray())
+            .andExpect(jsonPath("$.examples.renewable_generation_trend").isArray());
     }
 
     @Test
@@ -157,6 +159,9 @@ class ExplanationControllerRefusalIntegrationTest {
             "supportedDatasetSources",
             "requiredFilters",
             "filterStructure",
+            "metricTypes",
+            "examples",
+            "capabilities",
             "datasets"
         ));
 
@@ -224,7 +229,7 @@ class ExplanationControllerRefusalIntegrationTest {
             .thenReturn(successExplanation);
 
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend", 
+            "fuel_generation_trend", 
             Map.of("datasetSource", "mbie.generation.annual")
         );
 

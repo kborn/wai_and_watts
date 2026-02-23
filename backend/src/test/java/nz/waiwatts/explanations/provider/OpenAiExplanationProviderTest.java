@@ -70,7 +70,7 @@ class OpenAiExplanationProviderTest {
             anyString()
         )).thenReturn("{\"isRefusal\":false,\"explanationText\":\"   \",\"citations\":[\"metric:mbie:generation_gwh:2024:HYDRO\"]}");
 
-        Explanation result = provider.generateExplanation("hydro_generation_trend", factPack);
+        Explanation result = provider.generateExplanation("fuel_generation_trend", factPack);
 
         assertTrue(result.isRefusal());
         assertEquals("LLM response parse failure", result.getRefusalReason());
@@ -89,7 +89,7 @@ class OpenAiExplanationProviderTest {
             anyString()
         )).thenReturn("{\"isRefusal\":true,\"refusalReason\":\"Insufficient data\",\"explanationText\":\"\"}");
 
-        Explanation result = provider.generateExplanation("hydro_generation_trend", factPack);
+        Explanation result = provider.generateExplanation("fuel_generation_trend", factPack);
 
         assertTrue(result.isRefusal());
         assertEquals("Insufficient data", result.getRefusalReason());

@@ -69,6 +69,8 @@ class NaturalLanguageEndpointIntegrationTest {
                 .andExpect(jsonPath("$.isRefusal").value(true))
                 .andExpect(jsonPath("$.refusal.code").value("LLM_REQUIRED"))
                 .andExpect(jsonPath("$.refusal.message").exists())
+                .andExpect(jsonPath("$.refusal.details.category").value("LLM_REQUIRED"))
+                .andExpect(jsonPath("$.refusal.details.examples").isArray())
                 .andExpect(jsonPath("$.datasetSelection.strategy").value("NONE"))
                 .andExpect(jsonPath("$.debug.parserUsed").value("DEMO"));
     }

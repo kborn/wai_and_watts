@@ -1,5 +1,6 @@
 package nz.waiwatts.explanations.service;
 
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import org.junit.jupiter.api.Test;
@@ -12,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RequestValidationServiceTest {
 
     private final DatasetCatalog datasetCatalog = new DatasetCatalog();
-    private final QuestionTypeCatalog questionTypeCatalog = new QuestionTypeCatalog(datasetCatalog);
-    private final RequestValidationService service = new RequestValidationService(datasetCatalog, questionTypeCatalog);
+    private final CapabilityRegistry capabilityRegistry = new CapabilityRegistry(datasetCatalog);
+    private final RequestValidationService service = new RequestValidationService(datasetCatalog, capabilityRegistry);
 
     @Test
     void validatesHappyPathForMbieRequest() {

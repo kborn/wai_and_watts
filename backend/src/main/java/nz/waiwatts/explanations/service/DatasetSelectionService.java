@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -35,25 +36,25 @@ public class DatasetSelectionService {
     private final OpenAiResponseClient client;
     private final ObjectMapper objectMapper;
     private final LlmProperties llmProperties;
-    private final QuestionTypeCatalog questionTypeCatalog;
+    private final CapabilityRegistry capabilityRegistry;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
+        CapabilityRegistry capabilityRegistry,
         OpenAiResponseClient client,
         ObjectMapper objectMapper,
-        LlmProperties llmProperties,
-        QuestionTypeCatalog questionTypeCatalog
+        LlmProperties llmProperties
     ) {
         this.datasetCatalog = datasetCatalog;
+        this.capabilityRegistry = capabilityRegistry;
         this.client = client;
         this.objectMapper = objectMapper;
         this.llmProperties = llmProperties;
-        this.questionTypeCatalog = questionTypeCatalog;
     }
 
     public DatasetSelectionResult selectDataset(String question, ExplanationRequest request) {
         String questionType = request != null ? request.getQuestionType() : null;
-        QuestionTypeCatalog.QuestionTypeGroup group = questionTypeCatalog.groupFor(questionType);
+        CapabilityRegistry.QuestionTypeGroup group = capabilityRegistry.groupFor(questionType);
         List<String> allowedSources = allowedSourcesFor(group);
 
         String explicit = request != null ? request.getDatasetSource() : null;
@@ -70,7 +71,7 @@ public class DatasetSelectionService {
             );
         }
 
-        if (group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE) {
+        if (group == CapabilityRegistry.QuestionTypeGroup.LAWA_STATE) {
             return DatasetSelectionResult.selected(
                 "lawa.water_quality.state.multi_year",
                 "Question type is LAWA state; dataset is fixed.",
@@ -78,7 +79,7 @@ public class DatasetSelectionService {
             );
         }
 
-        if (group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND) {
+        if (group == CapabilityRegistry.QuestionTypeGroup.LAWA_TREND) {
             return DatasetSelectionResult.selected(
                 "lawa.water_quality.trend.multi_year",
                 "Question type is LAWA trend; dataset is fixed.",
@@ -145,9 +146,9 @@ public class DatasetSelectionService {
     private DatasetSelectionResult verifyExplicitDataset(
         ExplanationRequest request,
         String datasetSource,
-        QuestionTypeCatalog.QuestionTypeGroup group
+        CapabilityRegistry.QuestionTypeGroup group
     ) {
-        if (group != QuestionTypeCatalog.QuestionTypeGroup.UNKNOWN && !isAllowedForGroup(datasetSource, group)) {
+        if (group != CapabilityRegistry.QuestionTypeGroup.UNKNOWN && !isAllowedForGroup(datasetSource, group)) {
             return DatasetSelectionResult.refusal(
                 "DATASET_MISMATCH",
                 mismatchMessage(group, datasetSource),
@@ -197,6 +198,9 @@ public class DatasetSelectionService {
         Map<String, Object> filters = request.getFilters();
         if (filters != null) {
             for (String key : filters.keySet()) {
+                if ("metricType".equals(key)) {
+                    continue;
+                }
                 if (!ds.supportedFilters().contains(key)) {
                     return DatasetSelectionResult.refusal(
                         "UNSUPPORTED_CAPABILITY",
@@ -310,7 +314,7 @@ public class DatasetSelectionService {
             && llmProperties.getProvider() == LlmProvider.OPENAI;
     }
 
-    private List<String> allowedSourcesFor(QuestionTypeCatalog.QuestionTypeGroup group) {
+    private List<String> allowedSourcesFor(CapabilityRegistry.QuestionTypeGroup group) {
         return switch (group) {
             case MBIE -> List.of("mbie.generation.annual", "mbie.generation.quarterly");
             case LAWA_STATE -> List.of("lawa.water_quality.state.multi_year");
@@ -328,7 +332,7 @@ public class DatasetSelectionService {
             .toList();
     }
 
-    private boolean isAllowedForGroup(String datasetSource, QuestionTypeCatalog.QuestionTypeGroup group) {
+    private boolean isAllowedForGroup(String datasetSource, CapabilityRegistry.QuestionTypeGroup group) {
         List<String> allowed = allowedSourcesFor(group);
         if (allowed == null) {
             return true;
@@ -336,18 +340,18 @@ public class DatasetSelectionService {
         return allowed.stream().anyMatch(ds -> ds.equalsIgnoreCase(datasetSource));
     }
 
-    private boolean isCrossDomainMismatch(QuestionTypeCatalog.QuestionTypeGroup group, List<String> candidates) {
+    private boolean isCrossDomainMismatch(CapabilityRegistry.QuestionTypeGroup group, List<String> candidates) {
         if (candidates == null || candidates.isEmpty()) {
             return false;
         }
         boolean hasMbie = candidates.stream().anyMatch(c -> c.toLowerCase(Locale.ROOT).startsWith("mbie."));
         boolean hasLawa = candidates.stream().anyMatch(c -> c.toLowerCase(Locale.ROOT).startsWith("lawa."));
-        return (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE && hasLawa)
-            || ((group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE
-                    || group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND) && hasMbie);
+        return (group == CapabilityRegistry.QuestionTypeGroup.MBIE && hasLawa)
+            || ((group == CapabilityRegistry.QuestionTypeGroup.LAWA_STATE
+                    || group == CapabilityRegistry.QuestionTypeGroup.LAWA_TREND) && hasMbie);
     }
 
-    private String mismatchMessage(QuestionTypeCatalog.QuestionTypeGroup group, String datasetSource) {
+    private String mismatchMessage(CapabilityRegistry.QuestionTypeGroup group, String datasetSource) {
         return switch (group) {
             case MBIE -> "Parsed an MBIE generation question, but selected a LAWA dataset.";
             case LAWA_STATE -> "Parsed a LAWA state question, but selected a non-state dataset.";
@@ -358,10 +362,10 @@ public class DatasetSelectionService {
 
     private DatasetSelectionResult selectDeterministicCandidate(
         List<DatasetSelectionResult> verifiedSelections,
-        QuestionTypeCatalog.QuestionTypeGroup group,
+        CapabilityRegistry.QuestionTypeGroup group,
         String question
     ) {
-        if (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE) {
+        if (group == CapabilityRegistry.QuestionTypeGroup.MBIE) {
             boolean quarterSignal = hasQuarterSignal(question);
             String preferred = quarterSignal ? "mbie.generation.quarterly" : "mbie.generation.annual";
             Optional<DatasetSelectionResult> preferredMatch = verifiedSelections.stream()

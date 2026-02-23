@@ -20,7 +20,7 @@ public class DatasetCatalog {
             "annual",
             List.of(
                 "renewable_generation_trend",
-                "hydro_generation_trend",
+                "fuel_generation_trend",
                 "fuel_type_comparison",
                 "generation_mix_overview"
             ),
@@ -33,7 +33,7 @@ public class DatasetCatalog {
             "quarterly",
             List.of(
                 "renewable_generation_trend",
-                "hydro_generation_trend",
+                "fuel_generation_trend",
                 "fuel_type_comparison",
                 "generation_mix_overview"
             ),
@@ -46,10 +46,10 @@ public class DatasetCatalog {
             "multi_year",
             List.of(
                 "water_quality_overview",
-                "excellent_sites_trend",
+                "water_quality_state_sites_trend",
                 "regional_water_quality"
             ),
-            Set.of("indicator", "region", "startYear", "endYear")
+            Set.of("stateCategory", "indicator", "region", "startYear", "endYear")
         ),
         new DatasetDescriptor(
             "lawa.water_quality.trend.multi_year",

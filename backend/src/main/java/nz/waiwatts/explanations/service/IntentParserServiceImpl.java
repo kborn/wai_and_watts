@@ -141,7 +141,7 @@ public class IntentParserServiceImpl implements IntentParserService {
         String ds = request.getDatasetSource();
         if (qt != null && ds != null) {
             boolean isLawaStateQt = qt.equals("water_quality_overview")
-                    || qt.equals("excellent_sites_trend")
+                    || qt.equals("water_quality_state_sites_trend")
                     || qt.equals("regional_water_quality");
             boolean isLawaTrendQt = qt.equals("water_quality_trends")
                     || qt.equals("improving_sites_trend")

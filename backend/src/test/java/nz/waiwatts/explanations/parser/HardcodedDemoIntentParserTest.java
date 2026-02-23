@@ -55,7 +55,7 @@ class HardcodedDemoIntentParserTest {
         );
 
         assertNotNull(request);
-        assertEquals("hydro_generation_trend", request.getQuestionType());
+        assertEquals("fuel_generation_trend", request.getQuestionType());
         assertEquals("mbie.generation.annual", request.getDatasetSource());
         assertEquals(Map.of("startYear", 2018, "endYear", 2023, "fuelType", "HYDRO"), request.getFilters());
     }

@@ -89,6 +89,8 @@ const MbieBrowsePage: React.FC = () => {
     navigate('/ask')
   }
 
+  const canExplainSelection = effectiveSelectedFuels.length > 0
+
   const handleZoomChange = (startIndex: number, endIndex: number) => {
     setZoomRange([startIndex, endIndex])
   }
@@ -186,8 +188,7 @@ const MbieBrowsePage: React.FC = () => {
           MBIE Electricity Generation
         </h1>
         <p className="text-body text-neutral-600">
-          Explore New Zealand's electricity generation data by year and fuel
-          type.
+          Explore electricity generation by fuel type and year.
         </p>
       </div>
 
@@ -240,7 +241,7 @@ const MbieBrowsePage: React.FC = () => {
                       return (
                         <label
                           key={fuel}
-                          className="flex items-center gap-1 text-xs"
+                          className="flex items-center gap-1 text-xs text-neutral-700"
                         >
                           <input
                             type="checkbox"
@@ -253,21 +254,32 @@ const MbieBrowsePage: React.FC = () => {
                       )
                     })}
                   </div>
+                  <label className="mt-2 inline-flex items-center gap-2 text-xs text-neutral-600">
+                    <input
+                      type="checkbox"
+                      checked={showTotal}
+                      onChange={e => setShowTotal(e.target.checked)}
+                      className="rounded"
+                    />
+                    Include total generation line
+                  </label>
                 </>
               )}
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-neutral-700">
-              <input
-                type="checkbox"
-                checked={showTotal}
-                onChange={e => setShowTotal(e.target.checked)}
-                className="rounded"
-              />
-              Show Total
-            </label>
-
-            <Button onClick={handleExplainThis}>Explain This Data</Button>
+            <div className="flex flex-col items-start">
+              <Button
+                onClick={handleExplainThis}
+                disabled={!canExplainSelection}
+              >
+                Explain Selection
+              </Button>
+              {!canExplainSelection && (
+                <p className="text-xs text-neutral-500 mt-2">
+                  Select at least one fuel type to explain.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2 mb-4 border-b">
