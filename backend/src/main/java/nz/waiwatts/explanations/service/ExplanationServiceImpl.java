@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,11 +197,37 @@ public class ExplanationServiceImpl implements ExplanationService {
             List<String> required = (factPack.getGuardrails() != null && factPack.getGuardrails().getRequiredCitations() != null)
                     ? factPack.getGuardrails().getRequiredCitations() : List.of();
             List<String> actual = (explanation.getCitations() != null) ? explanation.getCitations() : List.of();
-            return CitationValidationUtil.validateRequiredCitations(required, actual);
+            if (!CitationValidationUtil.hasNonEmptyCitations(actual)) {
+                return false;
+            }
+            if (!CitationValidationUtil.validateRequiredCitations(required, actual)) {
+                return false;
+            }
+            return CitationValidationUtil.validateActualCitationsAgainstFactIds(actual, collectFactIds(factPack));
         } catch (Exception e) {
             // Defensive: on unexpected structure, fail validation
             return false;
         }
+    }
+
+    private List<String> collectFactIds(FactPack factPack) {
+        if (factPack == null || factPack.getFacts() == null) {
+            return List.of();
+        }
+        List<String> ids = new ArrayList<>();
+        if (factPack.getFacts().getMetrics() != null) {
+            ids.addAll(factPack.getFacts().getMetrics().stream().map(f -> f.getId()).toList());
+        }
+        if (factPack.getFacts().getComparisons() != null) {
+            ids.addAll(factPack.getFacts().getComparisons().stream().map(f -> f.getId()).toList());
+        }
+        if (factPack.getFacts().getTimeSeries() != null) {
+            ids.addAll(factPack.getFacts().getTimeSeries().stream().map(f -> f.getId()).toList());
+        }
+        if (factPack.getFacts().getClassifications() != null) {
+            ids.addAll(factPack.getFacts().getClassifications().stream().map(f -> f.getId()).toList());
+        }
+        return ids;
     }
 
     private void logCitationFailureDebug(ExplanationRequest request, Explanation explanation, FactPack factPack) {
