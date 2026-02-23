@@ -2,6 +2,7 @@ package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dataset.DatasetDescriptor;
+import nz.waiwatts.explanations.dto.CapabilitiesResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,21 +20,21 @@ public class CapabilitiesService {
         this.questionTypeCatalog = questionTypeCatalog;
     }
 
-    public Map<String, Object> buildCapabilitiesResponse() {
-        Map<String, Object> supportedTypes = new LinkedHashMap<>();
-        supportedTypes.put("supportedQuestionTypes", questionTypeCatalog.supportedDescriptions());
-        supportedTypes.put("unsupportedQuestionTypes", questionTypeCatalog.unsupportedDescriptions());
+    public CapabilitiesResponse buildCapabilitiesResponse() {
+        CapabilitiesResponse response = new CapabilitiesResponse();
+        response.setSupportedQuestionTypes(questionTypeCatalog.supportedDescriptions());
+        response.setUnsupportedQuestionTypes(questionTypeCatalog.unsupportedDescriptions());
 
         Map<String, String> supportedDatasetSources = new LinkedHashMap<>();
         for (DatasetDescriptor descriptor : datasetCatalog.getDatasets()) {
             supportedDatasetSources.put(descriptor.datasetSource(), descriptor.displayName());
         }
-        supportedTypes.put("supportedDatasetSources", supportedDatasetSources);
+        response.setSupportedDatasetSources(supportedDatasetSources);
 
-        supportedTypes.put("requiredFilters", Map.of(
+        response.setRequiredFilters(Map.of(
             "datasetSource", "Must specify the data source (e.g., 'mbie.generation.annual', 'lawa.water_quality.state.multi_year')"
         ));
-        supportedTypes.put("filterStructure", Map.of(
+        response.setFilterStructure(Map.of(
             "datasetSource", "string (required)",
             "fuelType", "string (optional, for MBIE data)",
             "fuelTypeB", "string (optional second fuel for MBIE comparisons)",
@@ -44,17 +45,17 @@ public class CapabilitiesService {
             "endYear", "integer (optional)"
         ));
 
-        var datasets = new ArrayList<Map<String, Object>>();
+        var datasets = new ArrayList<CapabilitiesResponse.DatasetCapabilities>();
         for (DatasetDescriptor descriptor : datasetCatalog.getDatasets()) {
-            datasets.add(Map.of(
-                "datasetSource", descriptor.datasetSource(),
-                "displayName", descriptor.displayName(),
-                "description", descriptor.displayName(),
-                "supportedQuestionTypes", descriptor.supportedQuestionTypes(),
-                "supportedFilters", descriptor.supportedFilters()
-            ));
+            CapabilitiesResponse.DatasetCapabilities datasetCapabilities = new CapabilitiesResponse.DatasetCapabilities();
+            datasetCapabilities.setDatasetSource(descriptor.datasetSource());
+            datasetCapabilities.setDisplayName(descriptor.displayName());
+            datasetCapabilities.setDescription(descriptor.displayName());
+            datasetCapabilities.setSupportedQuestionTypes(descriptor.supportedQuestionTypes());
+            datasetCapabilities.setSupportedFilters(descriptor.supportedFilters());
+            datasets.add(datasetCapabilities);
         }
-        supportedTypes.put("datasets", datasets);
-        return supportedTypes;
+        response.setDatasets(datasets);
+        return response;
     }
 }

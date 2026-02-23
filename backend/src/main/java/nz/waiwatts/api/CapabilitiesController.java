@@ -1,12 +1,11 @@
 package nz.waiwatts.api;
 
+import nz.waiwatts.explanations.dto.CapabilitiesResponse;
 import nz.waiwatts.explanations.service.CapabilitiesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/capabilities")
@@ -19,8 +18,7 @@ public class CapabilitiesController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getCapabilities() {
+    public ResponseEntity<CapabilitiesResponse> getCapabilities() {
         return ResponseEntity.ok(capabilitiesService.buildCapabilitiesResponse());
     }
 }
-

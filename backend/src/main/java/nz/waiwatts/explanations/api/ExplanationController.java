@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.api;
 
 import nz.waiwatts.explanations.dto.AskResult;
+import nz.waiwatts.explanations.dto.CapabilitiesResponse;
 import nz.waiwatts.explanations.dto.Citation;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
@@ -373,7 +374,7 @@ public class ExplanationController {
      * @return supported and unsupported question classes with filter requirements
      */
     @GetMapping("/capabilities")
-    public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
+    public ResponseEntity<CapabilitiesResponse> getSupportedQuestionTypes() {
         return ResponseEntity.ok(capabilitiesService.buildCapabilitiesResponse());
     }
 

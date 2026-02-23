@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -143,6 +145,36 @@ class ExplanationControllerRefusalIntegrationTest {
     }
 
     @Test
+    void capabilitiesContractShapeRemainsStable() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        assertObjectFieldSet(root, Set.of(
+            "supportedQuestionTypes",
+            "unsupportedQuestionTypes",
+            "supportedDatasetSources",
+            "requiredFilters",
+            "filterStructure",
+            "datasets"
+        ));
+
+        JsonNode datasets = root.path("datasets");
+        assertTrue(datasets.isArray(), "datasets must be an array");
+        if (!datasets.isEmpty()) {
+            JsonNode firstDataset = datasets.get(0);
+            assertObjectFieldSet(firstDataset, Set.of(
+                "datasetSource",
+                "displayName",
+                "description",
+                "supportedQuestionTypes",
+                "supportedFilters"
+            ));
+        }
+    }
+
+    @Test
     void capabilitiesEndpointsRemainEquivalent() throws Exception {
         MvcResult canonical = mockMvc.perform(get("/api/v1/capabilities"))
             .andExpect(status().isOk())
@@ -204,5 +236,11 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(jsonPath("$.explanationText").value("Based on the data, hydro generation increased by 1000 GWh."))
                 .andExpect(jsonPath("$.citations").isArray())
                 .andExpect(jsonPath("$.citations[0]").value("cmp:mbie:generation_gwh:HYDRO:2023_vs_2022"));
+    }
+
+    private static void assertObjectFieldSet(JsonNode node, Set<String> expectedFields) {
+        Set<String> actualFields = new HashSet<>();
+        node.fieldNames().forEachRemaining(actualFields::add);
+        assertEquals(expectedFields, actualFields);
     }
 }
