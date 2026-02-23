@@ -94,7 +94,7 @@ public class LawaStateMultiYearCsvParser extends AbstractCsvParser implements La
 
     private static Map<String, String> createIndicatorMap() {
         Map<String, String> m = new HashMap<>();
-        // Recommended initial mappings per design/007-lawa-state-multi-year-schema.md
+        // Recommended initial mappings per engineering/design/007-lawa-state-multi-year-schema.md
         m.put("E.coli", "ECOLI");
         m.put("Clarity / Suspended fine sediment", "CLARITY");
         m.put("Dissolved reactive phosphorus", "DRP");

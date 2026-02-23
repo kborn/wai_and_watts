@@ -6,8 +6,18 @@ on:
     branches: [ main ]
 
 jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate canonical docs
+        run: ./scripts/ci/check-docs.sh
+
   build-test:
     runs-on: ubuntu-latest
+    needs: docs-check
     steps:
       - name: Checkout
         uses: actions/checkout@v4

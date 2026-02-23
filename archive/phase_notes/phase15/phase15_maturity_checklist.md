@@ -14,7 +14,7 @@ Phase 15 completion is determined by:
 ## 1️⃣ Phase 15 Exit Rubric (Primary Authority)
 Location:
 ```
-docs/phase15/phase15_exit_rubric.md
+docs/phase-notes/phase15/phase15_exit_rubric.md
 ```
 
 Defines:
@@ -28,7 +28,7 @@ Defines:
 ## 2️⃣ Generated Pattern Panel (Primary Test Mechanism)
 Location:
 ```
-docs/phase15/phase15_generated_panel_spec.md
+docs/phase-notes/phase15/phase15_generated_panel_spec.md
 ```
 
 Defines:
@@ -245,7 +245,7 @@ Treat as Phase 16 unless Fact Packs explicitly contain computed results:
 
 Reference:
 ```
-docs/phase15/phase15_builder_task_brief.md
+docs/archive/phase15/2026-02-doc-convergence/phase15_builder_task_brief.md (historical brief)
 ```
 
 ---

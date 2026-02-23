@@ -52,7 +52,7 @@ and does not create new architectural surface area.
 
 Builder GPT must pause and flag “Needs Staff decision” if any of the following are true:
 - Introduces a new concept/category (first of its kind): ingestion trigger, parser, external adapter, domain persistence, LLM endpoint, auth, caching, async jobs.
-- Requires changing or creating a new non-negotiable rule (DECISIONS.md-worthy).
+- Requires changing or creating a new non-negotiable rule (`decisions.md`-worthy).
 - Touches idempotency, lifecycle status semantics, or DB constraints in a new way.
 - Adds a new dependency or framework (e.g., Testcontainers, Spring Security, WebClient).
 - Exposes a new public endpoint or expands surface beyond `/api/v1/internal/...` for dev tools.

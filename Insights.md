@@ -1,172 +1,121 @@
-# Wai & Watts — Insights (Phase 11)
+# Wai & Watts — Query-Backed Insights
 
-**Phase:** 11 — Insights & LLM Layer (Grounded Explanations)  
-**Date:** 2026-02-08  
-**Status:** Complete  
+Date: 2026-02-23
+Status: Phase 15 portfolio evidence
 
-These insights are **grounded** in persisted database facts and reference specific Fact Pack queries used for generation.
+These findings are documented as reproducible SQL over persisted tables.
+For portability in-repo, each finding also notes the fixture snapshot source used to verify expected direction/value.
 
 ---
 
-## MBIE Electricity Generation Insights
+## 1) MBIE annual renewables grew from 2018 to 2024
 
-### 1. Renewable Generation Growth (2018-2023)
+Finding:
+- Renewable generation (HYDRO + GEOTHERMAL + WIND + SOLAR) increased from **35,868.5 GWh (2018)** to **36,722.4 GWh (2024)**.
+- Net change: **+853.9 GWh** (**+2.38%**).
 
-**Query:**
-```json
-{
-  "questionType": "renewable_generation_trend",
-  "filters": {
-    "datasetSource": "mbie.generation.annual",
-    "startYear": 2018,
-    "endYear": 2023
-  }
-}
+SQL (persisted DB):
+```sql
+SELECT
+  period_year,
+  SUM(CASE WHEN fuel_type_norm IN ('HYDRO','GEOTHERMAL','WIND','SOLAR') THEN generation_gwh ELSE 0 END) AS renewable_gwh
+FROM mbie_generation_annual_record
+GROUP BY period_year
+HAVING period_year IN (2018, 2024)
+ORDER BY period_year;
 ```
 
-**Finding:** Renewable electricity generation in New Zealand shows a **consistent upward trend** from 42,000 GWh in 2018 to 47,000 GWh in 2023, representing approximately 12% growth over the 5-year period.
-
-**Fact Pack Source:** `ts:mbie:renewable_generation_gwh:2018_2023`
-
-**Supporting Data:**
-- 2018: 42,000 GWh (baseline)
-- 2023: 47,000 GWh (latest)
-- Annual growth rate: ~2.3% average
+Snapshot evidence source:
+- `backend/src/test/resources/real_snapshots/expected/mbie/generation/annual/mbie_generation_annual_expected.csv`
 
 ---
 
-### 2. Hydro Generation Quarterly Volatility (2022-2023)
+## 2) MBIE quarterly solar output more than doubled (2023 Q1 -> 2025 Q3)
 
-**Query:**
-```json
-{
-  "questionType": "hydro_generation_trend", 
-  "filters": {
-    "datasetSource": "mbie.generation.quarterly",
-    "startYear": 2022,
-    "endYear": 2023,
-    "fuelType": "HYDRO"
-  }
-}
+Finding:
+- Solar generation increased from **95.5 GWh (2023 Q1)** to **211.4 GWh (2025 Q3)**.
+- Approximate multiplier: **2.21x**.
+
+SQL (persisted DB):
+```sql
+SELECT period_year, period_quarter, generation_gwh
+FROM mbie_generation_quarterly_record
+WHERE fuel_type_norm = 'SOLAR'
+  AND ((period_year = 2023 AND period_quarter = 1)
+    OR (period_year = 2025 AND period_quarter = 3))
+ORDER BY period_year, period_quarter;
 ```
 
-**Finding:** Hydroelectric generation shows **significant seasonal variation** with quarterly peaks in Q1 and Q4, reflecting typical rainfall patterns and storage management strategies.
-
-**Fact Pack Source:** `ts:mbie:hydro_generation_gwh_quarterly:2022-Q1_to_2023-Q4`
-
-**Supporting Data:**
-- Q1 2022: 6,800 GWh
-- Q4 2023: 7,200 GWh  
-- Quarter-to-quarter variance: ±15% typical
+Snapshot evidence source:
+- `backend/src/test/resources/real_snapshots/expected/mbie/generation/quarterly/mbie_generation_quarterly_expected.csv`
 
 ---
 
-## LAWA Water Quality Insights
+## 3) LAWA state sample is dominated by EXCELLENT classifications
 
-### 3. Water Quality State Distribution (2019-2023)
+Finding:
+- State classification counts in the sample:
+  - EXCELLENT: 25
+  - GOOD: 6
+  - FAIR: 2
+  - POOR: 2
+  - VERY_POOR: 2
 
-**Query:**
-```json
-{
-  "questionType": "water_quality_overview",
-  "filters": {
-    "datasetSource": "lawa.water_quality.state.multi_year",
-    "startYear": 2019,
-    "endYear": 2023
-  }
-}
+SQL (persisted DB):
+```sql
+SELECT state_norm, COUNT(*) AS row_count
+FROM lawa_state_multi_year_record
+GROUP BY state_norm
+ORDER BY row_count DESC;
 ```
 
-**Finding:** **24% of monitored river sites** achieve excellent water quality (A band), while **18% are classified as poor** (D-E bands), indicating mixed environmental outcomes across New Zealand's waterways.
-
-**Fact Pack Source:** `class:lawa:water_quality_state:EXCELLENT`, `class:lawa:water_quality_state:POOR`
-
-**Supporting Data:**
-- Excellent sites: 24% (A band)
-- Poor sites: 18% (D-E bands)  
-- Remaining sites: 58% (B-C bands)
+Snapshot evidence source:
+- `backend/src/test/resources/real_snapshots/expected/lawa/water_quality/state/multi_year/lawa_state_multi_year_expected.csv`
 
 ---
 
-### 4. Excellent Sites Trend Improvement (2015-2023)
+## 4) LAWA trend sample has high insufficient-data share
 
-**Query:**
-```json
-{
-  "questionType": "excellent_sites_trend",
-  "filters": {
-    "datasetSource": "lawa.water_quality.state.multi_year", 
-    "startYear": 2015,
-    "endYear": 2023
-  }
-}
+Finding:
+- Trend classification counts in the sample:
+  - INSUFFICIENT_DATA: 72
+  - DEGRADING: 23
+  - IMPROVING: 15
+
+SQL (persisted DB):
+```sql
+SELECT trend_norm, COUNT(*) AS row_count
+FROM lawa_water_quality_trend_multi_year_record
+GROUP BY trend_norm
+ORDER BY row_count DESC;
 ```
 
-**Finding:** Sites with excellent water quality have **increased by 27%** from 2015 to 2023, suggesting positive environmental management outcomes in key catchments.
-
-**Fact Pack Source:** `ts:lawa:excellent_sites_count:2015_to_2023`
-
-**Supporting Data:**
-- 2015: 45 excellent sites
-- 2023: 57 excellent sites
-- Improvement trend: +27% over 8 years
+Snapshot evidence source:
+- `backend/src/test/resources/real_snapshots/expected/lawa/water_quality/trend/multi_year/lawa_trend_multi_year_expected.csv`
 
 ---
 
-### 5. Regional Water Quality Inequality (2019-2023)
+## 5) Regional state composition differs between Auckland and Canterbury (sample)
 
-**Query:**
-```json
-{
-  "questionType": "regional_water_quality",
-  "filters": {
-    "datasetSource": "lawa.water_quality.state.multi_year",
-    "region": "Canterbury",
-    "startYear": 2019,
-    "endYear": 2023
-  }
-}
+Finding:
+- Auckland sample rows: 21 (EXCELLENT 14, GOOD 3, FAIR 2, POOR 1, VERY_POOR 1)
+- Canterbury sample rows: 16 (EXCELLENT 11, GOOD 3, POOR 1, VERY_POOR 1)
+
+SQL (persisted DB):
+```sql
+SELECT region, state_norm, COUNT(*) AS row_count
+FROM lawa_state_multi_year_record
+WHERE region IN ('auckland', 'canterbury')
+GROUP BY region, state_norm
+ORDER BY region, row_count DESC;
 ```
 
-**Finding:** **Canterbury region shows only 15% excellent sites** compared to the national average of 24%, highlighting regional disparities in water quality outcomes.
-
-**Fact Pack Source:** `metric:lawa:excellent_sites_percentage:Canterbury`
-
-**Supporting Data:**
-- Canterbury excellent sites: 15%
-- National average excellent sites: 24%
-- Regional gap: 9 percentage points
+Snapshot evidence source:
+- `backend/src/test/resources/real_snapshots/expected/lawa/water_quality/state/multi_year/lawa_state_multi_year_expected.csv`
 
 ---
 
-## Methodology Notes
-
-### Data Sources
-All insights derive from **persisted database records** through the Fact Pack architecture:
-- MBIE data: Electricity generation statistics (MBIE Quarterly reports)
-- LAWA data: River water quality state assessments (LAWA national monitoring)
-
-### Grounding Approach
-- **No forecasting** or predictive claims
-- **Explicit citations** to Fact Pack fact IDs
-- **Deterministic queries** - same input produces same results
-- **Fact Pack validation** ensures all claims are database-backed
-
-### Limitations
-- Insights are **descriptive** (what happened) not **prescriptive** (what to do)
-- Regional analysis limited to available LAWA monitoring sites
-- Time periods constrained by available data releases
-- No causal inferences - correlation does not imply causation
-
----
-
-## Verification
-
-Each insight can be reproduced by:
-1. Using the exact JSON query shown
-2. Running the query through the ExplanationService
-3. Verifying the returned Fact Pack contains the cited facts
-4. Confirming the explanation references the correct fact IDs
-
-**Fact Pack Version:** 1.0  
-**Query Execution Date:** 2026-02-08
+## Reproducibility Notes
+- SQL targets persisted domain tables and can be run after ingestion.
+- Snapshot references provide deterministic evidence in-repo when a live local DB is not running.
+- Findings are descriptive only; no causal or predictive claims are made.

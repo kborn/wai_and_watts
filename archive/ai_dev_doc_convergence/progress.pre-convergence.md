@@ -570,7 +570,7 @@ Work Items:
 
 Notes:
 - Frontend is a production-credible client surface; scope is intentionally constrained to keep iteration fast and boundaries clean.
-- Progress.md is the execution checklist; page behaviors and UX expectations live in the [Product Slice](../../docs/product/phase_13_product_slice.md) doc.
+- Progress.md is the execution checklist; page behaviors and UX expectations live in the [Product Slice](../docs_legacy/product/phase_13_product_slice.md) doc.
 
 
 ### Links
@@ -812,7 +812,7 @@ Goal: Converge architecture and polish project for portfolio readiness.
 
 Notes:
 - Updated DatasetCatalog/runtime alignment, preserved explicit dataset refusal reasons, sanitized LLM filter "null" values, stabilized /ask response envelope, and added dataset-scoped capabilities data.
-- Fixed CAPABILITY_UNSUPPORTED refusals for valid MBIE annual trend questions and preserved accurate refusal messages for explicit dataset failures.
+- Fixed UNSUPPORTED_CAPABILITY refusals for valid MBIE annual trend questions and preserved accurate refusal messages for explicit dataset failures.
 - Tests: `mvn test`
 - Staff Engineer performed a full Phase 15 status audit against `docs/phase-notes/phase15/phase15_architectural_review_findings.md`; unresolved items are tracked in `docs/phase-notes/phase15/phase15_unaddressed_findings_audit.md`.
 - Remaining architectural corrections are being delivered as explicit follow-up remediation PRs (transparent review path), not hidden via history rewrite/fixup-only squashing.
@@ -868,17 +868,17 @@ Definition of Done
     - Gate B shape coverage thresholds
     - Gate C determinism across 3 runs
   - [x] Added/generated benchmark harness and evaluator:
-    - `docs/phase15/pattern_panel_runner.py`
-    - `docs/phase15/pattern_panel_evaluate.py`
-    - `docs/phase15/README_pattern_panel.md`
+    - `docs/phase-notes/phase15/pattern_panel_runner.py`
+    - `docs/phase-notes/phase15/pattern_panel_evaluate.py`
+    - `docs/phase-notes/phase15/README_pattern_panel.md`
   - [x] Implemented and validated Phase 15 hardening:
     - Citation family matching (`:*`) in validation
     - Deterministic required-citation construction (dedupe + stable sort)
-    - Derived-analytics refusal boundary (`CAPABILITY_UNSUPPORTED`)
+    - Derived-analytics refusal boundary (`UNSUPPORTED_CAPABILITY`)
   - [x] Phase 15 authority docs in place:
-    - `docs/phase15/phase15_exit_rubric.md`
-    - `docs/phase15/phase15_generated_panel_spec.md`
-    - `docs/phase15/phase15_maturity_checklist.md`
+    - `docs/phase-notes/phase15/phase15_exit_rubric.md`
+    - `docs/phase-notes/phase15/phase15_generated_panel_spec.md`
+    - `docs/phase-notes/phase15/phase15_maturity_checklist.md`
 
 #### Database & Indexing
 - [x] Ensure proper unique indexes exist for all dataset tables 

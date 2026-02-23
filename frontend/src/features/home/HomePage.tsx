@@ -3,81 +3,72 @@ import { Link } from 'react-router-dom'
 
 const HomePage: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white shadow rounded-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">
+    <div className="section-container">
+      <div className="content-card">
+        <h1 className="text-h2 font-semibold text-neutral-900">
           Wai & Watts: Environmental Data Platform
         </h1>
+        <p className="text-body text-neutral-600">
+          Explore grounded explanations and browse persisted MBIE and LAWA
+          datasets through a backend-authoritative workflow.
+        </p>
+      </div>
 
-        <div className="prose max-w-none text-gray-700 mb-8">
-          <p className="text-lg mb-6">
-            Welcome to Wai & Watts, a platform for exploring New Zealand's
-            environmental data through AI-powered explanations.
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="content-card border-blue-100 bg-blue-50/60">
+          <h2 className="text-lg font-semibold text-blue-900">Ask Questions</h2>
+          <p className="text-sm text-blue-800">
+            Ask descriptive questions about electricity generation and water
+            quality. Responses include refusal-safe behavior and citations.
           </p>
-
-          <p className="mb-6">
-            Our system provides grounded explanations about electricity
-            generation and water quality data, ensuring all responses are backed
-            by verified sources and citations.
-          </p>
-
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
-            <div className="bg-blue-50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-blue-900 mb-3">
-                Ask Questions
-              </h2>
-              <p className="text-blue-800 mb-4">
-                Ask questions about New Zealand's electricity generation and
-                water quality data. Our AI provides grounded explanations with
-                citations.
-              </p>
-              <Link
-                to="/ask"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                key="home-ask-link"
-              >
-                Ask Now
-              </Link>
-            </div>
-
-            <div className="bg-green-50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-green-900 mb-3">
-                Explore Data
-              </h2>
-              <p className="text-green-800 mb-4">
-                Browse MBIE electricity generation and LAWA water quality data
-                with filtering options.
-              </p>
-              <div className="space-y-2">
-                <Link
-                  to="/browse/mbie"
-                  className="block inline-flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm"
-                >
-                  MBIE Data
-                </Link>
-                <Link
-                  to="/browse/lawa"
-                  className="block inline-flex items-center px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm mt-2"
-                >
-                  LAWA Data
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Key Features
-            </h3>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Grounded AI explanations with source citations</li>
-              <li>• Real New Zealand environmental data</li>
-              <li>• Deterministic refusal for unsupported queries</li>
-              <li>• Table-first data exploration</li>
-              <li>• Clean, modern UI</li>
-            </ul>
+          <div>
+            <Link to="/ask" className="btn-primary inline-flex items-center">
+              Ask a Question
+            </Link>
           </div>
         </div>
+
+        <div className="content-card border-emerald-100 bg-emerald-50/60">
+          <h2 className="text-lg font-semibold text-emerald-900">
+            Browse Data
+          </h2>
+          <p className="text-sm text-emerald-800">
+            Inspect MBIE annual/quarterly generation and LAWA state/trend slices
+            with filter-first table and chart views.
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            <Link
+              to="/browse/mbie"
+              className="inline-flex items-center px-3 py-2 text-sm rounded-md bg-emerald-700 text-white hover:bg-emerald-800"
+            >
+              MBIE Data
+            </Link>
+            <Link
+              to="/browse/lawa"
+              className="inline-flex items-center px-3 py-2 text-sm rounded-md bg-emerald-700 text-white hover:bg-emerald-800"
+            >
+              LAWA Data
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="content-card">
+        <h3 className="text-lg font-semibold text-neutral-900">
+          What This Demonstrates
+        </h3>
+        <ul className="text-sm text-neutral-700 space-y-2">
+          <li>
+            - Grounded explanation pipeline with explicit citation surfaces
+          </li>
+          <li>
+            - Deterministic refusal behavior for unsupported question shapes
+          </li>
+          <li>- Dataset lineage and release-aware ingestion semantics</li>
+          <li>
+            - Backend-authoritative domain logic with thin frontend rendering
+          </li>
+        </ul>
       </div>
     </div>
   )

@@ -125,8 +125,8 @@ This rubric assumes the following Phase 15 hardening targets are implemented:
 ## 6) Phase 15 Closeout Artifacts
 
 When Phase 15 is complete, the repo should include:
-- `docs/phase15/phase15_exit_rubric.md` (this file)
-- `docs/phase15/phase15_generated_panel_spec.md`
+- `docs/phase-notes/phase15/phase15_exit_rubric.md` (this file)
+- `docs/phase-notes/phase15/phase15_generated_panel_spec.md`
 - A short entry in `decisions.md` recording:
   - family-prefix citation validation
   - determinism requirements for builders
