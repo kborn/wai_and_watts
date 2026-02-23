@@ -1,12 +1,16 @@
 package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
+import nz.waiwatts.explanations.dataset.DatasetDescriptor;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class QuestionTypeCatalog {
@@ -18,7 +22,7 @@ public class QuestionTypeCatalog {
         UNKNOWN
     }
 
-    private static final Map<String, String> SUPPORTED_DESCRIPTIONS = new LinkedHashMap<>();
+    private static final Map<String, String> DESCRIPTION_OVERRIDES = new LinkedHashMap<>();
     private static final Map<String, String> UNSUPPORTED_DESCRIPTIONS = Map.of(
         "forecasting", "Predicting future values",
         "causation", "Claiming cause-and-effect relationships",
@@ -28,32 +32,27 @@ public class QuestionTypeCatalog {
     );
 
     static {
-        SUPPORTED_DESCRIPTIONS.put("renewable_generation_trend", "Explain renewable generation trends between years");
-        SUPPORTED_DESCRIPTIONS.put("hydro_generation_trend", "Explain hydro generation trends between years");
-        SUPPORTED_DESCRIPTIONS.put("fuel_type_comparison", "Compare two fuel types (e.g., hydro vs geothermal)");
-        SUPPORTED_DESCRIPTIONS.put("generation_mix_overview", "Summarize main sources of electricity generation");
-        SUPPORTED_DESCRIPTIONS.put("water_quality_overview", "Provide overview of water quality state distribution");
-        SUPPORTED_DESCRIPTIONS.put("excellent_sites_trend", "Explain trends in excellent water quality sites");
-        SUPPORTED_DESCRIPTIONS.put("regional_water_quality", "Compare water quality across regions");
-        SUPPORTED_DESCRIPTIONS.put("water_quality_trends", "Explain overall water quality trend distribution");
-        SUPPORTED_DESCRIPTIONS.put("improving_sites_trend", "Explain trends in improving water quality sites");
-        SUPPORTED_DESCRIPTIONS.put("regional_trend_comparison", "Compare water quality trends across regions");
+        DESCRIPTION_OVERRIDES.put("renewable_generation_trend", "Explain renewable generation trends between years");
+        DESCRIPTION_OVERRIDES.put("hydro_generation_trend", "Explain hydro generation trends between years");
+        DESCRIPTION_OVERRIDES.put("fuel_type_comparison", "Compare two fuel types (e.g., hydro vs geothermal)");
+        DESCRIPTION_OVERRIDES.put("generation_mix_overview", "Summarize main sources of electricity generation");
+        DESCRIPTION_OVERRIDES.put("water_quality_overview", "Provide overview of water quality state distribution");
+        DESCRIPTION_OVERRIDES.put("excellent_sites_trend", "Explain trends in excellent water quality sites");
+        DESCRIPTION_OVERRIDES.put("regional_water_quality", "Compare water quality across regions");
+        DESCRIPTION_OVERRIDES.put("water_quality_trends", "Explain overall water quality trend distribution");
+        DESCRIPTION_OVERRIDES.put("improving_sites_trend", "Explain trends in improving water quality sites");
+        DESCRIPTION_OVERRIDES.put("regional_trend_comparison", "Compare water quality trends across regions");
     }
 
     private final Set<String> supportedQuestionTypes;
+    private final Map<String, QuestionTypeGroup> groupsByQuestionType;
 
     public QuestionTypeCatalog(DatasetCatalog datasetCatalog) {
+        List<DatasetDescriptor> datasets = datasetCatalog.getDatasets();
         this.supportedQuestionTypes = datasetCatalog.getDatasets().stream()
             .flatMap(ds -> ds.supportedQuestionTypes().stream())
             .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
-
-        Set<String> missingDescriptions = new LinkedHashSet<>(supportedQuestionTypes);
-        missingDescriptions.removeAll(SUPPORTED_DESCRIPTIONS.keySet());
-        if (!missingDescriptions.isEmpty()) {
-            throw new IllegalStateException(
-                "Missing question type descriptions for: " + missingDescriptions
-            );
-        }
+        this.groupsByQuestionType = deriveGroups(datasets);
     }
 
     public boolean isSupported(String questionType) {
@@ -62,10 +61,8 @@ public class QuestionTypeCatalog {
 
     public Map<String, String> supportedDescriptions() {
         Map<String, String> out = new LinkedHashMap<>();
-        for (String questionType : SUPPORTED_DESCRIPTIONS.keySet()) {
-            if (supportedQuestionTypes.contains(questionType)) {
-                out.put(questionType, SUPPORTED_DESCRIPTIONS.get(questionType));
-            }
+        for (String questionType : supportedQuestionTypes.stream().sorted().toList()) {
+            out.put(questionType, descriptionFor(questionType));
         }
         return out;
     }
@@ -78,19 +75,60 @@ public class QuestionTypeCatalog {
         if (questionType == null) {
             return QuestionTypeGroup.UNKNOWN;
         }
-        return switch (questionType) {
-            case "renewable_generation_trend",
-                 "hydro_generation_trend",
-                 "fuel_type_comparison",
-                 "generation_mix_overview" -> QuestionTypeGroup.MBIE;
-            case "water_quality_overview",
-                 "excellent_sites_trend",
-                 "regional_water_quality" -> QuestionTypeGroup.LAWA_STATE;
-            case "water_quality_trends",
-                 "improving_sites_trend",
-                 "regional_trend_comparison" -> QuestionTypeGroup.LAWA_TREND;
-            default -> QuestionTypeGroup.UNKNOWN;
-        };
+        return groupsByQuestionType.getOrDefault(questionType, QuestionTypeGroup.UNKNOWN);
+    }
+
+    private String descriptionFor(String questionType) {
+        String override = DESCRIPTION_OVERRIDES.get(questionType);
+        if (override != null && !override.isBlank()) {
+            return override;
+        }
+        return "Explain " + humanize(questionType) + ".";
+    }
+
+    private String humanize(String questionType) {
+        return questionType.replace('_', ' ');
+    }
+
+    private Map<String, QuestionTypeGroup> deriveGroups(List<DatasetDescriptor> datasets) {
+        Map<String, Set<String>> sourcesByQuestionType = new LinkedHashMap<>();
+        for (DatasetDescriptor descriptor : datasets) {
+            for (String questionType : descriptor.supportedQuestionTypes()) {
+                sourcesByQuestionType
+                    .computeIfAbsent(questionType, k -> new LinkedHashSet<>())
+                    .add(descriptor.datasetSource());
+            }
+        }
+
+        Map<String, QuestionTypeGroup> groups = new LinkedHashMap<>();
+        for (Map.Entry<String, Set<String>> entry : sourcesByQuestionType.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .toList()) {
+            groups.put(entry.getKey(), classifyGroup(entry.getValue()));
+        }
+        return groups;
+    }
+
+    private QuestionTypeGroup classifyGroup(Set<String> datasetSources) {
+        if (datasetSources == null || datasetSources.isEmpty()) {
+            return QuestionTypeGroup.UNKNOWN;
+        }
+        boolean allMbie = datasetSources.stream().allMatch(ds -> ds.startsWith("mbie."));
+        if (allMbie) {
+            return QuestionTypeGroup.MBIE;
+        }
+
+        boolean allLawaState = datasetSources.stream()
+            .allMatch(ds -> ds.startsWith("lawa.") && ds.contains(".state."));
+        if (allLawaState) {
+            return QuestionTypeGroup.LAWA_STATE;
+        }
+
+        boolean allLawaTrend = datasetSources.stream()
+            .allMatch(ds -> ds.startsWith("lawa.") && ds.contains(".trend."));
+        if (allLawaTrend) {
+            return QuestionTypeGroup.LAWA_TREND;
+        }
+        return QuestionTypeGroup.UNKNOWN;
     }
 }
-
