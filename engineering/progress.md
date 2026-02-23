@@ -853,21 +853,29 @@ Authoritative historical artifacts for full task-level detail:
 
 ---
 
-## Phase 16 — Further enhancements to NL explanations capabilities
-Successfully answer:
-- [ ] In what 5-year period did New Zealand have the biggest increase in solar electricity generation?
-- [ ] When did wind generation grow the fastest over any 3-year period?
-- [ ] What 10-year period saw the largest drop in coal generation?
-- [ ] Which renewable fuel has increased the most in total generation since 2005?
-- [ ] Which fuel contributed the most to total generation growth between 2010 and 2024?
-- [ ] How has the share of renewable electricity changed over time?
-- [ ] When did renewable electricity first exceed 80% of total generation?
-- [ ] Which 5-year period saw the largest improvement in the number of excellent-quality river sites?
-- [ ] Which region has seen the largest improvement in water quality over the last decade?
-- [ ] Has renewable electricity growth accelerated in the last decade compared to the previous decade?
-- [ ] Make LAWA regional evidence subset selection configurable (replace hardcoded top/bottom K with property-driven config for `regional_water_quality` and `regional_trend_comparison`).
-- [ ] Add parser filter transparency metadata for NL requests:
-  - include `filterDerivationNotes` (how each filter/value was inferred from the user question), and/or `filterConfidence` (per-filter confidence score)
-  - use for ambiguity handling and debugging/explainability, not as a replacement for deterministic validation/refusal rules
+## Phase 16 — NL Explanation Final Refinement
+Goal: finalize NL capabilities as deterministic, discoverable, reviewer-friendly functionality without relaxing backend authority or safety boundaries.
+
+Execution contract:
+- Primary implementation plan: `engineering/Wai_and_Watts_Final_NL_Refinement_Plan.md`
+
+Definition of Done:
+- [ ] Replace hardcoded question-type routing with a capability registry model.
+- [ ] Add composable metric-type support with backend-side validation and computation.
+- [ ] Add capability discovery endpoint (`GET /api/v1/capabilities`) for supported intents, filters, and examples.
+- [ ] Improve refusal UX to return clear refusal category plus guided supported alternatives.
+- [ ] Keep LLM boundary unchanged: interpretation/narrative only; no SQL or computation authority.
+- [ ] Extend deterministic test coverage for capability validation, metric computation, and refusal guidance.
+
+Target NL capability outcomes:
+- [ ] MBIE window/ranking/share queries are answered deterministically (or refused deterministically when unsupported).
+- [ ] LAWA improvement/trend comparison queries are answered deterministically (or refused deterministically when unsupported).
+- [ ] Existing explanation determinism and provenance guarantees remain intact after refinement.
+
+Explicit non-goals:
+- [ ] No arbitrary SQL generation.
+- [ ] No LLM-driven computation or planner execution.
+- [ ] No forecasting/predictive analytics expansion in this phase.
+
 
 ---
