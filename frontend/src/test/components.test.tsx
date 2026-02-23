@@ -47,7 +47,7 @@ describe('AskPage Component', () => {
     )
 
     expect(
-      screen.getByRole('heading', { name: 'Ask About Environmental Data' })
+      screen.getByRole('heading', { name: 'Ask a Question' })
     ).toBeInTheDocument()
     expect(
       screen.getByRole('textbox', { name: 'Your Question' })
@@ -73,7 +73,7 @@ describe('AskPage Component', () => {
     const textarea = screen.getByRole('textbox', { name: 'Your Question' })
     expect(textarea).toHaveAttribute(
       'placeholder',
-      'e.g., Explain renewable generation trends between 2020 and 2023'
+      'e.g., How has wind generation changed over time?'
     )
     expect(
       screen.getByRole('button', { name: 'Ask Question' })
@@ -96,7 +96,7 @@ describe('AskPage Component', () => {
     const textarea = screen.getByRole('textbox', { name: 'Your Question' })
     expect(textarea).toHaveAttribute(
       'placeholder',
-      'e.g., Explain renewable generation trends between 2020 and 2023'
+      'e.g., How has wind generation changed over time?'
     )
     expect(textarea).toHaveAttribute('id', 'question')
   })
@@ -138,11 +138,9 @@ describe('ResultsPage Component', () => {
       </QueryClientProvider>
     )
 
+    expect(screen.getByText('Data Source')).toBeInTheDocument()
     expect(
-      screen.getByText('Using dataset: mbie.generation.annual')
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Selected from LLM candidates after verifying filters.')
+      screen.getByText('Source: MBIE Electricity Generation - Annual Dataset')
     ).toBeInTheDocument()
   })
 
@@ -183,7 +181,7 @@ describe('ResultsPage Component', () => {
     expect(
       screen.getByText('Wai & Watts explains what published data shows.')
     ).toBeInTheDocument()
-    expect(screen.getByText('Unsupported Question')).toBeInTheDocument()
+    expect(screen.getByText('Outside Supported Scope')).toBeInTheDocument()
   })
 
   it('shows capability refusal title for capability refusal codes', () => {
@@ -220,7 +218,7 @@ describe('ResultsPage Component', () => {
       </QueryClientProvider>
     )
 
-    expect(screen.getByText('Capability Not Available')).toBeInTheDocument()
+    expect(screen.getByText('Outside Supported Scope')).toBeInTheDocument()
   })
 
   it('shows internal error title for internal refusal codes', () => {
@@ -257,6 +255,6 @@ describe('ResultsPage Component', () => {
       </QueryClientProvider>
     )
 
-    expect(screen.getByText('Internal Processing Error')).toBeInTheDocument()
+    expect(screen.getByText('Not Supported Yet')).toBeInTheDocument()
   })
 })

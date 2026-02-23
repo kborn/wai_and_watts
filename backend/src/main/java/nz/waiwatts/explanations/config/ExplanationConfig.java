@@ -33,8 +33,11 @@ public class ExplanationConfig {
 
     @Bean
     @Order(30)
-    public FactPackBuilder lawaStateMultiYearFactPackBuilder(LawaStateMultiYearRecordRepository repository) {
-        return new LawaStateMultiYearFactPackBuilder(repository);
+    public FactPackBuilder lawaStateMultiYearFactPackBuilder(
+        LawaStateMultiYearRecordRepository repository,
+        LawaStateCategoryProperties lawaStateCategoryProperties
+    ) {
+        return new LawaStateMultiYearFactPackBuilder(repository, lawaStateCategoryProperties);
     }
 
     @Bean

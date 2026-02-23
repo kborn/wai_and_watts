@@ -28,7 +28,7 @@ public class ManualIngestionCommand {
     private static final int EXIT_USAGE = 1;
     private static final int EXIT_VALIDATION = 2;
     private static final int EXIT_INGESTION = 3;
-    private static final Set<String> SUPPORTED_DATASET_CODES = Set.of(
+    private static final Set<String> ALLOWED_DATASET_CODES = Set.of(
             "mbie.generation.annual",
             "mbie.generation.quarterly",
             "lawa.water_quality.state.multi_year",
@@ -66,7 +66,7 @@ public class ManualIngestionCommand {
             return EXIT_VALIDATION;
         }
 
-        if (!SUPPORTED_DATASET_CODES.contains(datasetSourceCode)) {
+        if (!ALLOWED_DATASET_CODES.contains(datasetSourceCode)) {
             System.err.println("ERROR: Unsupported dataset source code: " + datasetSourceCode);
             return EXIT_VALIDATION;
         }

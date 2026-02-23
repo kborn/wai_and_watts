@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.provider.ExplanationProvider;
 import nz.waiwatts.explanations.provider.OpenAiExplanationProvider;
 import nz.waiwatts.explanations.provider.OpenAiResponseClient;
@@ -54,7 +55,8 @@ public class LlmProviderConfig {
     public IntentParser intentParser(
         LlmProperties properties,
         ObjectMapper objectMapper,
-        OpenAiResponseClient client
+        OpenAiResponseClient client,
+        CapabilityRegistry capabilityRegistry
     ) {
         if (!properties.isConfigured()) {
             log.info("LLM not configured (model/apiKey missing). Using HardcodedDemoIntentParser.");
@@ -63,7 +65,7 @@ public class LlmProviderConfig {
 
         if (properties.getProvider() == LlmProvider.OPENAI) {
             log.info("Intent parser configured: provider=OPENAI model={}", properties.getModel());
-            return new OpenAiIntentParser(client, objectMapper, properties.getModel());
+            return new OpenAiIntentParser(client, objectMapper, properties.getModel(), capabilityRegistry);
         }
 
         log.warn("LLM provider '{}' not recognized. Using HardcodedDemoIntentParser.", properties.getProvider());
