@@ -35,22 +35,25 @@ public class DatasetSelectionService {
     private final OpenAiResponseClient client;
     private final ObjectMapper objectMapper;
     private final LlmProperties llmProperties;
+    private final QuestionTypeCatalog questionTypeCatalog;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
         OpenAiResponseClient client,
         ObjectMapper objectMapper,
-        LlmProperties llmProperties
+        LlmProperties llmProperties,
+        QuestionTypeCatalog questionTypeCatalog
     ) {
         this.datasetCatalog = datasetCatalog;
         this.client = client;
         this.objectMapper = objectMapper;
         this.llmProperties = llmProperties;
+        this.questionTypeCatalog = questionTypeCatalog;
     }
 
     public DatasetSelectionResult selectDataset(String question, ExplanationRequest request) {
         String questionType = request != null ? request.getQuestionType() : null;
-        QuestionTypeGroup group = resolveQuestionTypeGroup(questionType);
+        QuestionTypeCatalog.QuestionTypeGroup group = questionTypeCatalog.groupFor(questionType);
         List<String> allowedSources = allowedSourcesFor(group);
 
         String explicit = request != null ? request.getDatasetSource() : null;
@@ -67,7 +70,7 @@ public class DatasetSelectionService {
             );
         }
 
-        if (group == QuestionTypeGroup.LAWA_STATE) {
+        if (group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE) {
             return DatasetSelectionResult.selected(
                 "lawa.water_quality.state.multi_year",
                 "Question type is LAWA state; dataset is fixed.",
@@ -75,7 +78,7 @@ public class DatasetSelectionService {
             );
         }
 
-        if (group == QuestionTypeGroup.LAWA_TREND) {
+        if (group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND) {
             return DatasetSelectionResult.selected(
                 "lawa.water_quality.trend.multi_year",
                 "Question type is LAWA trend; dataset is fixed.",
@@ -142,9 +145,9 @@ public class DatasetSelectionService {
     private DatasetSelectionResult verifyExplicitDataset(
         ExplanationRequest request,
         String datasetSource,
-        QuestionTypeGroup group
+        QuestionTypeCatalog.QuestionTypeGroup group
     ) {
-        if (group != QuestionTypeGroup.UNKNOWN && !isAllowedForGroup(datasetSource, group)) {
+        if (group != QuestionTypeCatalog.QuestionTypeGroup.UNKNOWN && !isAllowedForGroup(datasetSource, group)) {
             return DatasetSelectionResult.refusal(
                 "DATASET_MISMATCH",
                 mismatchMessage(group, datasetSource),
@@ -307,26 +310,7 @@ public class DatasetSelectionService {
             && llmProperties.getProvider() == LlmProvider.OPENAI;
     }
 
-    private QuestionTypeGroup resolveQuestionTypeGroup(String questionType) {
-        if (questionType == null) {
-            return QuestionTypeGroup.UNKNOWN;
-        }
-        return switch (questionType) {
-            case "renewable_generation_trend",
-                 "hydro_generation_trend",
-                 "fuel_type_comparison",
-                 "generation_mix_overview" -> QuestionTypeGroup.MBIE;
-            case "water_quality_overview",
-                 "excellent_sites_trend",
-                 "regional_water_quality" -> QuestionTypeGroup.LAWA_STATE;
-            case "water_quality_trends",
-                 "improving_sites_trend",
-                 "regional_trend_comparison" -> QuestionTypeGroup.LAWA_TREND;
-            default -> QuestionTypeGroup.UNKNOWN;
-        };
-    }
-
-    private List<String> allowedSourcesFor(QuestionTypeGroup group) {
+    private List<String> allowedSourcesFor(QuestionTypeCatalog.QuestionTypeGroup group) {
         return switch (group) {
             case MBIE -> List.of("mbie.generation.annual", "mbie.generation.quarterly");
             case LAWA_STATE -> List.of("lawa.water_quality.state.multi_year");
@@ -344,7 +328,7 @@ public class DatasetSelectionService {
             .toList();
     }
 
-    private boolean isAllowedForGroup(String datasetSource, QuestionTypeGroup group) {
+    private boolean isAllowedForGroup(String datasetSource, QuestionTypeCatalog.QuestionTypeGroup group) {
         List<String> allowed = allowedSourcesFor(group);
         if (allowed == null) {
             return true;
@@ -352,17 +336,18 @@ public class DatasetSelectionService {
         return allowed.stream().anyMatch(ds -> ds.equalsIgnoreCase(datasetSource));
     }
 
-    private boolean isCrossDomainMismatch(QuestionTypeGroup group, List<String> candidates) {
+    private boolean isCrossDomainMismatch(QuestionTypeCatalog.QuestionTypeGroup group, List<String> candidates) {
         if (candidates == null || candidates.isEmpty()) {
             return false;
         }
         boolean hasMbie = candidates.stream().anyMatch(c -> c.toLowerCase(Locale.ROOT).startsWith("mbie."));
         boolean hasLawa = candidates.stream().anyMatch(c -> c.toLowerCase(Locale.ROOT).startsWith("lawa."));
-        return (group == QuestionTypeGroup.MBIE && hasLawa)
-            || ((group == QuestionTypeGroup.LAWA_STATE || group == QuestionTypeGroup.LAWA_TREND) && hasMbie);
+        return (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE && hasLawa)
+            || ((group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE
+                    || group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND) && hasMbie);
     }
 
-    private String mismatchMessage(QuestionTypeGroup group, String datasetSource) {
+    private String mismatchMessage(QuestionTypeCatalog.QuestionTypeGroup group, String datasetSource) {
         return switch (group) {
             case MBIE -> "Parsed an MBIE generation question, but selected a LAWA dataset.";
             case LAWA_STATE -> "Parsed a LAWA state question, but selected a non-state dataset.";
@@ -373,10 +358,10 @@ public class DatasetSelectionService {
 
     private DatasetSelectionResult selectDeterministicCandidate(
         List<DatasetSelectionResult> verifiedSelections,
-        QuestionTypeGroup group,
+        QuestionTypeCatalog.QuestionTypeGroup group,
         String question
     ) {
-        if (group == QuestionTypeGroup.MBIE) {
+        if (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE) {
             boolean quarterSignal = hasQuarterSignal(question);
             String preferred = quarterSignal ? "mbie.generation.quarterly" : "mbie.generation.annual";
             Optional<DatasetSelectionResult> preferredMatch = verifiedSelections.stream()
@@ -408,13 +393,6 @@ public class DatasetSelectionService {
             return false;
         }
         return QUARTER_SIGNAL_PATTERN.matcher(question).find();
-    }
-
-    private enum QuestionTypeGroup {
-        MBIE,
-        LAWA_STATE,
-        LAWA_TREND,
-        UNKNOWN
     }
 
     public enum DatasetSelectionStrategy {

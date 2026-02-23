@@ -12,32 +12,17 @@ import java.util.Map;
 public class CapabilitiesService {
 
     private final DatasetCatalog datasetCatalog;
+    private final QuestionTypeCatalog questionTypeCatalog;
 
-    public CapabilitiesService(DatasetCatalog datasetCatalog) {
+    public CapabilitiesService(DatasetCatalog datasetCatalog, QuestionTypeCatalog questionTypeCatalog) {
         this.datasetCatalog = datasetCatalog;
+        this.questionTypeCatalog = questionTypeCatalog;
     }
 
     public Map<String, Object> buildCapabilitiesResponse() {
         Map<String, Object> supportedTypes = new LinkedHashMap<>();
-        supportedTypes.put("supportedQuestionTypes", Map.of(
-            "renewable_generation_trend", "Explain renewable generation trends between years",
-            "hydro_generation_trend", "Explain hydro generation trends between years",
-            "fuel_type_comparison", "Compare two fuel types (e.g., hydro vs geothermal)",
-            "generation_mix_overview", "Summarize main sources of electricity generation",
-            "water_quality_overview", "Provide overview of water quality state distribution",
-            "excellent_sites_trend", "Explain trends in excellent water quality sites",
-            "regional_water_quality", "Compare water quality across regions",
-            "water_quality_trends", "Explain overall water quality trend distribution",
-            "improving_sites_trend", "Explain trends in improving water quality sites",
-            "regional_trend_comparison", "Compare water quality trends across regions"
-        ));
-        supportedTypes.put("unsupportedQuestionTypes", Map.of(
-            "forecasting", "Predicting future values",
-            "causation", "Claiming cause-and-effect relationships",
-            "policy_recommendation", "Recommending policies",
-            "site_specific_advice", "Providing site-specific water quality advice",
-            "hypothetical", "What-if scenarios or counterfactuals"
-        ));
+        supportedTypes.put("supportedQuestionTypes", questionTypeCatalog.supportedDescriptions());
+        supportedTypes.put("unsupportedQuestionTypes", questionTypeCatalog.unsupportedDescriptions());
 
         Map<String, String> supportedDatasetSources = new LinkedHashMap<>();
         for (DatasetDescriptor descriptor : datasetCatalog.getDatasets()) {
@@ -73,4 +58,3 @@ public class CapabilitiesService {
         return supportedTypes;
     }
 }
-

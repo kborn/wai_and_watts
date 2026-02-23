@@ -53,6 +53,19 @@ Expected:
 - Capabilities are registry/catalog-driven and discoverable via `GET /api/v1/capabilities`.
 - Unsupported/out-of-scope requests refuse deterministically.
 
+## System Invariants Summary
+
+- LLM cannot access the database.
+- LLM cannot access domain entities or raw publisher artifacts.
+- LLM cannot invent missing facts or compute outside the Fact Pack.
+- Backend remains authoritative for validation, selection, and computation.
+- Capability support is catalog-driven and exposed via `/api/v1/capabilities`.
+- Unsupported or ambiguous asks refuse deterministically.
+- Refusals are structured and categorized by stage/reason.
+- Non-refusal outputs must include citations.
+- Citations must resolve to Fact Pack fact IDs for that request.
+- Same inputs on same data state should produce stable classification behavior.
+
 ## 6) Regression test commands
 
 Backend contract-focused tests:
@@ -68,4 +81,3 @@ Frontend compatibility test:
 ```bash
 npm --prefix frontend run test:run -- src/test/components.test.tsx
 ```
-

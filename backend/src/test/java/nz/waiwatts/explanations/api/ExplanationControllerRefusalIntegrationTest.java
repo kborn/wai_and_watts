@@ -1,8 +1,10 @@
 package nz.waiwatts.explanations.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
+import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -38,6 +41,9 @@ class ExplanationControllerRefusalIntegrationTest {
 
     @MockitoBean
     private nz.waiwatts.explanations.service.ExplanationService explanationService;
+
+    @Autowired
+    private DatasetCatalog datasetCatalog;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -149,6 +155,21 @@ class ExplanationControllerRefusalIntegrationTest {
             objectMapper.readTree(canonical.getResponse().getContentAsString()),
             objectMapper.readTree(legacy.getResponse().getContentAsString())
         );
+    }
+
+    @Test
+    void capabilitiesSupportedQuestionTypesCoverAllCatalogQuestionTypes() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        JsonNode supported = root.path("supportedQuestionTypes");
+
+        for (var descriptor : datasetCatalog.getDatasets()) {
+            for (String questionType : descriptor.supportedQuestionTypes()) {
+                assertTrue(supported.has(questionType), "Missing supportedQuestionTypes entry for " + questionType);
+            }
+        }
     }
 
     @Test

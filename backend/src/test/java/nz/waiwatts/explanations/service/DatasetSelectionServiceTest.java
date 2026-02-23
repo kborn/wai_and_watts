@@ -37,7 +37,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -75,7 +76,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -112,7 +114,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -146,7 +149,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -181,7 +185,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -220,7 +225,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -258,7 +264,8 @@ class DatasetSelectionServiceTest {
             catalog,
             client,
             objectMapper,
-            properties
+            properties,
+            new QuestionTypeCatalog(catalog)
         );
 
         ExplanationRequest request = new ExplanationRequest(
