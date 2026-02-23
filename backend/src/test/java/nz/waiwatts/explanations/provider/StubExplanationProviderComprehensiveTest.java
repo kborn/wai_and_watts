@@ -129,7 +129,7 @@ class StubExplanationProviderComprehensiveTest {
     void testExplanationForHydroGenerationTrend() {
         FactPack factPack = createHydroFactPack();
         
-        Explanation explanation = provider.generateExplanation("hydro_generation_trend", factPack);
+        Explanation explanation = provider.generateExplanation("fuel_generation_trend", factPack);
         
         // Should not be a refusal
         assertFalse(explanation.isRefusal());
@@ -235,7 +235,7 @@ class StubExplanationProviderComprehensiveTest {
         FactPack factPack = new FactPack();
         
         var requestContext = new FactPack.RequestContext();
-        requestContext.setQuestionType("hydro_generation_trend");
+        requestContext.setQuestionType("fuel_generation_trend");
         factPack.setRequestContext(requestContext);
         
         // Create comparison fact

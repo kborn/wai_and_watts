@@ -129,6 +129,47 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
     }
 
     @Test
+    void testBuildFactPack_RenewableGenerationTrend_WithShareMetricType_ComputesPercentages() {
+        DatasetRelease release = createDatasetRelease();
+
+        MbieGenerationQuarterlyRecord hydro = new MbieGenerationQuarterlyRecord();
+        hydro.setDatasetRelease(release);
+        hydro.setPeriodYear(2023);
+        hydro.setPeriodQuarter(1);
+        hydro.setFuelTypeNorm("HYDRO");
+        hydro.setGenerationGwh(new BigDecimal("60"));
+
+        MbieGenerationQuarterlyRecord wind = new MbieGenerationQuarterlyRecord();
+        wind.setDatasetRelease(release);
+        wind.setPeriodYear(2023);
+        wind.setPeriodQuarter(1);
+        wind.setFuelTypeNorm("WIND");
+        wind.setGenerationGwh(new BigDecimal("30"));
+
+        MbieGenerationQuarterlyRecord gas = new MbieGenerationQuarterlyRecord();
+        gas.setDatasetRelease(release);
+        gas.setPeriodYear(2023);
+        gas.setPeriodQuarter(1);
+        gas.setFuelTypeNorm("GAS");
+        gas.setGenerationGwh(new BigDecimal("10"));
+
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(hydro, wind, gas));
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("renewable_generation_trend");
+        request.setDatasetSource("mbie.generation.quarterly");
+        request.setFilters(Map.of("metricType", "renewable_share_pct"));
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertEquals(1, factPack.getFacts().getTimeSeries().size());
+        var series = factPack.getFacts().getTimeSeries().getFirst();
+        assertEquals("%", series.getUnit());
+        assertEquals("renewable_share_pct_quarterly", series.getMetricName());
+        assertEquals(new BigDecimal("90.00"), series.getPoints().getFirst().getValue());
+    }
+
+    @Test
     void testBuildFactPack_HydroGenerationTrend_CreatesTimeSeriesAndComparison() {
         // Setup test data with quarterly hydro data
         DatasetRelease release = createDatasetRelease();
@@ -165,7 +206,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
 
         // Create request with fuel type filter
         ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("hydro_generation_trend");
+        request.setQuestionType("fuel_generation_trend");
         request.setFilters(Map.of(
             "datasetSource", "mbie.generation.quarterly",
             "fuelType", "HYDRO"
@@ -179,7 +220,7 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         
         var timeSeries = factPack.getFacts().getTimeSeries().getFirst();
         assertNotNull(timeSeries);
-        assertEquals("hydro_generation_gwh_quarterly", timeSeries.getMetricName());
+        assertEquals("fuel_generation_gwh_quarterly", timeSeries.getMetricName());
         assertEquals("GWh", timeSeries.getUnit());
         
         // Verify quarterly hydro data
@@ -309,16 +350,17 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         record_included3.setFuelTypeNorm("HYDRO");
         record_included3.setGenerationGwh(new BigDecimal("6800"));
 
-        when(repository.findForReadApi(2023, 2023, null, null))
+        when(repository.findForReadApi(2023, 2023, null, "hydro"))
             .thenReturn(List.of(record_included1, record_included2, record_included3));
 
         // Create request with time range filter
         ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("hydro_generation_trend");
+        request.setQuestionType("fuel_generation_trend");
         request.setFilters(Map.of(
             "datasetSource", "mbie.generation.quarterly",
             "startYear", 2023,
-            "endYear", 2023
+            "endYear", 2023,
+            "fuelType", "HYDRO"
         ));
 
         // Build fact pack
@@ -465,8 +507,11 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
         when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(olderRecord, newerRecord));
 
         ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("hydro_generation_trend");
-        request.setFilters(Map.of("datasetSource", "mbie.generation.quarterly"));
+        request.setQuestionType("fuel_generation_trend");
+        request.setFilters(Map.of(
+            "datasetSource", "mbie.generation.quarterly",
+            "fuelType", "HYDRO"
+        ));
 
         FactPack factPack = builder.buildFactPack(request);
 

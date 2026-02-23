@@ -19,6 +19,9 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
     // Centralized renewable types to avoid drift
     private static final Set<String> RENEWABLE_FUEL_TYPES = Set.of("HYDRO", "WIND", "GEOTHERMAL", "BIOMASS", "SOLAR");
+    private static final String METRIC_GENERATION_GWH = "generation_gwh";
+    private static final String METRIC_RENEWABLE_SHARE_PCT = "renewable_share_pct";
+    private static final String METRIC_GENERATION_SHARE_PCT = "generation_share_pct";
 
     public MbieGenerationQuarterlyFactPackBuilder(MbieGenerationQuarterlyRecordRepository repository) {
         this.repository = repository;
@@ -124,9 +127,9 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             }
         }
 
-        // Only apply a fuelType filter for question types that actually need a single-fuel focus
+        // Only apply a fuelType filter for single-fuel trend questions.
         String questionType = (request != null) ? request.getQuestionType() : null;
-        boolean applyFuelType = "hydro_generation_trend".equals(questionType);
+        boolean applyFuelType = "fuel_generation_trend".equals(questionType);
         String fuelType = null;
         if (applyFuelType && filters != null) {
             Object ftObj = filters.get("fuelType");
@@ -196,16 +199,16 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         
         switch (questionType) {
             case "renewable_generation_trend":
-                buildRenewableGenerationTrendFacts(factPack, records);
+                buildRenewableGenerationTrendFacts(factPack, records, resolveMetricType(request, METRIC_GENERATION_GWH));
                 break;
-            case "hydro_generation_trend":
-                buildHydroGenerationTrendFacts(factPack, records);
+            case "fuel_generation_trend":
+                buildFuelGenerationTrendFacts(factPack, request, records);
                 break;
             case "fuel_type_comparison":
                 buildFuelTypeComparisonFacts(factPack, request, records);
                 break;
             case "generation_mix_overview":
-                buildGenerationMixOverviewFacts(factPack, records);
+                buildGenerationMixOverviewFacts(factPack, request, records);
                 break;
             default:
                 // Build basic facts for unsupported question types (will result in refusal)
@@ -214,7 +217,11 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         }
     }
 
-    private void buildRenewableGenerationTrendFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records) {
+    private void buildRenewableGenerationTrendFacts(
+        FactPack factPack,
+        List<MbieGenerationQuarterlyRecord> records,
+        String metricType
+    ) {
         // Filter for renewable fuel types and group by quarter
         Map<String, BigDecimal> quarterlyRenewableTotals = records.stream()
             .filter(record -> RENEWABLE_FUEL_TYPES.contains(record.getFuelTypeNorm()))
@@ -232,27 +239,65 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 .toList();
             String coverage = !quarters.isEmpty() ? quarters.getFirst() + "_to_" + quarters.getLast() : "all_time";
 
-            TimeSeriesFact timeSeries = new TimeSeriesFact(
-                "ts:mbie:renewable_generation_gwh_quarterly:" + coverage,
-                "renewable_generation_gwh_quarterly",
-                "GWh",
-                Map.of("scope", "NZ", "granularity", "quarterly")
-            );
-
-            List<TimeSeriesFact.DataPoint> points = quarterlyRenewableTotals.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
+            TimeSeriesFact timeSeries;
+            List<TimeSeriesFact.DataPoint> points;
+            if (METRIC_RENEWABLE_SHARE_PCT.equals(metricType)) {
+                Map<String, BigDecimal> quarterlyTotals = records.stream()
+                    .collect(Collectors.groupingBy(
+                        r -> r.getPeriodYear() + "-Q" + r.getPeriodQuarter(),
+                        Collectors.mapping(MbieGenerationQuarterlyRecord::getGenerationGwh,
+                            Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
+                    ));
+                timeSeries = new TimeSeriesFact(
+                    "ts:mbie:renewable_share_pct_quarterly:" + coverage,
+                    "renewable_share_pct_quarterly",
+                    "%",
+                    Map.of("scope", "NZ", "granularity", "quarterly")
+                );
+                points = quarterlyRenewableTotals.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(entry -> {
+                        BigDecimal total = quarterlyTotals.get(entry.getKey());
+                        if (total == null || total.compareTo(BigDecimal.ZERO) == 0) {
+                            return null;
+                        }
+                        BigDecimal pct = entry.getValue()
+                            .multiply(new BigDecimal("100"))
+                            .divide(total, 2, RoundingMode.HALF_UP);
+                        return new TimeSeriesFact.DataPoint(entry.getKey(), pct);
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            } else {
+                timeSeries = new TimeSeriesFact(
+                    "ts:mbie:renewable_generation_gwh_quarterly:" + coverage,
+                    "renewable_generation_gwh_quarterly",
+                    "GWh",
+                    Map.of("scope", "NZ", "granularity", "quarterly")
+                );
+                points = quarterlyRenewableTotals.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey(), entry.getValue()))
+                    .collect(Collectors.toList());
+            }
 
             timeSeries.setPoints(points);
             factPack.getFacts().getTimeSeries().add(timeSeries);
         }
     }
 
-    private void buildHydroGenerationTrendFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records) {
-        // Filter for HYDRO only and group by quarter
-        Map<String, BigDecimal> quarterlyHydroTotals = records.stream()
-            .filter(record -> "HYDRO".equals(record.getFuelTypeNorm()))
+    private void buildFuelGenerationTrendFacts(
+        FactPack factPack,
+        ExplanationRequest request,
+        List<MbieGenerationQuarterlyRecord> records
+    ) {
+        String fuelType = resolveRequestedFuelType(request);
+        if (fuelType == null || fuelType.isBlank()) {
+            return;
+        }
+
+        Map<String, BigDecimal> quarterlyFuelTotals = records.stream()
+            .filter(record -> fuelType.equalsIgnoreCase(record.getFuelTypeNorm()))
             .collect(Collectors.groupingBy(
                 r -> r.getPeriodYear() + "-Q" + r.getPeriodQuarter(),
                 Collectors.mapping(MbieGenerationQuarterlyRecord::getGenerationGwh, 
@@ -260,20 +305,20 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             ));
 
         // Only create time series if we have data
-        if (!quarterlyHydroTotals.isEmpty()) {
-            List<String> quarters = quarterlyHydroTotals.keySet().stream()
+        if (!quarterlyFuelTotals.isEmpty()) {
+            List<String> quarters = quarterlyFuelTotals.keySet().stream()
                 .sorted()
                 .toList();
             String coverage = !quarters.isEmpty() ? quarters.getFirst() + "_to_" + quarters.getLast() : "all_time";
 
             TimeSeriesFact timeSeries = new TimeSeriesFact(
-                "ts:mbie:hydro_generation_gwh_quarterly:" + coverage,
-                "hydro_generation_gwh_quarterly",
+                "ts:mbie:fuel_generation_gwh_quarterly:" + fuelType + ":" + coverage,
+                "fuel_generation_gwh_quarterly",
                 "GWh",
-                Map.of("scope", "NZ", "fuel_type", "HYDRO", "granularity", "quarterly")
+                Map.of("scope", "NZ", "fuel_type", fuelType, "granularity", "quarterly")
             );
 
-            List<TimeSeriesFact.DataPoint> points = quarterlyHydroTotals.entrySet().stream()
+            List<TimeSeriesFact.DataPoint> points = quarterlyFuelTotals.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> new TimeSeriesFact.DataPoint(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
@@ -283,7 +328,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         }
 
         // Add comparison between most recent and previous quarter if we have data
-        List<String> quarters = quarterlyHydroTotals.keySet().stream()
+        List<String> quarters = quarterlyFuelTotals.keySet().stream()
             .sorted()
             .toList();
         
@@ -291,8 +336,8 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             String latestQuarter = quarters.getLast();
             String previousQuarter = quarters.get(quarters.size() - 2);
             
-            BigDecimal latestValue = quarterlyHydroTotals.get(latestQuarter);
-            BigDecimal previousValue = quarterlyHydroTotals.get(previousQuarter);
+            BigDecimal latestValue = quarterlyFuelTotals.get(latestQuarter);
+            BigDecimal previousValue = quarterlyFuelTotals.get(previousQuarter);
             // Guard against division by zero; skip comparison if previous is zero or null
             if (previousValue != null && previousValue.compareTo(BigDecimal.ZERO) != 0) {
                 BigDecimal delta = latestValue.subtract(previousValue);
@@ -300,14 +345,14 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                     .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP);
 
                 ComparisonFact comparison = new ComparisonFact(
-                    "cmp:mbie:generation_gwh_quarterly:HYDRO:" + latestQuarter + "_vs_" + previousQuarter,
+                    "cmp:mbie:generation_gwh_quarterly:" + fuelType + ":" + latestQuarter + "_vs_" + previousQuarter,
                     "generation_gwh_quarterly",
                     previousQuarter,
                     latestQuarter,
                     delta,
                     deltaPercent,
                     "GWh",
-                    Map.of("fuel_type", "HYDRO", "granularity", "quarterly")
+                    Map.of("fuel_type", fuelType, "granularity", "quarterly")
                 );
                 
                 factPack.getFacts().getComparisons().add(comparison);
@@ -316,17 +361,22 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
     }
 
     private void buildFuelTypeComparisonFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationQuarterlyRecord> records) {
+        String metricType = resolveMetricType(request, METRIC_GENERATION_GWH);
         List<String> fuels = extractFuelTypeFilters(request);
         if (fuels.size() >= 2) {
             buildFuelTypeTimeSeriesFacts(factPack, records, fuels);
-            buildFuelTypeLatestMetrics(factPack, records, fuels);
+            buildFuelTypeLatestMetrics(factPack, records, fuels, metricType);
             return;
         }
-        buildFuelTypeLatestMetrics(factPack, records, null);
+        buildFuelTypeLatestMetrics(factPack, records, null, metricType);
     }
 
-    private void buildGenerationMixOverviewFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records) {
-        buildFuelTypeLatestMetrics(factPack, records, null);
+    private void buildGenerationMixOverviewFacts(
+        FactPack factPack,
+        ExplanationRequest request,
+        List<MbieGenerationQuarterlyRecord> records
+    ) {
+        buildFuelTypeLatestMetrics(factPack, records, null, resolveMetricType(request, METRIC_GENERATION_GWH));
     }
 
     private void buildFuelTypeTimeSeriesFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records, List<String> fuels) {
@@ -368,7 +418,8 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
     private void buildFuelTypeLatestMetrics(
         FactPack factPack,
         List<MbieGenerationQuarterlyRecord> records,
-        List<String> fuels
+        List<String> fuels,
+        String metricType
     ) {
         // Get most recent quarter's data
         Optional<String> latestQuarterOpt = records.stream()
@@ -389,18 +440,37 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                         Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))
                 ));
 
+            BigDecimal totalForQuarter = fuelTypeTotals.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
             // Create metric facts for each fuel type with deterministic ordering
             fuelTypeTotals.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey()) // deterministic ordering
                 .forEach(entry -> {
                     String fuelType = entry.getKey();
                     BigDecimal total = entry.getValue();
+
+                    BigDecimal value = total;
+                    String metricName = "generation_gwh_quarterly";
+                    String metricIdPrefix = "metric:mbie:generation_gwh_quarterly";
+                    String unit = "GWh";
+                    if (METRIC_GENERATION_SHARE_PCT.equals(metricType)) {
+                        if (totalForQuarter.compareTo(BigDecimal.ZERO) == 0) {
+                            return;
+                        }
+                        value = total
+                            .multiply(new BigDecimal("100"))
+                            .divide(totalForQuarter, 2, RoundingMode.HALF_UP);
+                        metricName = "generation_share_pct_quarterly";
+                        metricIdPrefix = "metric:mbie:generation_share_pct_quarterly";
+                        unit = "%";
+                    }
                     
                     MetricFact metric = new MetricFact(
-                        "metric:mbie:generation_gwh_quarterly:" + latestQuarter + ":" + fuelType,
-                        "generation_gwh_quarterly",
-                        total,
-                        "GWh",
+                        metricIdPrefix + ":" + latestQuarter + ":" + fuelType,
+                        metricName,
+                        value,
+                        unit,
                         latestQuarter,
                         Map.of("fuel_type", fuelType, "granularity", "quarterly")
                     );
@@ -434,7 +504,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         
         switch (questionType) {
             case "renewable_generation_trend":
-            case "hydro_generation_trend":
+            case "fuel_generation_trend":
                 // If no facts, keep allowedClaims empty to trigger refusal as per tests
                 boolean hasAnyFactsTrend = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -514,6 +584,28 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             }
         }
         return fuels;
+    }
+
+    private String resolveMetricType(ExplanationRequest request, String fallback) {
+        if (request == null || request.getFilters() == null) {
+            return fallback;
+        }
+        Object metricType = request.getFilters().get("metricType");
+        if (metricType instanceof String s && !s.isBlank()) {
+            return s.trim();
+        }
+        return fallback;
+    }
+
+    private String resolveRequestedFuelType(ExplanationRequest request) {
+        if (request == null || request.getFilters() == null) {
+            return null;
+        }
+        Object fuelType = request.getFilters().get("fuelType");
+        if (fuelType instanceof String s && !s.isBlank()) {
+            return s.trim().toUpperCase(Locale.ROOT);
+        }
+        return null;
     }
 
     private String getPeriodCoverage(List<MbieGenerationQuarterlyRecord> records) {

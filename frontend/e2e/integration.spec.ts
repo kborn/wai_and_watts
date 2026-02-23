@@ -14,7 +14,7 @@ test.describe('End-to-End Dynamic Filter Integration', () => {
     // Start at home page
     await page.goto('/')
     await expect(
-      page.getByText('Wai & Watts: Environmental Data Platform')
+      page.getByRole('main').getByText('Environmental Data Platform')
     ).toBeVisible()
 
     // Navigate to MBIE browse page
@@ -63,7 +63,7 @@ test.describe('End-to-End Dynamic Filter Integration', () => {
     // Start at home page
     await page.goto('/')
     await expect(
-      page.getByText('Wai & Watts: Environmental Data Platform')
+      page.getByRole('main').getByText('Environmental Data Platform')
     ).toBeVisible()
 
     // Navigate to LAWA browse page

@@ -500,7 +500,7 @@ const LawaBrowsePage: React.FC = () => {
 
   const getEmptyStateMessage = () => {
     if (!region && !indicator) {
-      return 'Select a Region or Indicator to view data'
+      return 'Choose a region and indicator to explore water quality.'
     }
     return 'No data available for the selected filters'
   }
@@ -512,8 +512,8 @@ const LawaBrowsePage: React.FC = () => {
           LAWA Water Quality
         </h1>
         <p className="text-body text-neutral-600">
-          Explore New Zealand river monitoring site state and trend data by
-          region and indicator.
+          Explore river monitoring site state and trend data by region and
+          indicator.
         </p>
       </div>
 
@@ -594,11 +594,10 @@ const LawaBrowsePage: React.FC = () => {
               )}
             </div>
 
-            <Button onClick={handleExplainThis}>Explain This Data</Button>
+            <Button onClick={handleExplainThis}>Explain Selection</Button>
 
             <div className="text-xs text-neutral-500 sm:col-start-2 sm:col-end-4">
-              Indicator codes are dataset-specific and differ between State and
-              Trend views.
+              Indicators differ between State and Trend views.
             </div>
           </div>
 
@@ -721,7 +720,7 @@ const LawaBrowsePage: React.FC = () => {
             <Card className="mb-6">
               <CardContent>
                 <p className="text-sm text-neutral-500 py-4 text-center">
-                  Select Region or Indicator to view State band distribution.
+                  Choose a region and indicator to explore water quality.
                 </p>
               </CardContent>
             </Card>

@@ -58,7 +58,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         return switch (questionType) {
             case "renewable_generation_trend" ->
                     generateRenewableGenerationTrendExplanation(factPack);
-            case "hydro_generation_trend" ->
+            case "fuel_generation_trend" ->
                     generateHydroGenerationTrendExplanation(factPack);
             case "fuel_type_comparison" ->
                     generateFuelTypeComparisonExplanation(factPack);
@@ -66,7 +66,7 @@ public class StubExplanationProvider implements ExplanationProvider {
                     generateGenerationMixOverviewExplanation(factPack);
             case "water_quality_overview" ->
                     generateWaterQualityOverviewExplanation(factPack);
-            case "excellent_sites_trend" ->
+            case "water_quality_state_sites_trend" ->
                     generateExcellentSitesTrendExplanation(factPack);
             case "regional_water_quality" ->
                     generateRegionalWaterQualityExplanation(factPack);
@@ -101,11 +101,15 @@ public class StubExplanationProvider implements ExplanationProvider {
                 
                 explanation.append("from ")
                     .append(first.getValue())
-                    .append(" GWh in ")
+                    .append(" ")
+                    .append(timeSeries.getUnit())
+                    .append(" in ")
                     .append(first.getPeriod())
                     .append(" to ")
                     .append(last.getValue())
-                    .append(" GWh in ")
+                    .append(" ")
+                    .append(timeSeries.getUnit())
+                    .append(" in ")
                     .append(last.getPeriod())
                     .append(".");
             } else {
@@ -208,7 +212,9 @@ public class StubExplanationProvider implements ExplanationProvider {
                 explanation.append(fuelType)
                     .append(" had the highest electricity generation at ")
                     .append(top.getValue())
-                    .append(" GWh in ")
+                    .append(" ")
+                    .append(top.getUnit())
+                    .append(" in ")
                     .append(top.getPeriod())
                     .append(".");
                     
@@ -245,7 +251,9 @@ public class StubExplanationProvider implements ExplanationProvider {
         explanation.append(topFuel)
             .append(" is the largest contributor at ")
             .append(top.getValue())
-            .append(" GWh in ")
+            .append(" ")
+            .append(top.getUnit())
+            .append(" in ")
             .append(top.getPeriod());
 
         if (sorted.size() >= 2) {
@@ -255,7 +263,9 @@ public class StubExplanationProvider implements ExplanationProvider {
                 .append(secondFuel)
                 .append(" at ")
                 .append(second.getValue())
-                .append(" GWh.");
+                .append(" ")
+                .append(second.getUnit())
+                .append(".");
         } else {
             explanation.append(".");
         }

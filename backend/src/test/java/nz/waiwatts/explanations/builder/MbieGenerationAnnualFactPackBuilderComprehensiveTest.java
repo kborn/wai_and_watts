@@ -132,8 +132,11 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
     @Test
     void testDeterminismForHydroGenerationTrendWithMultipleYears() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
-            Map.of("datasetSource", "mbie.generation.annual")
+            "fuel_generation_trend",
+            Map.of(
+                "datasetSource", "mbie.generation.annual",
+                "fuelType", "HYDRO"
+            )
         );
 
         // Create multi-year data
@@ -285,8 +288,11 @@ class MbieGenerationAnnualFactPackBuilderComprehensiveTest {
     @Test
     void testPinsToSingleCanonicalReleaseForAsk() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
-            Map.of("datasetSource", "mbie.generation.annual")
+            "fuel_generation_trend",
+            Map.of(
+                "datasetSource", "mbie.generation.annual",
+                "fuelType", "HYDRO"
+            )
         );
 
         DatasetRelease olderRelease = new DatasetRelease();
