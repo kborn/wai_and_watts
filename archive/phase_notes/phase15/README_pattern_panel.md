@@ -3,8 +3,8 @@
 This harness validates Phase 15 Ask behavior using generated prompt shapes instead of a static question list.
 
 ## Files
-- `docs/phase15/pattern_panel_runner.py`
-- `docs/phase15/pattern_panel_evaluate.py`
+- `docs/phase-notes/phase15/pattern_panel_runner.py`
+- `docs/phase-notes/phase15/pattern_panel_evaluate.py`
 
 ## What the runner does
 - Generates seedable supported + unsupported prompt sets
@@ -21,11 +21,11 @@ This harness validates Phase 15 Ask behavior using generated prompt shapes inste
 ```bash
 rm -f out_run1.jsonl out_run2.jsonl out_run3.jsonl
 
-python3 docs/phase15/pattern_panel_runner.py --base-url http://localhost:8080 --out out_run1.jsonl --seed 42
-python3 docs/phase15/pattern_panel_runner.py --base-url http://localhost:8080 --out out_run2.jsonl --seed 42
-python3 docs/phase15/pattern_panel_runner.py --base-url http://localhost:8080 --out out_run3.jsonl --seed 42
+python3 docs/phase-notes/phase15/pattern_panel_runner.py --base-url http://localhost:8080 --out out_run1.jsonl --seed 42
+python3 docs/phase-notes/phase15/pattern_panel_runner.py --base-url http://localhost:8080 --out out_run2.jsonl --seed 42
+python3 docs/phase-notes/phase15/pattern_panel_runner.py --base-url http://localhost:8080 --out out_run3.jsonl --seed 42
 
-python3 docs/phase15/pattern_panel_evaluate.py --run out_run1.jsonl --run out_run2.jsonl --run out_run3.jsonl
+python3 docs/phase-notes/phase15/pattern_panel_evaluate.py --run out_run1.jsonl --run out_run2.jsonl --run out_run3.jsonl
 ```
 
 ## Notes

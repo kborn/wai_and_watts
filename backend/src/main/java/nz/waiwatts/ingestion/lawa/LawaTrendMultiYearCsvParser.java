@@ -93,7 +93,7 @@ public class LawaTrendMultiYearCsvParser extends AbstractCsvParser implements La
 
     private static Map<String, String> createIndicatorMap() {
         Map<String, String> m = new HashMap<>();
-        // Recommended initial mappings per design/008-lawa-trend-multi-year-schema.md
+        // Recommended initial mappings per engineering/design/008-lawa-trend-multi-year-schema.md
         m.put("E.coli", "ECOLI");
         m.put("Clarity", "CLARITY");
         m.put("Dissolved reactive phosphorus", "DRP");

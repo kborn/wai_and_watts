@@ -7,8 +7,7 @@ const NavBar: React.FC<NavBarProps> = () => {
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true
-    if (path !== '/' && location.pathname.startsWith(path)) return true
-    return false
+    return path !== '/' && location.pathname.startsWith(path)
   }
 
   const navigation = [
@@ -53,6 +52,25 @@ const NavBar: React.FC<NavBarProps> = () => {
               )
             })}
           </div>
+        </div>
+
+        <div className="sm:hidden flex gap-1 pb-3 overflow-x-auto">
+          {navigation.map(item => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={`mobile-${item.name}`}
+                to={item.href}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all duration-200 ${
+                  active
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                    : 'text-neutral-600 border border-neutral-200'
+                }`}
+              >
+                {item.name}
+              </Link>
+            )
+          })}
         </div>
       </div>
     </nav>

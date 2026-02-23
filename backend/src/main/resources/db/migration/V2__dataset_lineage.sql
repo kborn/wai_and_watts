@@ -1,4 +1,4 @@
--- V2: Dataset lineage tables per design/001-architecture.md
+-- V2: Dataset lineage tables per engineering/design/001-architecture.md
 
 -- Note: H2 (used in tests) does not support `SET search_path`. Postgres defaults to `public`.
 

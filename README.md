@@ -1,215 +1,105 @@
 # Wai & Watts
 
-Wai & Watts is a contract-first data ingestion and normalization platform focused on real-world New Zealand environmental and energy datasets.
+**AI-Governed Environmental Data Platform**
 
-Phase 10 provides a **human-operated** operator workflow:
+Wai & Watts is a contract-first ingestion and normalization platform for
+real New Zealand environmental datasets (MBIE electricity generation and
+LAWA water quality).
 
-download → transform → ingest (CLI) → start backend → validate APIs
+It also serves as a case study in disciplined AI-augmented engineering:\
+AI accelerated implementation, while architecture, invariants, and
+system boundaries remained explicitly human-governed.
 
-## Project Scope
+------------------------------------------------------------------------
 
-- Ingest and normalize published MBIE electricity and LAWA water-quality datasets.
-- Preserve dataset lineage and idempotent release handling as first-class system behavior.
-- Expose read APIs and grounded explanation APIs over persisted facts.
-- Keep ingestion operator-driven and reproducible (CLI-first workflow).
+# Why This Project Exists
 
-## Non-Goals
+Modern engineering teams are rapidly integrating AI into development
+workflows.
 
-- Real-time data streaming, scheduling, or automated publisher polling.
-- Forecasting, predictive analytics, or ML-driven inference.
-- Raw telemetry ingestion and processing pipelines.
-- Autonomous AI code commits or AI-owned architectural decisions.
+Wai & Watts explores a more important question:
 
-## Architecture Evolution (Phases)
+> How do you design architectural guardrails that allow AI to accelerate
+> delivery without compromising correctness, provenance, or system
+> integrity?
 
-- **Phases 1-5:** Established platform foundations, lineage-first modeling, ingestion lifecycle plumbing, and CI guardrails.
-- **Phases 6-9:** Added dataset-by-dataset ingestion expansion using the same lifecycle patterns (MBIE annual -> MBIE quarterly -> LAWA state -> LAWA trend) to prove extensibility without architectural reset.
-- **Phase 10:** Extended fixture-first ingestion into a real operator workflow (`download -> transform -> ingest`) while preserving contract-first parsing and idempotent release semantics.
-- **Phases 11-12:** Introduced grounded explanation architecture (Fact Pack boundary) and natural-language intent parsing as a constrained layer feeding the same backend-authoritative explanation pipeline.
-- **Phases 13-14C:** Added a thin frontend surface and UX/visualization polish over stable backend contracts, keeping domain/explanation authority on the backend.
-- **Phase 15 (current):** Focused on hardening, coverage, and presentation-quality convergence rather than architectural expansion.
+This repository demonstrates that control model.
 
-## Start here
+------------------------------------------------------------------------
 
-**Canonical operator guide:**
+# System Overview
 
-- `docs/operators/OPERATOR_INGESTION_GUIDE.md`
+Wai & Watts is deliberately:
 
-**Validation exercise / portfolio artifact:**
+-   **Lineage-first** (dataset releases are explicit and immutable)
+-   **Contract-first** (ingestion consumes normalized CSV contracts
+    only)
+-   **Idempotent by design** (DB-level uniqueness guarantees
+    correctness)
+-   **LLM-safe** (Fact Packs are the exclusive explanation boundary)
 
-- `docs/validation/PHASE10_OPERATOR_TEST_DRIVE.md`
+## Core Components
 
-**5-minute demo walkthrough:**
+**Backend** - Spring Boot (Java) - Postgres - Flyway migrations -
+Deterministic ingestion lifecycle
 
-- `DEMO.md`
+**Frontend** - React + TypeScript - Thin UI over stable APIs -
+Visualization only --- no domain logic
 
-## Quick Start
+**LLM Layer** - Fact Pack boundary - Intent parsing (routing-only) -
+Deterministic refusal for unsupported queries
 
-1. **Prerequisites**
-   ```bash
-   # Verify Java 21
-   java -version
-   
-   # Verify Maven
-   mvn -v
-   
-   # Install and start Postgres locally
-   ```
-   Both commands must report Java 21. If `mvn -v` reports a different Java runtime, set `JAVA_HOME` to a JDK 21 installation before running tests/builds.
+------------------------------------------------------------------------
 
-   Example (macOS):
-   ```bash
-   export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-   ```
+# Quick Start (Local Development)
 
-2. **Environment Setup**
-   ```bash
-   # Set database credentials
-   export DB_URL="jdbc:postgresql://localhost:5432/waiwatts"
-   export DB_USER="waiwatts"
-   export DB_PASSWORD="waiwatts"
-   ```
+The entire stack (Postgres, backend, frontend) runs via Docker Compose.
 
-   Optional LLM configuration (if unset, the app uses deterministic stub responses):
-   ```bash
-   # OpenAI provider + model + key
-   export LLM_PROVIDER="OPENAI"
-   export LLM_MODEL="gpt-4o-mini"
-   export LLM_API_KEY="your_api_key"
-   export LLM_BASE_URL="https://api.openai.com/v1"
-   ```
+## Start the application
 
-3. **Build**
-   ```bash
-   # Build executable Spring Boot JAR
-   mvn -f backend clean package spring-boot:repackage -DskipTests
-   
-   # Make scripts executable
-   chmod +x scripts/*.sh scripts/download/*.sh
-   ```
-
-## Phase 10 execution model (strict)
-
-- Ingestion is **CLI-driven only** via `./scripts/ingest.sh` (no HTTP ingestion in the operator path).
-- The backend server is **NOT required** to perform ingestion.
-- The backend server **IS required** for post-ingestion API validation (curl examples in the test drive).
-- Internal ingestion endpoints (dev/test) are not operator workflows and should not be referenced in operator docs.
-
-## API versioning policy
-
-- Public endpoints are versioned under `/api/v1/...`.
-- `v1` is the current stable contract prefix; route changes that break compatibility require a new major prefix (for example, `/api/v2/...`).
-- Internal/dev-only routes, when present, must be explicitly namespaced under `/api/v1/internal/...` and are not public API contracts.
-
-## `dataset_release` semantics
-
-- `dataset_release` is the lineage boundary for one ingested publisher artifact version.
-- Domain rows always link to exactly one `dataset_release_id`.
-- Read endpoints are release-transparent row APIs: they return stored rows and include `releaseId` on each row, rather than collapsing multiple releases into one synthesized aggregate.
-- Ask (`/api/v1/explanations/ask`) is release-pinned: Fact Pack builders deterministically select one canonical `dataset_release` per request before building facts/citations.
-
-## Supported datasets (Phase 10)
-
-- `mbie.generation.annual`
-- `mbie.generation.quarterly`
-- `lawa.water_quality.state.multi_year`
-- `lawa.water_quality.trend.multi_year`
-
-## Development
-
-### Running the Backend
-
-**Normal mode:**
-```bash
-cd backend
-mvn spring-boot:run
+``` bash
+docker compose up --build
 ```
 
-**Debug mode:**
-```bash
-cd backend
-mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-```
+This starts:
 
-### Debugging with IntelliJ
+-   Postgres database\
+-   Spring Boot backend (http://localhost:8080)\
+-   React frontend (http://localhost:5173)
 
-**Option A: Create Remote Debug Configuration**
-1. **Run → Edit Configurations → Add → Remote JVM Debug**
-2. **Configure:**
-   - Name: `Wai & Watts Debug`
-   - Host: `localhost`
-   - Port: `5005`
-   - Transport: `Socket`
-   - Debugger mode: `Attach`
-3. **Click "Debug"** to connect
+Stop the stack with:
 
-**Option B: Attach to Running Process**
-1. **Run → Attach to Process**
-2. **Select the Wai & Watts Java process**
-3. **Click "Attach"**
-
-**Debug startup modes:**
-- `suspend=n` - Backend starts immediately, debug port available
-- `suspend=y` - Backend waits for debugger connection before starting
-
-### Frontend Development
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Access frontend at http://localhost:5173 (or next available port).
-
-### Full Stack Development
-
-1. **Start backend:**
-   ```bash
-   cd backend && mvn spring-boot:run
-   ```
-
-2. **Start frontend:**
-   ```bash
-   cd frontend && npm run dev
-   ```
-
-3. **Access application:**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8080
-   - API docs: http://localhost:8080/swagger-ui.html
-
----
-
-## Docker (Recommended for Quick Start)
-
-### Prerequisites
-- Docker
-- Docker Compose (included with Docker Desktop)
-
-### Quick Start
-
-```bash
-# Optional: enable LLM provider for /api/v1/explanations
-export LLM_MODEL="gpt-4o-mini"
-export LLM_API_KEY="your_api_key"
-
-# Start all services (Postgres + Backend + Frontend)
-docker compose up -d --build
-
-# View logs
-docker compose logs -f
-
-# Stop all services
+``` bash
 docker compose down
 ```
 
-### Services
-| Service    | URL                          | Description              |
-|------------|------------------------------|------------------------|
-| Frontend   | http://localhost:5173       | React UI               |
-| Backend    | http://localhost:8080       | Spring Boot API        |
-| Postgres   | localhost:5432              | Database (waiwatts)   |
+## Operability Proof (3 Commands)
+
+```bash
+# 1) Start infrastructure + app
+docker compose up -d --build
+
+# 2) Verify backend health
+curl -s http://localhost:8080/api/v1/health
+
+# 3) Verify dataset catalog endpoint
+curl -s http://localhost:8080/api/v1/datasets
+```
+
+Expected outcomes:
+- command 1 starts `postgres`, `backend`, and `frontend` containers with no build/runtime errors.
+- command 2 returns a health payload (HTTP 200).
+- command 3 returns a JSON dataset list (HTTP 200), confirming API + DB connectivity.
+
+------------------------------------------------------------------------
+
+# Ingesting Data
+
+Ingestion is deterministic and contract-driven.
+
+Canonical flow:
+
+download → transform → ingest (CLI inside backend container)
 
 ### Data Population
 
@@ -255,34 +145,68 @@ Example (manifest-driven):
 docker compose run --rm ingest-all --bundle-date 2026-02-06
 ```
 
-For full operator workflow, see:
-- `docs/operators/OPERATOR_INGESTION_GUIDE.md`
-- `docs/validation/PHASE10_OPERATOR_TEST_DRIVE.md`
+Idempotency is enforced via database uniqueness on:
 
-### With Local Development
+(dataset_source_id, content_hash)
 
-For development with hot reload, use local services instead:
+Duplicate ingestions are treated as successful no-ops.
 
-```bash
-# Terminal 1: Start backend
-cd backend && mvn spring-boot:run
+------------------------------------------------------------------------
 
-# Terminal 2: Start frontend
-cd frontend && npm run dev
+# Example API Calls
 
-# Terminal 3: Start Postgres (or use local installation)
-docker run -p 5432:5432 -e POSTGRES_DB=waiwatts -e POSTGRES_USER=waiwatts -e POSTGRES_PASSWORD=waiwatts postgres:16-alpine
-```
+List datasets:
 
-### Manual Docker Build (Advanced)
+GET http://localhost:8080/api/v1/datasets
 
-```bash
-# Build backend image
-docker build -t waiwatts-backend:latest -f backend/Dockerfile .
+Retrieve releases:
 
-# Build frontend image
-docker build -t waiwatts-frontend:latest -f frontend/Dockerfile .
+GET http://localhost:8080/api/v1/datasets/{code}/releases
 
-# Run with docker-compose using local builds
-docker compose up -d --build
-```
+Generate explanation:
+
+POST http://localhost:8080/api/v1/explanations
+
+LLMs operate only on structured Fact Packs. They never query the
+database directly.
+
+------------------------------------------------------------------------
+
+# Repository Structure
+
+/docs → Curated architectural narrative\
+/engineering → Governance artifacts and execution history\
+/archive → Historical phase artifacts and legacy documentation\
+/backend\
+/frontend
+
+------------------------------------------------------------------------
+
+# Architectural Narrative
+
+See:
+
+-   docs/00-executive-overview.md
+-   docs/01-architecture.md
+-   docs/02-ai-governance-case-study.md
+-   docs/03-design-invariants.md
+-   docs/04-operational-model.md
+-   docs/05-llm-safety-model.md
+-   docs/06-documentation-governance.md
+
+------------------------------------------------------------------------
+
+# AI Governance Summary
+
+AI was used extensively for implementation.
+
+However:
+
+-   Architecture, invariants, and sequencing were human-owned.
+-   Role boundaries were explicit.
+-   Escalation was required for new architectural surface area.
+-   LLM access is constrained to deterministic Fact Packs.
+-   No autonomous AI commits were permitted.
+
+This project demonstrates disciplined AI acceleration --- not
+uncontrolled generation.

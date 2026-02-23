@@ -7,4 +7,4 @@ We use Sheet "6 - Fuel type (GWh)" for a long-running annual generation time ser
 
 We do NOT use energy-overview.xlsx because it is national primary energy accounting (not grid generation).
 
-This phase ingests dataset `mbie.generation.annual` (see design/004-mbie-schema.md for contract details).
+This phase ingests dataset `mbie.generation.annual` (see `engineering/design/004-mbie-annual-schema.md` for contract details).

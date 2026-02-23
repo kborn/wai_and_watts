@@ -70,7 +70,7 @@ Date: 2026-01-19
 Decision: Build lifecycle plumbing before parsers.
 
 Rationale:
-- Lifecycle errors dominate ingestion failures 
+- Lifecycle errors dominate ingestion failures
 
 Implications:
 - Parsing deferred
@@ -258,7 +258,7 @@ Implications:
 ### Local Pre-Push Guardrail (Opt-in)
 Date: 2026-01-19
 
-Decision: Provide a sample Git pre-push hook that runs the backend build/tests locally; document usage in README. 
+Decision: Provide a sample Git pre-push hook that runs the backend build/tests locally; document usage in README.
 
 Rationale:
 - Lightweight, repo-local safety net without external tooling
@@ -397,13 +397,13 @@ Out of Scope (Phase 6)
 
 ### Contract Location
 
-Date: 2026-01-26  
+Date: 2026-01-26
 
-Decision: Store dataset contracts in design/, rationale in specs/.
+Decision: Store dataset contracts in `engineering/design/`, rationale in `engineering/specs/`.
 
 Rationale: Keep decisions.md readable and stable.
 
-Implications: Phase 6 contract lives in design/mbie-schema.md.
+Implications: Phase 6 contract lives in `engineering/design/004-mbie-annual-schema.md`.
 
 
 ## Dataset Source Taxonomy Convention
@@ -435,11 +435,11 @@ Implications:
 
 ## Phase 7 Dataset Selection
 
-Date: 2026-01-27  
+Date: 2026-01-27
 
-Decision: Phase 7 will ingest MBIE quarterly electricity generation data.  
+Decision: Phase 7 will ingest MBIE quarterly electricity generation data.
 
-Rationale: Demonstrates schema evolution and harder parsing within the same domain before cross-domain ingestion.  
+Rationale: Demonstrates schema evolution and harder parsing within the same domain before cross-domain ingestion.
 
 Implications: Annual and quarterly tables coexist; future migrations unify temporal modeling.
 
@@ -447,9 +447,9 @@ Implications: Annual and quarterly tables coexist; future migrations unify tempo
 
 Date: 2026-01-27
 
-Decision: Extensibility is proven when a second dataset reuses lifecycle/orchestration unchanged and only dataset-specific parsers and schemas are added.  
+Decision: Extensibility is proven when a second dataset reuses lifecycle/orchestration unchanged and only dataset-specific parsers and schemas are added.
 
-Rationale: Avoids framework overengineering while demonstrating scalable architecture.  
+Rationale: Avoids framework overengineering while demonstrating scalable architecture.
 
 Implications: Shared ingestion code is stable; dataset logic is pluggable.
 
@@ -457,9 +457,9 @@ Implications: Shared ingestion code is stable; dataset logic is pluggable.
 
 Date: 2026-01-27
 
-Decision: Use light abstraction (shared orchestrator + dataset-specific ingesters).  
+Decision: Use light abstraction (shared orchestrator + dataset-specific ingesters).
 
-Rationale: Portfolio clarity and avoidance of premature ingestion frameworks.  
+Rationale: Portfolio clarity and avoidance of premature ingestion frameworks.
 
 Implications: Metadata-driven pipelines deferred to Phase 9+.
 
@@ -467,9 +467,9 @@ Implications: Metadata-driven pipelines deferred to Phase 9+.
 
 Date: 2026-01-27
 
-Decision: Use forward migrations and new tables for quarterly data.  
+Decision: Use forward migrations and new tables for quarterly data.
 
-Rationale: Demonstrates Flyway discipline and avoids polymorphic complexity.  
+Rationale: Demonstrates Flyway discipline and avoids polymorphic complexity.
 
 Implications: Phase 8+ may unify via new schema or views.
 
@@ -478,9 +478,9 @@ Implications: Phase 8+ may unify via new schema or views.
 
 Date: 2026-01-27
 
-Decision: Specs, design contracts, and decisions files are authoritative over code structure during development.  
+Decision: Specs, design contracts, and decisions files are authoritative over code structure during development.
 
-Rationale: Ensures AI and humans converge on intended architecture rather than reverse-engineering from implementation.  
+Rationale: Ensures AI and humans converge on intended architecture rather than reverse-engineering from implementation.
 
 Implications: New phases require spec + design + decision entries before coding.
 
@@ -488,9 +488,9 @@ Implications: New phases require spec + design + decision entries before coding.
 
 Date: 2026-01-27
 
-Decision: Normalize Biogas to OTHER for both annual and quarterly MBIE datasets.  
+Decision: Normalize Biogas to OTHER for both annual and quarterly MBIE datasets.
 
-Rationale: Maintain cross-dataset consistency and avoid premature fuel taxonomy expansion. Biogas is policy-heterogeneous and small in volume; dedicated categorization deferred.  
+Rationale: Maintain cross-dataset consistency and avoid premature fuel taxonomy expansion. Biogas is policy-heterogeneous and small in volume; dedicated categorization deferred.
 
 Implications: Biogas is grouped with OTHER until a BIOGAS/BIOENERGY category is introduced across all datasets via forward migration.
 
@@ -539,7 +539,7 @@ Rationale:
 Implications:
 - Dataset source code (taxonomy v2: <publisher>.<domain>.<dataset>.<variant>): `lawa.water_quality.state.multi_year`
 - Normalization:
-  - `indicator_norm` maps per design/007; unknown → `OTHER`
+  - `indicator_norm` maps per `engineering/design/007-lawa-state-multi-year-schema.md`; unknown → `OTHER`
   - `state_norm` derived from `attribute_band` (A..E → EXCELLENT..VERY_POOR); unknown → `UNKNOWN`
 - Parser must strictly validate header (BOM‑safe); preserve raw fields alongside normalized
 - Ingestion remains idempotent via `(dataset_source_id, content_hash)`; duplicates are no‑ops
@@ -816,7 +816,7 @@ Implications:
 
 ---
 
-## Decision: Natural Language Intent Parsing Boundary
+### Natural Language Intent Parsing Boundary
 
 Date: 2026-02-07
 
@@ -982,25 +982,25 @@ The table is intentionally not removed.
 
 ### Chart Type
 
--   Time-series line chart
+- Time-series line chart
 
 ### Series Behavior
 
--   One line per selected fuel type
--   Optional total generation line
+- One line per selected fuel type
+- Optional total generation line
 
 ### Interaction Model
 
--   Click-and-drag time range zoom (brush selection)
--   Reset to "All Time" control
--   Hover tooltips with period + value(s)
+- Click-and-drag time range zoom (brush selection)
+- Reset to "All Time" control
+- Hover tooltips with period + value(s)
 
 ### Data Rules
 
--   Charts must be derived only from backend API responses
--   No client-side metric invention
--   No forecasting, smoothing, or derived analytics
--   No client aggregation beyond simple grouping for display
+- Charts must be derived only from backend API responses
+- No client-side metric invention
+- No forecasting, smoothing, or derived analytics
+- No client aggregation beyond simple grouping for display
 
 ------------------------------------------------------------------------
 
@@ -1034,24 +1034,24 @@ metrics - Additional dataset visualization mandates
 
 ### For Frontend Architecture
 
--   Chart interaction state must remain UI-only
--   Backend APIs remain unchanged unless explicitly extended later
+- Chart interaction state must remain UI-only
+- Backend APIs remain unchanged unless explicitly extended later
 
 ### For Portfolio Narrative
 
--   Demonstrates real data-product UX patterns
--   Shows ability to match visualization type to data semantics
--   Improves demo storytelling without increasing system complexity
+- Demonstrates real data-product UX patterns
+- Shows ability to match visualization type to data semantics
+- Improves demo storytelling without increasing system complexity
 
 ------------------------------------------------------------------------
 
 ## Future Considerations (Deferred)
 
--   Multi-dataset unified timeline views
--   Cross-dataset comparison charts
--   Server-side aggregation APIs for visualization optimization
--   Advanced visualization frameworks
--   Exportable chart states / saved views
+- Multi-dataset unified timeline views
+- Cross-dataset comparison charts
+- Server-side aggregation APIs for visualization optimization
+- Advanced visualization frameworks
+- Exportable chart states / saved views
 
 
 ### Frontend Charting Standard + Display Aggregation Boundary (MBIE Timeline)
@@ -1116,33 +1116,33 @@ environmental meaning of each row.
 
 ## Rationale
 
--   LAWA results are published interpretations, not raw telemetry.
--   Minimal tables (period, region, site) do not communicate
+- LAWA results are published interpretations, not raw telemetry.
+- Minimal tables (period, region, site) do not communicate
     environmental meaning.
--   Table must support explanation verification and auditability.
+- Table must support explanation verification and auditability.
 
 ## Implications
 
 ### Common Fields
 
--   Period (human readable)
--   Region
--   Site
--   Indicator (raw + normalized when available)
+- Period (human readable)
+- Region
+- Site
+- Indicator (raw + normalized when available)
 
 ### State Dataset Fields
 
--   Published state classification
--   Normalized state label
--   Numeric values (if present in DTO)
--   Units (if present)
+- Published state classification
+- Normalized state label
+- Numeric values (if present in DTO)
+- Units (if present)
 
 ### Trend Dataset Fields
 
--   Published trend classification
--   Window length (if present)
--   Numeric values (if present)
--   Units (if present)
+- Published trend classification
+- Window length (if present)
+- Numeric values (if present)
+- Units (if present)
 
 Frontend must never invent missing semantic fields.
 
@@ -1159,21 +1159,21 @@ distribution visualizations.
 
 ## Rationale
 
--   LAWA datasets contain published interpreted environmental results
+- LAWA datasets contain published interpreted environmental results
     (state bands, trend classifications).
--   Distribution-style charts (counts by region, rankings, etc.) obscure
+- Distribution-style charts (counts by region, rankings, etc.) obscure
     environmental meaning.
--   Visualization must support explanation workflows, not exploratory
+- Visualization must support explanation workflows, not exploratory
     data science workflows.
 
 ## Implications
 
--   Primary visualization is time-slice timeline of filtered dataset.
--   Visualization represents dataset slice semantics, not population
+- Primary visualization is time-slice timeline of filtered dataset.
+- Visualization represents dataset slice semantics, not population
     distribution.
--   Frontend must not compute environmental meaning, classifications, or
+- Frontend must not compute environmental meaning, classifications, or
     derived analytics.
--   Table remains canonical semantic surface for interpreting row
+- Table remains canonical semantic surface for interpreting row
     meaning.
 
 
@@ -1236,9 +1236,9 @@ Fixed bucket order: 1. Very Likely Degrading\
 
 ### Trend Forbidden Patterns
 
--   Site ranking by TrendScore\
--   Top-N site charts by TrendScore\
--   Timeline visualization of trend windows
+- Site ranking by TrendScore\
+- Top-N site charts by TrendScore\
+- Timeline visualization of trend windows
 
 ------------------------------------------------------------------------
 
@@ -1347,12 +1347,12 @@ Trend-derived metrics and State-derived metrics are computed independently from 
 ## Rationale
 ### Preserve Signal vs Interpretation Separation
 
-The Context card is an interpretation support surface, not a visualization-mode-dependent data surface. 
+The Context card is an interpretation support surface, not a visualization-mode-dependent data surface.
 Tying Context to View Type would incorrectly imply that Context represents the chart rather than the environmental situation for the selected slice.
 
 ### Prevent Silent Data Drift
 
-If Context were recomputed based on View Type, switching between Trend and State 
+If Context were recomputed based on View Type, switching between Trend and State
 could cause values to change without user-visible filter changes, creating confusion and reducing trust.
 
 ### Maintain Product Mental Model
@@ -1416,7 +1416,7 @@ Implications:
 Date: 2026-02-17
 
 Decision:
-Prompts requesting derived analytics not present in Fact Packs (ranking, argmax windows, shares/threshold crossing) must refuse with `CAPABILITY_UNSUPPORTED` rather than being mapped into a descriptive trend/overview response.
+Prompts requesting derived analytics not present in Fact Packs (ranking, argmax windows, shares/threshold crossing) must refuse with `UNSUPPORTED_CAPABILITY` rather than being mapped into a descriptive trend/overview response.
 
 Rationale:
 - Answering a different question “as if” it answered the user’s question violates trustworthiness.
@@ -1458,8 +1458,8 @@ Rationale:
 - Conflating the two creates confusion and false task tracking.
 
 Implications:
-- `phase15_architectural_review_findings.md` is not a checklist.
-- `phase15_architectural_remediation_plan.md` is the authoritative execution contract.
+- `archive/phase15_doc_convergence/phase15_architectural_review_findings.md` is a historical findings record, not an execution checklist.
+- `archive/phase15_doc_convergence/phase15_architectural_remediation_plan.md` is the historical remediation execution contract for the completed Phase 15 convergence run.
 - `progress.md` references the remediation plan but does not duplicate its tasks.
 - Findings not promoted into the remediation plan are considered intentionally accepted design tradeoffs.
 
@@ -1498,11 +1498,11 @@ Implications:
 - Commit history remains honest about discovery and correction flow; no “fixup to hide findings” workflow for this remediation pass.
 
 
-### Title: API v1 Namespace Semantics + Dataset Release Semantics Alignment (Phase 15)
+### API v1 Namespace Semantics + Dataset Release Semantics Alignment (Phase 15)
 Date: 2026-02-21
 
 Decision:
-- /api/v1 is a path-based stability namespace (URL namespacing), not a runtime multi-version mechanism (no header/content-negotiation routing implied). 
+- /api/v1 is a path-based stability namespace (URL namespacing), not a runtime multi-version mechanism (no header/content-negotiation routing implied).
 - dataset_release is a first-class ingestion/lineage key.
 - Ask (/explanations/ask) must pin to one canonical dataset_release per request for determinism.
 - Read endpoints are intentionally release-transparent and may return rows across multiple releases, exposing releaseId per row as provenance.
@@ -1511,10 +1511,10 @@ Rationale:
 This matches current implementation and supports deterministic grounded explanations without expanding scope into a version lifecycle / negotiation framework.
 
 Implications / Follow-ups (Phase 15):
-1. Standardize FactPack provenance datasetReleaseId format across builders (prefer UUID string; define explicit fallback). 
-2. Document read endpoint semantics: multi-release transparency is expected; releaseId is a provenance key. 
-3. Make read ordering deterministic when duplicates across releases are possible by including releaseId (or equivalent) as a tie-breaker in repository ORDER BY clauses. 
-4. Remove any brittle coupling to literal /api/v1 text where feasible (or explicitly document it as a convention dependency). 
+1. Standardize FactPack provenance datasetReleaseId format across builders (prefer UUID string; define explicit fallback).
+2. Document read endpoint semantics: multi-release transparency is expected; releaseId is a provenance key.
+3. Make read ordering deterministic when duplicates across releases are possible by including releaseId (or equivalent) as a tie-breaker in repository ORDER BY clauses.
+4. Remove any brittle coupling to literal /api/v1 text where feasible (or explicitly document it as a convention dependency).
 
 ---
 

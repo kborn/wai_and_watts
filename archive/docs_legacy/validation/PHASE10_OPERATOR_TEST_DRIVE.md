@@ -1,5 +1,8 @@
 # Phase 10 — Operator Test Drive (Validation Exercise)
 
+> Historical artifact: This document captures the first end-to-end operator validation used before LLM integration and later polish phases.
+> It is preserved as portfolio evidence of phase-gated execution discipline.
+
 ## Scope
 
 This document is a **validation and learning exercise**.
@@ -8,7 +11,11 @@ It is NOT the canonical operator ingestion workflow.
 
 For canonical operator execution, follow:
 
-- `docs/operators/OPERATOR_INGESTION_GUIDE.md`
+- `docs/operations/OPERATOR_INGESTION_GUIDE.md`
+
+Current usage guidance:
+- Use this document when you want to replay the original Phase 10 baseline validation flow.
+- Use `docs/operations/OPERATOR_INGESTION_GUIDE.md` for current operator workflow execution.
 
 ---
 
@@ -106,10 +113,10 @@ mvn -pl backend spring-boot:run
 Run these calls and sanity check results (counts/samples/no duplicates):
 
 ```bash
-curl "http://localhost:8080/api/v1/mbie/generation"
+curl "http://localhost:8080/api/v1/mbie/generation/annual"
 curl "http://localhost:8080/api/v1/mbie/generation/quarterly"
-curl "http://localhost:8080/api/v1/lawa/state/multiyear"
-curl "http://localhost:8080/api/v1/lawa/trend/multiyear"
+curl "http://localhost:8080/api/v1/lawa/water-quality/state/multiyear"
+curl "http://localhost:8080/api/v1/lawa/water-quality/trend/multiyear"
 ```
 
 ---
