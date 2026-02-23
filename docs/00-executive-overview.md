@@ -6,3 +6,5 @@ It ingests real New Zealand environmental datasets (MBIE electricity generation 
 
 The differentiator is **AI governance**:
 AI accelerated implementation, while architecture, sequencing, and invariants remained human‑owned and enforced via documentation, role boundaries, and deterministic safety contracts.
+
+For a fast technical validation path, start with `docs/07-reviewer-quickstart.md`.

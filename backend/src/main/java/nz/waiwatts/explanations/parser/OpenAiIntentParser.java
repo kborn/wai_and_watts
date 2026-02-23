@@ -4,15 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.provider.OpenAiResponseClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * OpenAI-backed intent parser.
@@ -23,26 +26,6 @@ public class OpenAiIntentParser implements IntentParser {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAiIntentParser.class);
 
-    private static final List<String> SUPPORTED_QUESTION_TYPES = List.of(
-        "renewable_generation_trend",
-        "hydro_generation_trend",
-        "fuel_type_comparison",
-        "generation_mix_overview",
-        "water_quality_overview",
-        "excellent_sites_trend",
-        "regional_water_quality",
-        "water_quality_trends",
-        "improving_sites_trend",
-        "regional_trend_comparison"
-    );
-
-    private static final List<String> SUPPORTED_DATASET_SOURCES = List.of(
-        "mbie.generation.annual",
-        "mbie.generation.quarterly",
-        "lawa.water_quality.state.multi_year",
-        "lawa.water_quality.trend.multi_year"
-    );
-
     private static final Set<String> ALLOWED_FILTER_KEYS = Set.of(
         "fuelType", "fuelTypeB", "indicator", "region", "trend", "startYear", "endYear"
     );
@@ -52,11 +35,31 @@ public class OpenAiIntentParser implements IntentParser {
     private final OpenAiResponseClient client;
     private final ObjectMapper objectMapper;
     private final String model;
+    private final List<String> supportedQuestionTypes;
+    private final List<String> supportedDatasetSources;
 
-    public OpenAiIntentParser(OpenAiResponseClient client, ObjectMapper objectMapper, String model) {
+    public OpenAiIntentParser(
+        OpenAiResponseClient client,
+        ObjectMapper objectMapper,
+        String model,
+        DatasetCatalog datasetCatalog
+    ) {
         this.client = client;
         this.objectMapper = objectMapper;
         this.model = model;
+        this.supportedDatasetSources = datasetCatalog.getDatasets().stream()
+            .map(ds -> ds.datasetSource().trim())
+            .distinct()
+            .sorted()
+            .toList();
+        this.supportedQuestionTypes = datasetCatalog.getDatasets().stream()
+            .flatMap(ds -> ds.supportedQuestionTypes().stream())
+            .map(String::trim)
+            .filter(s -> !s.isBlank())
+            .collect(Collectors.toCollection(LinkedHashSet::new))
+            .stream()
+            .sorted()
+            .toList();
     }
 
     @Override
@@ -89,14 +92,14 @@ public class OpenAiIntentParser implements IntentParser {
             return null;
         }
 
-        if (!SUPPORTED_QUESTION_TYPES.contains(questionType)) {
+        if (!supportedQuestionTypes.contains(questionType)) {
             return null;
         }
 
         if (datasetSource != null) {
             if (UNKNOWN.equals(datasetSource)) {
                 datasetSource = null;
-            } else if (!SUPPORTED_DATASET_SOURCES.contains(datasetSource)) {
+            } else if (!supportedDatasetSources.contains(datasetSource)) {
                 return null;
             }
         }
@@ -177,8 +180,8 @@ public class OpenAiIntentParser implements IntentParser {
         schema.put("additionalProperties", false);
 
         ObjectNode properties = schema.putObject("properties");
-        properties.set("questionType", enumNode(SUPPORTED_QUESTION_TYPES, UNKNOWN));
-        properties.set("datasetSource", enumNode(SUPPORTED_DATASET_SOURCES, UNKNOWN));
+        properties.set("questionType", enumNode(supportedQuestionTypes, UNKNOWN));
+        properties.set("datasetSource", enumNode(supportedDatasetSources, UNKNOWN));
 
         ObjectNode filters = properties.putObject("filters");
         filters.put("type", "object");

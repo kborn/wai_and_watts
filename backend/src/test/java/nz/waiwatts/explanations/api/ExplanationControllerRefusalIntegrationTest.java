@@ -12,6 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -123,6 +125,30 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(jsonPath("$.unsupportedQuestionTypes.causation").exists())
                 .andExpect(jsonPath("$.requiredFilters.datasetSource").exists())
                 .andExpect(jsonPath("$.filterStructure").exists());
+    }
+
+    @Test
+    void testCanonicalCapabilitiesEndpoint() throws Exception {
+        mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.supportedQuestionTypes").exists())
+            .andExpect(jsonPath("$.datasets").isArray())
+            .andExpect(jsonPath("$.supportedDatasetSources").exists());
+    }
+
+    @Test
+    void capabilitiesEndpointsRemainEquivalent() throws Exception {
+        MvcResult canonical = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+        MvcResult legacy = mockMvc.perform(get("/api/v1/explanations/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(
+            objectMapper.readTree(canonical.getResponse().getContentAsString()),
+            objectMapper.readTree(legacy.getResponse().getContentAsString())
+        );
     }
 
     @Test
