@@ -1,24 +1,24 @@
 import type {
   AskRequest,
-  MbieGenerationAnnualRecord,
-  MbieGenerationQuarterlyRecord,
-  LawaStateMultiYearRecord,
-  LawaTrendMultiYearRecord,
   AskResult,
   CapabilitiesResponse,
+  LawaStateMultiYearRecord,
+  LawaTrendMultiYearRecord,
+  MbieGenerationAnnualRecord,
+  MbieGenerationQuarterlyRecord,
   RegionContextFactPack,
 } from '../types'
-
-// Backend response DTO (matches Java AskResult class)
-type BackendAskResult = AskResult
 import { logger } from '../utils/logger'
 import { addDiagnostic } from '../utils/diagnostics'
 import {
   API_BASE_URL,
-  generateRequestId,
   classifyError,
+  generateRequestId,
   getErrorResponseSnippet,
 } from '../utils/apiUtils'
+
+// Backend response DTO (matches Java AskResult class)
+type BackendAskResult = AskResult
 
 // Custom error class for HTTP errors to distinguish from network failures
 export class HttpError extends Error {
@@ -142,21 +142,21 @@ class ApiClient {
 
   // Explanation endpoints
   async askQuestion(request: AskRequest): Promise<AskResult> {
-    const response = await this.request<BackendAskResult>(
-      '/api/v1/explanations/ask',
-      {
-        method: 'POST',
-        body: JSON.stringify(request),
-      }
-    )
-
-    return response
+    return await this.request<BackendAskResult>('/api/v1/explanations/ask', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    })
   }
 
   async getCapabilities(): Promise<CapabilitiesResponse> {
-    return this.request<CapabilitiesResponse>(
-      '/api/v1/explanations/capabilities'
-    )
+    try {
+      return await this.request<CapabilitiesResponse>('/api/v1/capabilities')
+    } catch {
+      // Backward-compatible fallback for older backend deployments.
+      return this.request<CapabilitiesResponse>(
+        '/api/v1/explanations/capabilities'
+      )
+    }
   }
 
   // MBIE endpoints

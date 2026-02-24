@@ -1,8 +1,10 @@
 package nz.waiwatts.explanations.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
+import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +14,19 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -36,6 +43,9 @@ class ExplanationControllerRefusalIntegrationTest {
 
     @MockitoBean
     private nz.waiwatts.explanations.service.ExplanationService explanationService;
+
+    @Autowired
+    private DatasetCatalog datasetCatalog;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
@@ -126,6 +136,75 @@ class ExplanationControllerRefusalIntegrationTest {
     }
 
     @Test
+    void testCanonicalCapabilitiesEndpoint() throws Exception {
+        mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.supportedQuestionTypes").exists())
+            .andExpect(jsonPath("$.datasets").isArray())
+            .andExpect(jsonPath("$.supportedDatasetSources").exists());
+    }
+
+    @Test
+    void capabilitiesContractShapeRemainsStable() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        assertObjectFieldSet(root, Set.of(
+            "supportedQuestionTypes",
+            "unsupportedQuestionTypes",
+            "supportedDatasetSources",
+            "requiredFilters",
+            "filterStructure",
+            "datasets"
+        ));
+
+        JsonNode datasets = root.path("datasets");
+        assertTrue(datasets.isArray(), "datasets must be an array");
+        if (!datasets.isEmpty()) {
+            JsonNode firstDataset = datasets.get(0);
+            assertObjectFieldSet(firstDataset, Set.of(
+                "datasetSource",
+                "displayName",
+                "description",
+                "supportedQuestionTypes",
+                "supportedFilters"
+            ));
+        }
+    }
+
+    @Test
+    void capabilitiesEndpointsRemainEquivalent() throws Exception {
+        MvcResult canonical = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+        MvcResult legacy = mockMvc.perform(get("/api/v1/explanations/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals(
+            objectMapper.readTree(canonical.getResponse().getContentAsString()),
+            objectMapper.readTree(legacy.getResponse().getContentAsString())
+        );
+    }
+
+    @Test
+    void capabilitiesSupportedQuestionTypesCoverAllCatalogQuestionTypes() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+        JsonNode root = objectMapper.readTree(result.getResponse().getContentAsString());
+        JsonNode supported = root.path("supportedQuestionTypes");
+
+        for (var descriptor : datasetCatalog.getDatasets()) {
+            for (String questionType : descriptor.supportedQuestionTypes()) {
+                assertTrue(supported.has(questionType), "Missing supportedQuestionTypes entry for " + questionType);
+            }
+        }
+    }
+
+    @Test
     void testHealthCheck() throws Exception {
         mockMvc.perform(get("/api/v1/explanations/health"))
                 .andExpect(status().isOk())
@@ -157,5 +236,11 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(jsonPath("$.explanationText").value("Based on the data, hydro generation increased by 1000 GWh."))
                 .andExpect(jsonPath("$.citations").isArray())
                 .andExpect(jsonPath("$.citations[0]").value("cmp:mbie:generation_gwh:HYDRO:2023_vs_2022"));
+    }
+
+    private static void assertObjectFieldSet(JsonNode node, Set<String> expectedFields) {
+        Set<String> actualFields = new HashSet<>();
+        node.fieldNames().forEachRemaining(actualFields::add);
+        assertEquals(expectedFields, actualFields);
     }
 }
