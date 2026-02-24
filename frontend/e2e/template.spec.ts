@@ -9,7 +9,9 @@ test.describe('Basic Smoke Test', () => {
     await expect(page.locator('body')).toBeVisible()
 
     // Check for main heading
-    const heading = page.getByText('Wai & Watts: Environmental Data Platform')
+    const heading = page
+      .getByRole('main')
+      .getByText('Environmental Data Platform')
     await expect(heading).toBeVisible()
 
     // Try to find any link to /ask (should be at least 1 - NavBar + HomePage)

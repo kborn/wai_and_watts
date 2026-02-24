@@ -12,7 +12,7 @@ test.describe('Ask Refusal Flow', () => {
 
     // Wait for page to load and check for heading
     await expect(
-      page.getByRole('heading', { name: 'Ask About Environmental Data' })
+      page.getByRole('heading', { name: 'Ask a Question' })
     ).toBeVisible({ timeout: 10000 })
 
     // Wait for textarea to be visible and fill it
@@ -29,11 +29,13 @@ test.describe('Ask Refusal Flow', () => {
     // Wait a moment for potential navigation or error handling
     await page.waitForTimeout(2000)
 
-    // For smoke test, we just verify the form interaction works
-    // In a real environment with backend, this would show refusal UI
-    // Here we verify the button was clicked and form was submitted
-    await expect(page.locator('textarea[id="question"]')).toHaveValue(
-      unsupportedQuestion
-    )
+    // Submission can either stay on Ask (error) or navigate to Results.
+    if (page.url().includes('/results')) {
+      await expect(page.getByText(unsupportedQuestion)).toBeVisible()
+    } else {
+      await expect(page.locator('textarea[id="question"]')).toHaveValue(
+        unsupportedQuestion
+      )
+    }
   })
 })

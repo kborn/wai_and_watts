@@ -1,6 +1,6 @@
 package nz.waiwatts.api;
 
-import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
+import nz.waiwatts.explanations.service.CapabilitiesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,14 +12,14 @@ import java.util.Map;
 @RequestMapping("/api/v1/capabilities")
 public class CapabilitiesController {
 
-    private final CapabilityRegistry capabilityRegistry;
+    private final CapabilitiesService capabilitiesService;
 
-    public CapabilitiesController(CapabilityRegistry capabilityRegistry) {
-        this.capabilityRegistry = capabilityRegistry;
+    public CapabilitiesController(CapabilitiesService capabilitiesService) {
+        this.capabilitiesService = capabilitiesService;
     }
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getCapabilities() {
-        return ResponseEntity.ok(capabilityRegistry.toCapabilitiesResponse());
+        return ResponseEntity.ok(capabilitiesService.buildCapabilitiesResponse());
     }
 }
