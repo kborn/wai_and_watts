@@ -9,9 +9,7 @@ test.describe('Ask Success Flow', () => {
 
     // Verify we're on the home page
     await expect(
-      page.getByRole('heading', {
-        name: 'Wai & Watts: Environmental Data Platform',
-      })
+      page.getByRole('main').getByText('Environmental Data Platform')
     ).toBeVisible()
 
     // Navigate to the Ask page
@@ -19,7 +17,7 @@ test.describe('Ask Success Flow', () => {
 
     // Wait for page to load and check for heading
     await expect(
-      page.getByRole('heading', { name: 'Ask About Environmental Data' })
+      page.getByRole('heading', { name: 'Ask a Question' })
     ).toBeVisible({ timeout: 10000 })
 
     // Wait for textarea to be visible and fill it

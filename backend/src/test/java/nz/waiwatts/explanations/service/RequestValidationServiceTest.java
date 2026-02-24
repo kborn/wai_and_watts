@@ -3,6 +3,7 @@ package nz.waiwatts.explanations.service;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
+import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

@@ -81,6 +81,7 @@ The project optimizes for **sequencing, provenance, and correctness** over bread
 
 ## Where to go next
 
+- Reviewer quick validation: `docs/07-reviewer-quickstart.md`
 - AI governance: `docs/02-ai-governance-case-study.md`
 - Invariants: `docs/03-design-invariants.md`
 - Operational model: `docs/04-operational-model.md`
