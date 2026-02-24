@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -281,7 +282,10 @@ public class ExplanationController {
     ) {
         AskResult result = new AskResult();
         result.setRefusal(true);
-        result.setRefusal(new AskResult.Refusal(code, message, null));
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("category", code);
+        details.put("examples", List.of());
+        result.setRefusal(new AskResult.Refusal(code, message, details));
         result.setParsedRequest(parsedRequest);
         result.setSelectedDatasetSource(resolveSelectedDatasetSource(parsedRequest, selectionResult));
         if (selectionResult != null) {

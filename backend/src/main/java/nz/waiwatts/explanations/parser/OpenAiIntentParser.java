@@ -4,18 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import nz.waiwatts.explanations.dataset.DatasetCatalog;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.provider.OpenAiResponseClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * OpenAI-backed intent parser.
@@ -26,15 +23,12 @@ public class OpenAiIntentParser implements IntentParser {
 
     private static final Logger log = LoggerFactory.getLogger(OpenAiIntentParser.class);
 
-    private static final Set<String> ALLOWED_FILTER_KEYS = Set.of(
-        "fuelType", "fuelTypeB", "indicator", "region", "trend", "startYear", "endYear"
-    );
-
     private static final String UNKNOWN = "unknown";
 
     private final OpenAiResponseClient client;
     private final ObjectMapper objectMapper;
     private final String model;
+    private final CapabilityRegistry capabilityRegistry;
     private final List<String> supportedQuestionTypes;
     private final List<String> supportedDatasetSources;
 
@@ -42,22 +36,16 @@ public class OpenAiIntentParser implements IntentParser {
         OpenAiResponseClient client,
         ObjectMapper objectMapper,
         String model,
-        DatasetCatalog datasetCatalog
+        CapabilityRegistry capabilityRegistry
     ) {
         this.client = client;
         this.objectMapper = objectMapper;
         this.model = model;
-        this.supportedDatasetSources = datasetCatalog.getDatasets().stream()
-            .map(ds -> ds.datasetSource().trim())
-            .distinct()
+        this.capabilityRegistry = capabilityRegistry;
+        this.supportedDatasetSources = capabilityRegistry.getSupportedDatasetSources().stream()
             .sorted()
             .toList();
-        this.supportedQuestionTypes = datasetCatalog.getDatasets().stream()
-            .flatMap(ds -> ds.supportedQuestionTypes().stream())
-            .map(String::trim)
-            .filter(s -> !s.isBlank())
-            .collect(Collectors.toCollection(LinkedHashSet::new))
-            .stream()
+        this.supportedQuestionTypes = capabilityRegistry.getSupportedQuestionTypes().stream()
             .sorted()
             .toList();
     }
@@ -116,7 +104,7 @@ public class OpenAiIntentParser implements IntentParser {
         Map<String, Object> filters = new HashMap<>();
         filtersNode.fields().forEachRemaining(entry -> {
             String key = entry.getKey();
-            if (!ALLOWED_FILTER_KEYS.contains(key)) {
+            if (!capabilityRegistry.getAllowedFilterKeys().contains(key)) {
                 return;
             }
             JsonNode value = entry.getValue();
@@ -191,19 +179,23 @@ public class OpenAiIntentParser implements IntentParser {
         filterProps.set("fuelType", nullableType("string"));
         filterProps.set("fuelTypeB", nullableType("string"));
         filterProps.set("indicator", nullableType("string"));
+        filterProps.set("stateCategory", nullableType("string"));
         filterProps.set("region", nullableType("string"));
         filterProps.set("trend", nullableType("string"));
         filterProps.set("startYear", nullableType("integer"));
         filterProps.set("endYear", nullableType("integer"));
+        filterProps.set("metricType", nullableType("string"));
 
         ArrayNode filterRequired = filters.putArray("required");
         filterRequired.add("fuelType");
         filterRequired.add("fuelTypeB");
         filterRequired.add("indicator");
+        filterRequired.add("stateCategory");
         filterRequired.add("region");
         filterRequired.add("trend");
         filterRequired.add("startYear");
         filterRequired.add("endYear");
+        filterRequired.add("metricType");
 
         ArrayNode required = schema.putArray("required");
         required.add("questionType");
@@ -238,7 +230,7 @@ public class OpenAiIntentParser implements IntentParser {
             Map the user question to a structured ExplanationRequest.
             Only use the supported questionType and datasetSource values provided in the schema.
             If you cannot confidently map the question, set questionType or datasetSource to "unknown".
-            Use filters only when explicitly stated (startYear, endYear, fuelType, fuelTypeB, indicator, region, trend).
+            Use filters only when explicitly stated (startYear, endYear, fuelType, fuelTypeB, indicator, stateCategory, region, trend, metricType).
             Do not invent filters or values.
             Return JSON only, matching the schema exactly.
             """;

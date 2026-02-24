@@ -16,7 +16,7 @@ public class ManualTransformCommand {
     private static final int EXIT_VALIDATION = 2;
     private static final int EXIT_FAILURE = 3;
     private static final String OUTPUT_EXTENSION = ".csv";
-    private static final java.util.Set<String> SUPPORTED_DATASETS = java.util.Set.of(
+    private static final java.util.Set<String> ALLOWED_DATASETS = java.util.Set.of(
             "mbie.generation.annual",
             "mbie.generation.quarterly",
             "lawa.water_quality.state.multi_year",
@@ -83,7 +83,7 @@ public class ManualTransformCommand {
     private static void printUsage() {
         System.out.println("Usage: ManualTransformCommand <dataset_source_code> <input_xlsx_path> <output_csv_path>");
         System.out.println("Example: ManualTransformCommand mbie.generation.annual workbook.xlsx /tmp/mbie_annual.csv");
-        System.out.println("Supported datasets: " + String.join(", ", SUPPORTED_DATASETS));
+        System.out.println("Supported datasets: " + String.join(", ", ALLOWED_DATASETS));
     }
 
     private static void validateInputFile(String inputPath) {
@@ -133,13 +133,13 @@ public class ManualTransformCommand {
     }
 
     private static void validateDatasetSource(String datasetSourceCode) {
-        if (!SUPPORTED_DATASETS.contains(datasetSourceCode)) {
+        if (!ALLOWED_DATASETS.contains(datasetSourceCode)) {
             throw new IllegalArgumentException(buildUnsupportedDatasetMessage(datasetSourceCode));
         }
     }
 
     private static String buildUnsupportedDatasetMessage(String datasetSourceCode) {
         return "Unsupported dataset source code: " + datasetSourceCode
-                + ". Supported: " + String.join(", ", SUPPORTED_DATASETS);
+                + ". Supported: " + String.join(", ", ALLOWED_DATASETS);
     }
 }

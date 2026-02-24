@@ -1,11 +1,58 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAskQuestion, useCapabilities } from '../../api/hooks'
-import type { AskRequest } from '../../types'
+import type { AskRequest, CapabilityDefinition } from '../../types'
+
+const promptValueByToken: Record<string, string> = {
+  fuelType: 'hydro',
+  fuelTypeB: 'wind',
+  stateCategory: 'EXCELLENT',
+  indicator: 'E. coli',
+  region: 'Auckland',
+  trend: 'improving',
+}
+
+const buildPromptFromTemplate = (template: string) => {
+  const currentYear = new Date().getFullYear()
+  const replacements: Record<string, string> = {
+    startYear: String(currentYear - 5),
+    endYear: String(currentYear - 1),
+    ...promptValueByToken,
+  }
+
+  return template.replace(/\{(\w+)\}/g, (_, token: string) => {
+    return replacements[token] || token
+  })
+}
+
+const capabilityLabel = (capability: CapabilityDefinition) =>
+  ({
+    fuel_generation_trend: 'Fuel Trend Over Time',
+    fuel_type_comparison: 'Compare Two Fuel Types',
+    regional_water_quality: 'Compare Regions',
+    water_quality_state_sites_trend: 'Track Site State Over Time',
+  })[capability.questionType] ||
+  capability.displayName ||
+  capability.description
+
+const datasetLabel = (datasetCode: string, fallback?: string) =>
+  ({
+    'mbie.generation.annual': 'Electricity Generation (Annual Data)',
+    'mbie.generation.quarterly': 'Electricity Generation (Quarterly Data)',
+    'lawa.water_quality.state.multi_year': 'Water Quality (State View)',
+    'lawa.water_quality.trend.multi_year': 'Water Quality (Trend View)',
+  })[datasetCode] ||
+  fallback ||
+  datasetCode
 
 const AskPage: React.FC = () => {
-  const [question, setQuestion] = useState('')
+  const location = useLocation()
+  const initialQuestion =
+    (location.state as { seedQuestion?: string } | undefined)?.seedQuestion ||
+    ''
+  const [question, setQuestion] = useState(initialQuestion.trim())
   const [error, setError] = useState<string | null>(null)
+  const [selectedIntent, setSelectedIntent] = useState<string | null>(null)
   const navigate = useNavigate()
 
   const askQuestion = useAskQuestion()
@@ -39,111 +86,93 @@ const AskPage: React.FC = () => {
     }
   }
 
-  const exampleQuestions = [
-    'Explain renewable generation trends between 2020 and 2023',
-    'What are the main sources of electricity generation in New Zealand?',
-    'Compare hydro and geothermal generation patterns',
-    'Explain hydro generation trends between 2018 and 2023',
-  ]
+  const capabilityList = useMemo(
+    () => capabilities.data?.capabilities ?? [],
+    [capabilities.data?.capabilities]
+  )
+  const datasets = useMemo(
+    () => capabilities.data?.datasets ?? [],
+    [capabilities.data?.datasets]
+  )
 
-  const supportedQuestions = Object.values(
-    capabilities.data?.supportedQuestionTypes || {}
+  const datasetNames = useMemo(() => {
+    const map = new Map<string, string>()
+    datasets.forEach(dataset =>
+      map.set(dataset.datasetSource, dataset.displayName)
+    )
+    return map
+  }, [datasets])
+
+  const groupedCapabilities = useMemo(() => {
+    const grouped = new Map<string, CapabilityDefinition[]>()
+    capabilityList.forEach(capability => {
+      const datasetCodes =
+        capability.supportedDatasets || capability.datasetSources
+      datasetCodes.forEach(datasetCode => {
+        if (!grouped.has(datasetCode)) {
+          grouped.set(datasetCode, [])
+        }
+        const existing = grouped.get(datasetCode)!
+        if (
+          !existing.find(item => item.questionType === capability.questionType)
+        ) {
+          existing.push(capability)
+        }
+      })
+    })
+    return Array.from(grouped.entries())
+  }, [capabilityList])
+
+  const selectedCapability = capabilityList.find(
+    capability => capability.questionType === selectedIntent
   )
-  const unsupportedQuestions = Object.values(
-    capabilities.data?.unsupportedQuestionTypes || {}
-  )
-  const supportedDatasets = Object.values(
-    capabilities.data?.supportedDatasetSources || {}
-  )
+
+  const selectedExamples = useMemo(() => {
+    if (!selectedCapability) {
+      return []
+    }
+    const fromTemplates = (selectedCapability.exampleTemplates || []).map(
+      buildPromptFromTemplate
+    )
+    const combined = [...fromTemplates, ...(selectedCapability.examples || [])]
+    return Array.from(new Set(combined)).slice(0, 4)
+  }, [selectedCapability])
+
+  const globalExamples = useMemo(() => {
+    if (selectedExamples.length > 0) {
+      return selectedExamples
+    }
+    const flattened = capabilityList.flatMap(capability => {
+      const fromTemplates = (capability.exampleTemplates || []).map(
+        buildPromptFromTemplate
+      )
+      return [...fromTemplates, ...(capability.examples || [])]
+    })
+    return Array.from(new Set(flattened))
+  }, [capabilityList, selectedExamples])
+
+  const rotatingExamples = useMemo(() => {
+    const examples = globalExamples.length > 0 ? globalExamples : []
+    if (examples.length <= 4) {
+      return examples
+    }
+    const dayOffset = new Date().getDate() % examples.length
+    return Array.from({ length: 4 }, (_, index) => {
+      return examples[(dayOffset + index) % examples.length]
+    })
+  }, [globalExamples])
 
   return (
     <div className="section-container">
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-h2 font-semibold text-neutral-900 mb-3">
-          Ask About Environmental Data
+          Ask a Question
         </h1>
         <p className="text-body text-neutral-600 max-w-2xl mx-auto">
-          Get insights about New Zealand's electricity generation and water
-          quality data from authoritative sources.
+          Get grounded answers from MBIE electricity generation and LAWA water
+          quality datasets.
         </p>
-      </div>
-
-      <div className="content-card mb-6">
-        <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-          What You Can Ask Here
-        </h3>
-        <p className="text-sm text-neutral-600 mb-3">
-          Ask factual questions about MBIE electricity generation and LAWA water
-          quality datasets. Responses are grounded in stored dataset facts.
-        </p>
-        <details className="rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2">
-          <summary className="cursor-pointer text-sm font-medium text-neutral-700">
-            Supported scope and limits
-          </summary>
-          <div className="mt-3 space-y-3 text-sm text-neutral-700">
-            <div>
-              <div className="font-medium text-neutral-800">Data scope</div>
-              {capabilities.isLoading ? (
-                <div className="text-neutral-500 mt-1">Loading scope...</div>
-              ) : supportedDatasets.length > 0 ? (
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  {supportedDatasets.map(dataset => (
-                    <li key={dataset}>{dataset}</li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-neutral-500 mt-1">
-                  MBIE generation and LAWA water quality datasets
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="font-medium text-neutral-800">
-                Question types currently supported
-              </div>
-              {capabilities.isLoading ? (
-                <div className="text-neutral-500 mt-1">
-                  Loading supported question types...
-                </div>
-              ) : supportedQuestions.length > 0 ? (
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  {supportedQuestions.slice(0, 6).map(questionType => (
-                    <li key={questionType}>{questionType}</li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-neutral-500 mt-1">
-                  Trend, comparison, and overview questions over available
-                  datasets
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="font-medium text-neutral-800">
-                Not currently supported
-              </div>
-              {capabilities.isLoading ? (
-                <div className="text-neutral-500 mt-1">
-                  Loading unsupported categories...
-                </div>
-              ) : unsupportedQuestions.length > 0 ? (
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  {unsupportedQuestions.slice(0, 5).map(questionType => (
-                    <li key={questionType}>{questionType}</li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="text-neutral-500 mt-1">
-                  Forecasting, causation, policy recommendations, and
-                  hypothetical scenarios
-                </div>
-              )}
-            </div>
-          </div>
-        </details>
       </div>
 
       {/* Main Form */}
@@ -162,8 +191,14 @@ const AskPage: React.FC = () => {
               onChange={e => setQuestion(e.target.value)}
               className="input-base resize-none"
               rows={4}
-              placeholder="e.g., Explain renewable generation trends between 2020 and 2023"
+              placeholder="e.g., How has wind generation changed over time?"
             />
+            {!question.trim() && (
+              <p className="text-xs text-neutral-500 mt-2">
+                Try asking about generation trends, fuel comparisons, or water
+                quality state changes.
+              </p>
+            )}
           </div>
 
           {error && <div className="callout-error">{error}</div>}
@@ -185,17 +220,69 @@ const AskPage: React.FC = () => {
         </form>
       </div>
 
+      <div className="content-card mt-6">
+        <h3 className="text-lg font-medium text-neutral-900 mb-3">
+          Start with a Question
+        </h3>
+        <p className="text-sm text-neutral-600 mb-4">
+          Pick a capability to reveal example prompts you can ask directly.
+        </p>
+        {capabilities.isLoading ? (
+          <p className="text-sm text-neutral-500">Loading capabilities...</p>
+        ) : (
+          <div className="space-y-4">
+            {groupedCapabilities.map(([datasetCode, capabilityGroup]) => (
+              <div key={datasetCode}>
+                <h4 className="text-sm font-semibold text-neutral-800 mb-2">
+                  {datasetLabel(datasetCode, datasetNames.get(datasetCode))}
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {capabilityGroup.map(capability => {
+                    const isSelected =
+                      selectedIntent === capability.questionType
+                    return (
+                      <button
+                        key={capability.questionType}
+                        type="button"
+                        onClick={() =>
+                          setSelectedIntent(
+                            isSelected ? null : capability.questionType
+                          )
+                        }
+                        className={`px-3 py-2 rounded-full border text-sm transition-colors ${
+                          isSelected
+                            ? 'border-primary-500 bg-primary-100 text-primary-800'
+                            : 'border-neutral-300 bg-white text-neutral-700 hover:border-primary-300 hover:text-primary-700'
+                        }`}
+                      >
+                        {capabilityLabel(capability)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Example Questions */}
       <div className="mt-8">
         <h3 className="text-lg font-medium text-neutral-900 mb-4">
-          Example Questions
+          Try asking:
         </h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {exampleQuestions.map((example, index) => (
+        {selectedCapability && (
+          <p className="text-sm text-neutral-600 mb-3">
+            Showing examples for {capabilityLabel(selectedCapability)}.
+          </p>
+        )}
+        <div className="space-y-2">
+          {rotatingExamples.map((example, index) => (
             <button
               key={index}
+              type="button"
               onClick={() => setQuestion(example)}
-              className="text-left p-4 border border-neutral-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 group"
+              className="w-full text-left p-3 border border-neutral-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 group"
             >
               <p className="text-sm text-neutral-700 group-hover:text-primary-700">
                 {example}

@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -35,10 +36,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -74,10 +75,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -112,10 +113,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -147,10 +148,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -183,10 +184,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -223,10 +224,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(
@@ -262,10 +263,10 @@ class DatasetSelectionServiceTest {
 
         DatasetSelectionService service = new DatasetSelectionService(
             catalog,
+            new CapabilityRegistry(catalog),
             client,
             objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
+            properties
         );
 
         ExplanationRequest request = new ExplanationRequest(

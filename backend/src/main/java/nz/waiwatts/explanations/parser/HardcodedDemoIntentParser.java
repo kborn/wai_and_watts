@@ -41,7 +41,7 @@ public class HardcodedDemoIntentParser implements IntentParser {
                 Map.of("fuelType", "HYDRO", "fuelTypeB", "GEOTHERMAL")
             );
             case Q_HYDRO_TREND -> new ExplanationRequest(
-                "hydro_generation_trend",
+                "fuel_generation_trend",
                 "mbie.generation.annual",
                 Map.of("startYear", 2018, "endYear", 2023, "fuelType", "HYDRO")
             );

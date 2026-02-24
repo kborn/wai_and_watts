@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -110,6 +111,34 @@ class MbieGenerationAnnualFactPackBuilderTest {
     @Test
     void testGetSupportedDatasetSourceCode() {
         assertEquals("mbie.generation.annual", builder.getSupportedDatasetSourceCode());
+    }
+
+    @Test
+    void generationMixOverview_withShareMetricType_computesPercentageMetrics() {
+        ExplanationRequest request = new ExplanationRequest(
+            "generation_mix_overview",
+            "mbie.generation.annual",
+            Map.of("metricType", "generation_share_pct")
+        );
+
+        List<MbieGenerationAnnualRecord> records = List.of(
+            createRecord(2023, "HYDRO", new BigDecimal("60")),
+            createRecord(2023, "WIND", new BigDecimal("30")),
+            createRecord(2023, "GAS", new BigDecimal("10"))
+        );
+        when(repository.findForReadApi(any(), any(), any())).thenReturn(records);
+
+        FactPack factPack = builder.buildFactPack(request);
+
+        assertFalse(factPack.getFacts().getMetrics().isEmpty());
+        var metrics = factPack.getFacts().getMetrics().stream()
+            .sorted(Comparator.comparing(m -> m.getDimensions().get("fuel_type").toString()))
+            .toList();
+
+        assertEquals("%", metrics.get(0).getUnit());
+        assertEquals(new BigDecimal("10.00"), metrics.get(0).getValue()); // GAS
+        assertEquals(new BigDecimal("60.00"), metrics.get(1).getValue()); // HYDRO
+        assertEquals(new BigDecimal("30.00"), metrics.get(2).getValue()); // WIND
     }
 
     private List<MbieGenerationAnnualRecord> createTestRecords() {

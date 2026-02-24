@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.parser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dataset.DatasetDescriptor;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
@@ -40,7 +41,7 @@ class OpenAiIntentParserTest {
             client,
             objectMapper,
             "gpt-test",
-            new DatasetCatalog()
+            new CapabilityRegistry(new DatasetCatalog())
         );
         ExplanationRequest request = parser.parseQuestion("Any question");
 
@@ -72,7 +73,7 @@ class OpenAiIntentParserTest {
             client,
             objectMapper,
             "gpt-test",
-            new DatasetCatalog()
+            new CapabilityRegistry(new DatasetCatalog())
         );
         ExplanationRequest request = parser.parseQuestion("Any question");
 
@@ -109,7 +110,7 @@ class OpenAiIntentParserTest {
             client,
             objectMapper,
             "gpt-test",
-            customCatalog
+            new CapabilityRegistry(customCatalog)
         );
         ExplanationRequest request = parser.parseQuestion("Any question");
 

@@ -20,3 +20,12 @@ waiwatts:
     timeout-seconds: ${LLM_TIMEOUT_SECONDS:30}
     temperature: ${LLM_TEMPERATURE:0.2}
     max-output-tokens: ${LLM_MAX_OUTPUT_TOKENS:500}
+  lawa:
+    state-category-bands:
+      EXCELLENT: [ "A" ]
+      GOOD: [ "B" ]
+      FAIR: [ "C" ]
+      POOR: [ "D", "E" ]
+    regional-sample:
+      top-k: 2
+      bottom-k: 2

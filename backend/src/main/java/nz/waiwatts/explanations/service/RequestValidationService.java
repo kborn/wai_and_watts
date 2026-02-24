@@ -1,5 +1,6 @@
 package nz.waiwatts.explanations.service;
 
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dataset.DatasetDescriptor;
@@ -22,14 +23,13 @@ import java.util.LinkedHashSet;
 @Service
 public class RequestValidationService {
     private final DatasetCatalog datasetCatalog;
-    private final QuestionTypeCatalog questionTypeCatalog;
+    private final CapabilityRegistry capabilityRegistry;
     private final Set<String> allowedFilterKeys;
 
-    public RequestValidationService(DatasetCatalog datasetCatalog, QuestionTypeCatalog questionTypeCatalog) {
+    public RequestValidationService(DatasetCatalog datasetCatalog, CapabilityRegistry capabilityRegistry) {
         this.datasetCatalog = datasetCatalog;
-        this.questionTypeCatalog = questionTypeCatalog;
-        this.allowedFilterKeys = datasetCatalog.getDatasets().stream()
-            .flatMap(ds -> ds.supportedFilters().stream())
+        this.capabilityRegistry = capabilityRegistry;
+        this.allowedFilterKeys = capabilityRegistry.getAllowedFilterKeys().stream()
             .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
     }
     
@@ -50,7 +50,7 @@ public class RequestValidationService {
         }
         
         // Validate question type
-        if (!questionTypeCatalog.isSupported(request.getQuestionType())) {
+        if (!capabilityRegistry.isSupportedQuestionType(request.getQuestionType())) {
             return ValidationResult.failure("UNSUPPORTED_QUESTION_TYPE", 
                 "Unsupported question type: " + request.getQuestionType());
         }
@@ -75,34 +75,34 @@ public class RequestValidationService {
     private ValidationResult validateCompatibility(ExplanationRequest request, DatasetDescriptor descriptor) {
         String questionType = request.getQuestionType();
         String datasetSource = descriptor.datasetSource();
-        QuestionTypeCatalog.QuestionTypeGroup group = questionTypeCatalog.groupFor(questionType);
+        CapabilityRegistry.QuestionTypeGroup group = capabilityRegistry.groupFor(questionType);
         
         // MBIE question types must use MBIE dataset sources
-        if (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE && !datasetSource.startsWith("mbie.generation.")) {
+        if (group == CapabilityRegistry.QuestionTypeGroup.MBIE && !datasetSource.startsWith("mbie.generation.")) {
             return ValidationResult.failure("DATASET_MISMATCH", 
                 "Parsed an MBIE generation question, but selected a LAWA dataset.");
         }
         
         // LAWA question types must use LAWA dataset sources
-        if ((group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE || group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND)
+        if ((group == CapabilityRegistry.QuestionTypeGroup.LAWA_STATE || group == CapabilityRegistry.QuestionTypeGroup.LAWA_TREND)
             && !datasetSource.startsWith("lawa.water_quality.")) {
             return ValidationResult.failure("DATASET_MISMATCH", 
                 "Parsed a LAWA water quality question, but selected an MBIE dataset.");
         }
         
         // LAWA state question types must use state dataset source
-        if (group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE && !datasetSource.contains(".state.")) {
+        if (group == CapabilityRegistry.QuestionTypeGroup.LAWA_STATE && !datasetSource.contains(".state.")) {
             return ValidationResult.failure("DATASET_MISMATCH", 
                 "Parsed a LAWA state question, but selected a trend dataset.");
         }
         
         // LAWA trend question types must use trend dataset source
-        if (group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND && !datasetSource.contains(".trend.")) {
+        if (group == CapabilityRegistry.QuestionTypeGroup.LAWA_TREND && !datasetSource.contains(".trend.")) {
             return ValidationResult.failure("DATASET_MISMATCH", 
                 "Parsed a LAWA trend question, but selected a state dataset.");
         }
 
-        if (!descriptor.supportedQuestionTypes().contains(questionType)) {
+        if (!capabilityRegistry.isDatasetSupportedForQuestion(questionType, datasetSource)) {
             return ValidationResult.failure("DATASET_MISMATCH",
                 "Dataset " + datasetSource + " does not support question type: " + questionType);
         }
@@ -135,8 +135,9 @@ public class RequestValidationService {
                     return ValidationResult.failure("VALIDATION_FAILED", 
                         key + " must be an integer");
                 }
-            } else if ("fuelType".equals(key) || "fuelTypeB".equals(key) || "indicator".equals(key) || 
-                      "region".equals(key) || "trend".equals(key)) {
+            } else if ("fuelType".equals(key) || "fuelTypeB".equals(key) || "indicator".equals(key)
+                || "region".equals(key) || "trend".equals(key) || "stateCategory".equals(key)
+                || "metricType".equals(key)) {
                 if (!(value instanceof String)) {
                     return ValidationResult.failure("VALIDATION_FAILED", 
                         key + " must be a string");
@@ -152,7 +153,15 @@ public class RequestValidationService {
                 "startYear must be less than or equal to endYear");
         }
 
-        // Question-type specific filter requirements
+        // Question-type specific filter requirements from registry contract
+        for (String requiredFilter : capabilityRegistry.requiredFiltersForQuestion(request.getQuestionType())) {
+            if (!(filters.get(requiredFilter) instanceof String value) || value.trim().isEmpty()) {
+                return ValidationResult.failure("MISSING_REQUIRED_FILTERS",
+                    request.getQuestionType() + " requires "
+                        + formatRequiredFilters(capabilityRegistry.requiredFiltersForQuestion(request.getQuestionType())));
+            }
+        }
+
         if ("fuel_type_comparison".equals(request.getQuestionType())) {
             String fuelA = filters.get("fuelType") instanceof String s ? s.trim() : null;
             String fuelB = filters.get("fuelTypeB") instanceof String s ? s.trim() : null;
@@ -165,8 +174,35 @@ public class RequestValidationService {
                     "fuelType and fuelTypeB must be different");
             }
         }
+
+        if (filters.get("metricType") instanceof String metricType && !metricType.isBlank()) {
+            if (!capabilityRegistry.isMetricTypeSupportedForQuestionAndDataset(
+                request.getQuestionType(),
+                request.getDatasetSource(),
+                metricType.trim()
+            )) {
+                return ValidationResult.failure(
+                    "VALIDATION_FAILED",
+                    "metricType '" + metricType + "' is not supported for "
+                        + request.getQuestionType() + " on dataset " + request.getDatasetSource()
+                );
+            }
+        }
         
         return ValidationResult.success();
+    }
+
+    private String formatRequiredFilters(java.util.List<String> filters) {
+        if (filters == null || filters.isEmpty()) {
+            return "";
+        }
+        if (filters.size() == 1) {
+            return filters.getFirst();
+        }
+        if (filters.size() == 2) {
+            return filters.get(0) + " and " + filters.get(1);
+        }
+        return String.join(", ", filters);
     }
     
     /**

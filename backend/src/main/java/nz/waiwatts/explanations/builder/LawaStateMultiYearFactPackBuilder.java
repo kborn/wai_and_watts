@@ -2,6 +2,7 @@ package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
 import nz.waiwatts.domain.datasets.DatasetRelease;
+import nz.waiwatts.explanations.config.LawaStateCategoryProperties;
 import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 
@@ -17,14 +18,26 @@ import java.util.stream.Collectors;
 public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
     private final LawaStateMultiYearRecordRepository repository;
-
-    // Centralized excellent state bands for LAWA water quality
-    private static final Set<String> EXCELLENT_BANDS = Set.of("A");
-    private static final Set<String> POOR_BANDS = Set.of("D", "E");
-    private static final int REGIONAL_SAMPLE_K = 2;
+    private final Map<String, Set<String>> stateCategoryBands;
+    private final int regionalTopK;
+    private final int regionalBottomK;
 
     public LawaStateMultiYearFactPackBuilder(LawaStateMultiYearRecordRepository repository) {
+        this(repository, null);
+    }
+
+    public LawaStateMultiYearFactPackBuilder(
+        LawaStateMultiYearRecordRepository repository,
+        LawaStateCategoryProperties lawaProperties
+    ) {
         this.repository = repository;
+        this.stateCategoryBands = buildStateCategoryBands(lawaProperties);
+        this.regionalTopK = lawaProperties != null && lawaProperties.getRegionalSample() != null
+            ? lawaProperties.getRegionalSample().getTopK()
+            : 2;
+        this.regionalBottomK = lawaProperties != null && lawaProperties.getRegionalSample() != null
+            ? lawaProperties.getRegionalSample().getBottomK()
+            : 2;
     }
 
     @Override
@@ -205,8 +218,8 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             case "water_quality_overview":
                 buildWaterQualityOverviewFacts(factPack, records);
                 break;
-            case "excellent_sites_trend":
-                buildExcellentSitesTrendFacts(factPack, records);
+            case "water_quality_state_sites_trend":
+                buildStateCategorySitesTrendFacts(factPack, request, records);
                 break;
             case "regional_water_quality":
                 buildRegionalWaterQualityFacts(factPack, records);
@@ -250,14 +263,17 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             .distinct()
             .count();
 
+        Set<String> excellentBands = bandsForCategory("EXCELLENT");
+        Set<String> poorBands = bandsForCategory("POOR");
+
         long excellentSites = records.stream()
-            .filter(r -> EXCELLENT_BANDS.contains(r.getAttributeBand()))
+            .filter(r -> excellentBands.contains(normalizeBand(r.getAttributeBand())))
             .map(LawaStateMultiYearRecord::getLawaSiteId)
             .distinct()
             .count();
 
         long poorSites = records.stream()
-            .filter(r -> POOR_BANDS.contains(r.getAttributeBand()))
+            .filter(r -> poorBands.contains(normalizeBand(r.getAttributeBand())))
             .map(LawaStateMultiYearRecord::getLawaSiteId)
             .distinct()
             .count();
@@ -294,34 +310,46 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         }
     }
 
-    private void buildExcellentSitesTrendFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
-        // Track excellent sites over time periods
-        Map<Integer, Long> excellentSitesByEndYear = records.stream()
-            .filter(r -> EXCELLENT_BANDS.contains(r.getAttributeBand()))
+    private void buildStateCategorySitesTrendFacts(
+        FactPack factPack,
+        ExplanationRequest request,
+        List<LawaStateMultiYearRecord> records
+    ) {
+        String stateCategory = resolveStateCategory(request);
+        if (stateCategory == null || stateCategory.isBlank()) {
+            return;
+        }
+        Set<String> targetBands = bandsForCategory(stateCategory);
+        if (targetBands.isEmpty()) {
+            return;
+        }
+
+        Map<Integer, Long> categorySitesByEndYear = records.stream()
+            .filter(r -> targetBands.contains(normalizeBand(r.getAttributeBand())))
             .collect(Collectors.groupingBy(
                 LawaStateMultiYearRecord::getPeriodEndYear,
                 Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
             ));
 
-        if (!excellentSitesByEndYear.isEmpty()) {
-            List<Integer> years = excellentSitesByEndYear.keySet().stream()
+        if (!categorySitesByEndYear.isEmpty()) {
+            List<Integer> years = categorySitesByEndYear.keySet().stream()
                 .sorted()
                 .toList();
             
             String coverage = !years.isEmpty() ? years.getFirst() + "_to_" + years.getLast() : "all_time";
 
             TimeSeriesFact timeSeries = new TimeSeriesFact(
-                "ts:lawa:excellent_sites_count:" + coverage,
-                "excellent_sites_count",
+                "ts:lawa:state_category_sites_count:" + stateCategory + ":" + coverage,
+                "state_category_sites_count",
                 "sites",
-                Map.of("scope", "NZ", "quality_band", "excellent")
+                Map.of("scope", "NZ", "state_category", stateCategory)
             );
 
             List<TimeSeriesFact.DataPoint> points = years.stream()
                 .sorted()
                 .map(year -> new TimeSeriesFact.DataPoint(
                     year.toString(), 
-                    new BigDecimal(excellentSitesByEndYear.get(year))
+                    new BigDecimal(categorySitesByEndYear.get(year))
                 ))
                 .collect(Collectors.toList());
 
@@ -333,8 +361,8 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                 int latestYear = years.getLast();
                 int previousYear = years.get(years.size() - 2);
                 
-                Long latestCount = excellentSitesByEndYear.get(latestYear);
-                Long previousCount = excellentSitesByEndYear.get(previousYear);
+                Long latestCount = categorySitesByEndYear.get(latestYear);
+                Long previousCount = categorySitesByEndYear.get(previousYear);
                 
                 if (previousCount > 0) {
                     BigDecimal delta = new BigDecimal(latestCount - previousCount);
@@ -344,14 +372,14 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                         .setScale(2, RoundingMode.HALF_UP);
 
                     ComparisonFact comparison = new ComparisonFact(
-                        "cmp:lawa:excellent_sites:" + latestYear + "_vs_" + previousYear,
-                        "excellent_sites_count",
+                        "cmp:lawa:state_category_sites:" + stateCategory + ":" + latestYear + "_vs_" + previousYear,
+                        "state_category_sites_count",
                         String.valueOf(previousYear),
                         String.valueOf(latestYear),
                         delta,
                         deltaPercent,
                         "sites",
-                        Map.of("quality_band", "excellent")
+                        Map.of("state_category", stateCategory)
                     );
                     
                     factPack.getFacts().getComparisons().add(comparison);
@@ -403,8 +431,9 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                 Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
             ));
 
+        Set<String> excellentBands = bandsForCategory("EXCELLENT");
         Map<String, Long> excellentSitesByRegion = records.stream()
-            .filter(r -> EXCELLENT_BANDS.contains(r.getAttributeBand()))
+            .filter(r -> excellentBands.contains(normalizeBand(r.getAttributeBand())))
             .collect(Collectors.groupingBy(
                 LawaStateMultiYearRecord::getRegion,
                 Collectors.mapping(LawaStateMultiYearRecord::getLawaSiteId, Collectors.counting())
@@ -488,7 +517,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         
         switch (questionType) {
             case "water_quality_overview":
-            case "excellent_sites_trend":
+            case "water_quality_state_sites_trend":
                 // If there are no facts, keep allowed claims empty to trigger refusal as per tests
                 boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -572,8 +601,8 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             .thenComparing(Map.Entry::getKey);
 
         LinkedHashSet<String> selected = new LinkedHashSet<>();
-        ranked.stream().sorted(highToLow).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
-        ranked.stream().sorted(lowToHigh).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
+        ranked.stream().sorted(highToLow).limit(regionalTopK).forEach(e -> selected.add(e.getKey()));
+        ranked.stream().sorted(lowToHigh).limit(regionalBottomK).forEach(e -> selected.add(e.getKey()));
         return selected;
     }
 
@@ -607,5 +636,57 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             .summaryStatistics();
         
         return startStats.getMin() + "-" + endStats.getMax();
+    }
+
+    private Map<String, Set<String>> buildStateCategoryBands(LawaStateCategoryProperties properties) {
+        Map<String, List<String>> raw = properties != null ? properties.getStateCategoryBands() : null;
+        if (raw == null || raw.isEmpty()) {
+            return Map.of(
+                "EXCELLENT", Set.of("A"),
+                "GOOD", Set.of("B"),
+                "FAIR", Set.of("C"),
+                "POOR", Set.of("D", "E")
+            );
+        }
+        Map<String, Set<String>> normalized = new HashMap<>();
+        raw.forEach((category, bands) -> {
+            if (category == null || bands == null) {
+                return;
+            }
+            Set<String> cleanedBands = bands.stream()
+                .filter(Objects::nonNull)
+                .map(this::normalizeBand)
+                .filter(b -> !b.isBlank())
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+            if (!cleanedBands.isEmpty()) {
+                normalized.put(category.trim().toUpperCase(Locale.ROOT), cleanedBands);
+            }
+        });
+        return normalized;
+    }
+
+    private String resolveStateCategory(ExplanationRequest request) {
+        if (request == null || request.getFilters() == null) {
+            return null;
+        }
+        Object stateCategory = request.getFilters().get("stateCategory");
+        if (stateCategory instanceof String s && !s.isBlank()) {
+            return s.trim().toUpperCase(Locale.ROOT);
+        }
+        return null;
+    }
+
+    private Set<String> bandsForCategory(String stateCategory) {
+        if (stateCategory == null) {
+            return Set.of();
+        }
+        return stateCategoryBands.getOrDefault(stateCategory.trim().toUpperCase(Locale.ROOT), Set.of());
+    }
+
+    private String normalizeBand(String band) {
+        if (band == null) {
+            return "";
+        }
+        return band.trim().toUpperCase(Locale.ROOT);
     }
 }

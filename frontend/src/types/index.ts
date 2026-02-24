@@ -13,10 +13,12 @@ export interface ExplanationRequest {
     fuelType?: string
     fuelTypeB?: string
     indicator?: string
+    stateCategory?: string
     region?: string
     trend?: string
     startYear?: number
     endYear?: number
+    metricType?: string
   }
 }
 
@@ -140,6 +142,9 @@ export interface CapabilitiesResponse {
   supportedDatasetSources: Record<string, string>
   requiredFilters: Record<string, string>
   filterStructure: Record<string, string>
+  metricTypes?: Record<string, string[]>
+  examples?: Record<string, string[]>
+  capabilities?: CapabilityDefinition[]
   datasets?: CapabilityDataset[]
 }
 
@@ -149,6 +154,22 @@ export interface CapabilityDataset {
   description: string
   supportedQuestionTypes: string[]
   supportedFilters: string[]
+}
+
+export interface CapabilityDefinition {
+  intentId?: string
+  displayName?: string
+  questionType: string
+  description: string
+  supportedDatasets?: string[]
+  datasetSources: string[]
+  requiredFilters?: string[]
+  optionalFilters?: string[]
+  supportedFilters: string[]
+  metricTypes: string[]
+  defaultMetricType: string
+  exampleTemplates?: string[]
+  examples: string[]
 }
 
 // Region Context Types
