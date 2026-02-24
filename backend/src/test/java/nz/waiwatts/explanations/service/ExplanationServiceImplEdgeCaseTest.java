@@ -233,7 +233,7 @@ class ExplanationServiceImplEdgeCaseTest {
         // Satisfy pre-provider gates
         factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m3", null, null, null, null, null));
-        Explanation explanation = new Explanation("Some explanation", List.of("citation"));
+        Explanation explanation = new Explanation("Some explanation", List.of("m3"));
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
@@ -281,8 +281,8 @@ class ExplanationServiceImplEdgeCaseTest {
         FactPack factPack = new FactPack();
         // Satisfy pre-provider gates
         factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
-        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m4", null, null, null, null, null));
-        Explanation explanation = new Explanation("Successful explanation", List.of("ts:hydro:2023"));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("metric:mbie:generation_gwh:2023:HYDRO", null, null, null, null, null));
+        Explanation explanation = new Explanation("Successful explanation", List.of("metric:mbie:generation_gwh:2023:HYDRO"));
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
@@ -292,7 +292,7 @@ class ExplanationServiceImplEdgeCaseTest {
 
         assertFalse(result.isRefusal());
         assertEquals("Successful explanation", result.getExplanationText());
-        assertEquals(List.of("ts:hydro:2023"), result.getCitations());
+        assertEquals(List.of("metric:mbie:generation_gwh:2023:HYDRO"), result.getCitations());
 
         // Verify all components were called correctly
         verify(factPackBuilder).canHandle(request);
@@ -311,7 +311,7 @@ class ExplanationServiceImplEdgeCaseTest {
         FactPack factPack = new FactPack();
         factPack.getGuardrails().setAllowedClaims(List.of("distribution"));
         factPack.getGuardrails().setRequiredCitations(List.of("metric:lawa:excellent_sites_percentage:*"));
-        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m5", null, null, null, null, null));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("metric:lawa:excellent_sites_percentage:canterbury", null, null, null, null, null));
 
         Explanation explanation = new Explanation(
             "Regional water quality varies across regions.",
@@ -336,11 +336,62 @@ class ExplanationServiceImplEdgeCaseTest {
         FactPack factPack = new FactPack();
         factPack.getGuardrails().setAllowedClaims(List.of("distribution"));
         factPack.getGuardrails().setRequiredCitations(List.of("metric:lawa:excellent_sites_percentage:*"));
-        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m6", null, null, null, null, null));
+        factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("metric:lawa:excellent_sites_percentage:canterbury", null, null, null, null, null));
 
         Explanation explanation = new Explanation(
             "Regional water quality varies across regions.",
             List.of("metric:lawa:improving_sites_percentage:canterbury")
+        );
+
+        when(factPackBuilder.canHandle(request)).thenReturn(true);
+        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(explanationProvider.generateExplanation(any(), any())).thenReturn(explanation);
+
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Generated explanation missing required citations", result.getRefusalReason());
+    }
+
+    @Test
+    void testCitationValidationRejectsEmptyCitationsEvenWhenNoRequiredList() {
+        ExplanationRequest request = new ExplanationRequest(
+            "fuel_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
+        );
+
+        FactPack factPack = new FactPack();
+        factPack.getGuardrails().setAllowedClaims(List.of("trend"));
+        factPack.getGuardrails().setRequiredCitations(List.of());
+        factPack.getFacts().getMetrics().add(
+            new nz.waiwatts.explanations.dto.MetricFact("metric:mbie:generation_gwh:2023:HYDRO", null, null, null, null, null)
+        );
+        Explanation explanation = new Explanation("Some explanation", List.of());
+
+        when(factPackBuilder.canHandle(request)).thenReturn(true);
+        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(explanationProvider.generateExplanation(any(), any())).thenReturn(explanation);
+
+        Explanation result = service.generateExplanation(request);
+        assertTrue(result.isRefusal());
+        assertEquals("Generated explanation missing required citations", result.getRefusalReason());
+    }
+
+    @Test
+    void testCitationValidationRejectsCitationNotPresentInFactPack() {
+        ExplanationRequest request = new ExplanationRequest(
+            "fuel_generation_trend",
+            Map.of("datasetSource", "mbie.generation.annual")
+        );
+
+        FactPack factPack = new FactPack();
+        factPack.getGuardrails().setAllowedClaims(List.of("trend"));
+        factPack.getGuardrails().setRequiredCitations(List.of("metric:mbie:generation_gwh:2023:HYDRO"));
+        factPack.getFacts().getMetrics().add(
+            new nz.waiwatts.explanations.dto.MetricFact("metric:mbie:generation_gwh:2023:HYDRO", null, null, null, null, null)
+        );
+        Explanation explanation = new Explanation(
+            "Some explanation",
+            List.of("metric:mbie:generation_gwh:2024:HYDRO")
         );
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);

@@ -11,6 +11,7 @@ LLMs are prohibited from:
 
 Requirements:
 - Explanations must cite Fact Pack fields/IDs.
+- Non-refusal explanations must include non-empty citations, and each citation must resolve to a Fact Pack fact ID for that request.
 - Unsupported or ambiguous questions trigger deterministic refusal.
 - Natural language support performs intent parsing only; it cannot bypass Fact Pack construction.
 
