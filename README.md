@@ -50,6 +50,7 @@ Visualization only --- no domain logic
 Deterministic refusal for unsupported queries
 
 The LLM interprets language only, the backend validates requests and computes facts/metrics, and supported capabilities are registry-driven and discoverable via `GET /api/v1/capabilities`.
+For non-refusal responses, citations are required and must map to Fact Pack fact IDs generated for that request.
 
 ------------------------------------------------------------------------
 
