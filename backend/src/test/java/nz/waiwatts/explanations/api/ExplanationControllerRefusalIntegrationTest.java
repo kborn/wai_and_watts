@@ -135,6 +135,7 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(jsonPath("$.unsupportedQuestionTypes.causation").exists())
                 .andExpect(jsonPath("$.requiredFilters.datasetSource").exists())
                 .andExpect(jsonPath("$.filterStructure").exists())
+                .andExpect(jsonPath("$.suggestedValuesByToken.fuelType").isArray())
                 .andExpect(jsonPath("$.metricTypes").exists())
                 .andExpect(jsonPath("$.capabilities").isArray());
     }
@@ -163,6 +164,7 @@ class ExplanationControllerRefusalIntegrationTest {
             "supportedDatasetSources",
             "requiredFilters",
             "filterStructure",
+            "suggestedValuesByToken",
             "metricTypes",
             "examples",
             "capabilities",

@@ -104,14 +104,6 @@ public class CapabilityRegistry {
         return Optional.of(capability.defaultMetricType());
     }
 
-    public Set<String> supportedFiltersForQuestion(String questionType) {
-        CapabilityDefinition capability = get(questionType);
-        if (capability == null) {
-            return Set.of();
-        }
-        return capability.supportedFilters();
-    }
-
     public Set<String> supportedMetricTypesForQuestion(String questionType) {
         CapabilityDefinition capability = get(questionType);
         if (capability == null) {
@@ -199,6 +191,7 @@ public class CapabilityRegistry {
             "endYear", "integer (optional)",
             METRIC_TYPE_FILTER, "string (optional)"
         ));
+        response.put("suggestedValuesByToken", suggestedValuesByToken());
 
         response.put("metricTypes", byQuestionType.values().stream()
             .collect(Collectors.toMap(
@@ -256,6 +249,17 @@ public class CapabilityRegistry {
         response.put("datasets", datasets);
 
         return response;
+    }
+
+    private Map<String, List<String>> suggestedValuesByToken() {
+        LinkedHashMap<String, List<String>> out = new LinkedHashMap<>();
+        out.put("fuelType", List.of("wind", "solar", "hydro", "geothermal"));
+        out.put("fuelTypeB", List.of("hydro", "wind", "solar", "coal"));
+        out.put("stateCategory", List.of("EXCELLENT", "GOOD", "FAIR", "POOR"));
+        out.put("region", List.of("Auckland", "Canterbury", "Otago", "Waikato"));
+        out.put("indicator", List.of("E. coli", "Nitrate", "Ammoniacal nitrogen"));
+        out.put("trend", List.of("improving", "declining", "stable"));
+        return out;
     }
 
     private List<String> requiredFiltersForQuestion(String questionType) {

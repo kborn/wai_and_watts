@@ -1,6 +1,10 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  type UseQueryResult,
+} from '@tanstack/react-query'
 import { apiClient } from './client'
-import type { AskRequest, AskResult } from '../types'
+import type { AskRequest, AskResult, CapabilitiesResponse } from '../types'
 
 // Explanation hooks
 export const useAskQuestion = () => {
@@ -9,10 +13,13 @@ export const useAskQuestion = () => {
   })
 }
 
-export const useCapabilities = () => {
-  return useQuery({
+export const useCapabilities = (): UseQueryResult<
+  CapabilitiesResponse,
+  Error
+> => {
+  return useQuery<CapabilitiesResponse, Error>({
     queryKey: ['capabilities'],
-    queryFn: () => apiClient.getCapabilities(),
+    queryFn: async () => apiClient.getCapabilities(),
   })
 }
 

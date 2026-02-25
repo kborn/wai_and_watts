@@ -157,6 +157,13 @@ public class IntentParserServiceImpl implements IntentParserService {
         Map<String, Object> filters = request.getFilters();
         if (filters == null) return request;
 
+        // Parser may emit metricType=unknown when intent is otherwise valid.
+        // Treat unknown as absent so validation/builder defaults remain deterministic.
+        Object metricType = filters.get("metricType");
+        if (metricType instanceof String s && "unknown".equalsIgnoreCase(s.trim())) {
+            filters.remove("metricType");
+        }
+
         Object ftA = filters.get("fuelType");
         Object ftB = filters.get("fuelTypeB");
         boolean hasA = ftA instanceof String s && !s.isBlank() && !"null".equalsIgnoreCase(s);

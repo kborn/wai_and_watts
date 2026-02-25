@@ -1,49 +1,51 @@
 import React, { useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAskQuestion, useCapabilities } from '../../api/hooks'
-import type { AskRequest, CapabilityDefinition } from '../../types'
+import type {
+  AskRequest,
+  CapabilityDefinition,
+  CapabilitiesResponse,
+} from '../../types'
 
-const promptValueByToken: Record<string, string> = {
-  fuelType: 'hydro',
-  fuelTypeB: 'wind',
-  stateCategory: 'EXCELLENT',
-  indicator: 'E. coli',
-  region: 'Auckland',
-  trend: 'improving',
+type CapabilitiesResponseWithSuggestions = CapabilitiesResponse & {
+  suggestedValuesByToken?: Record<string, string[]>
 }
 
-const buildPromptFromTemplate = (template: string) => {
+const fallbackSuggestedValuesByToken: Record<string, string[]> = {
+  fuelType: ['wind', 'solar', 'hydro', 'geothermal'],
+  fuelTypeB: ['hydro', 'wind', 'solar', 'coal'],
+  stateCategory: ['EXCELLENT', 'GOOD', 'FAIR', 'POOR'],
+  indicator: ['E. coli', 'Nitrate', 'Ammoniacal nitrogen'],
+  region: ['Auckland', 'Canterbury', 'Otago', 'Waikato'],
+  trend: ['improving', 'declining', 'stable'],
+}
+
+const tokenHash = (token: string) =>
+  token.split('').reduce((total, char) => total + char.charCodeAt(0), 0)
+
+const buildPromptFromTemplate = (
+  template: string,
+  suggestedValuesByToken: Record<string, string[]>,
+  seed: number
+) => {
   const currentYear = new Date().getFullYear()
   const replacements: Record<string, string> = {
     startYear: String(currentYear - 5),
     endYear: String(currentYear - 1),
-    ...promptValueByToken,
   }
 
   return template.replace(/\{(\w+)\}/g, (_, token: string) => {
-    return replacements[token] || token
+    if (replacements[token]) {
+      return replacements[token]
+    }
+    const suggestedValues = suggestedValuesByToken[token] || []
+    if (suggestedValues.length === 0) {
+      return token
+    }
+    const index = (seed + tokenHash(token)) % suggestedValues.length
+    return suggestedValues[index]
   })
 }
-
-const capabilityLabel = (capability: CapabilityDefinition) =>
-  ({
-    fuel_generation_trend: 'Fuel Trend Over Time',
-    fuel_type_comparison: 'Compare Two Fuel Types',
-    regional_water_quality: 'Compare Regions',
-    water_quality_state_sites_trend: 'Track Site State Over Time',
-  })[capability.questionType] ||
-  capability.displayName ||
-  capability.description
-
-const datasetLabel = (datasetCode: string, fallback?: string) =>
-  ({
-    'mbie.generation.annual': 'Electricity Generation (Annual Data)',
-    'mbie.generation.quarterly': 'Electricity Generation (Quarterly Data)',
-    'lawa.water_quality.state.multi_year': 'Water Quality (State View)',
-    'lawa.water_quality.trend.multi_year': 'Water Quality (Trend View)',
-  })[datasetCode] ||
-  fallback ||
-  datasetCode
 
 const AskPage: React.FC = () => {
   const location = useLocation()
@@ -57,6 +59,8 @@ const AskPage: React.FC = () => {
 
   const askQuestion = useAskQuestion()
   const capabilities = useCapabilities()
+  const capabilitiesData: CapabilitiesResponseWithSuggestions | undefined =
+    capabilities.data as CapabilitiesResponseWithSuggestions | undefined
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -87,12 +91,12 @@ const AskPage: React.FC = () => {
   }
 
   const capabilityList = useMemo(
-    () => capabilities.data?.capabilities ?? [],
-    [capabilities.data?.capabilities]
+    () => capabilitiesData?.capabilities ?? [],
+    [capabilitiesData?.capabilities]
   )
   const datasets = useMemo(
-    () => capabilities.data?.datasets ?? [],
-    [capabilities.data?.datasets]
+    () => capabilitiesData?.datasets ?? [],
+    [capabilitiesData?.datasets]
   )
 
   const datasetNames = useMemo(() => {
@@ -126,30 +130,47 @@ const AskPage: React.FC = () => {
   const selectedCapability = capabilityList.find(
     capability => capability.questionType === selectedIntent
   )
+  const suggestedValuesByToken = useMemo(() => {
+    return {
+      ...fallbackSuggestedValuesByToken,
+      ...(capabilitiesData?.suggestedValuesByToken || {}),
+    }
+  }, [capabilitiesData?.suggestedValuesByToken])
+  const daySeed = useMemo(() => new Date().getDate(), [])
 
   const selectedExamples = useMemo(() => {
     if (!selectedCapability) {
       return []
     }
     const fromTemplates = (selectedCapability.exampleTemplates || []).map(
-      buildPromptFromTemplate
+      (template, index) =>
+        buildPromptFromTemplate(
+          template,
+          suggestedValuesByToken,
+          daySeed + index
+        )
     )
     const combined = [...fromTemplates, ...(selectedCapability.examples || [])]
     return Array.from(new Set(combined)).slice(0, 4)
-  }, [selectedCapability])
+  }, [daySeed, selectedCapability, suggestedValuesByToken])
 
   const globalExamples = useMemo(() => {
     if (selectedExamples.length > 0) {
       return selectedExamples
     }
+    let templateIndex = 0
     const flattened = capabilityList.flatMap(capability => {
-      const fromTemplates = (capability.exampleTemplates || []).map(
-        buildPromptFromTemplate
+      const fromTemplates = (capability.exampleTemplates || []).map(template =>
+        buildPromptFromTemplate(
+          template,
+          suggestedValuesByToken,
+          daySeed + templateIndex++
+        )
       )
       return [...fromTemplates, ...(capability.examples || [])]
     })
     return Array.from(new Set(flattened))
-  }, [capabilityList, selectedExamples])
+  }, [capabilityList, daySeed, selectedExamples, suggestedValuesByToken])
 
   const rotatingExamples = useMemo(() => {
     const examples = globalExamples.length > 0 ? globalExamples : []
@@ -234,7 +255,7 @@ const AskPage: React.FC = () => {
             {groupedCapabilities.map(([datasetCode, capabilityGroup]) => (
               <div key={datasetCode}>
                 <h4 className="text-sm font-semibold text-neutral-800 mb-2">
-                  {datasetLabel(datasetCode, datasetNames.get(datasetCode))}
+                  {datasetNames.get(datasetCode) || datasetCode}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {capabilityGroup.map(capability => {
@@ -255,7 +276,9 @@ const AskPage: React.FC = () => {
                             : 'border-neutral-300 bg-white text-neutral-700 hover:border-primary-300 hover:text-primary-700'
                         }`}
                       >
-                        {capabilityLabel(capability)}
+                        {capability.displayName ||
+                          capability.description ||
+                          capability.questionType}
                       </button>
                     )
                   })}
@@ -273,7 +296,11 @@ const AskPage: React.FC = () => {
         </h3>
         {selectedCapability && (
           <p className="text-sm text-neutral-600 mb-3">
-            Showing examples for {capabilityLabel(selectedCapability)}.
+            Showing examples for{' '}
+            {selectedCapability.displayName ||
+              selectedCapability.description ||
+              selectedCapability.questionType}
+            .
           </p>
         )}
         <div className="space-y-2">

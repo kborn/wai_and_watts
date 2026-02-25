@@ -142,6 +142,7 @@ export interface CapabilitiesResponse {
   supportedDatasetSources: Record<string, string>
   requiredFilters: Record<string, string>
   filterStructure: Record<string, string>
+  suggestedValuesByToken?: Record<string, string[]>
   metricTypes?: Record<string, string[]>
   examples?: Record<string, string[]>
   capabilities?: CapabilityDefinition[]

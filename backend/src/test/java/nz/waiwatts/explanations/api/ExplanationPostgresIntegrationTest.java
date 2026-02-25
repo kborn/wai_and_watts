@@ -3,6 +3,8 @@ package nz.waiwatts.explanations.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.domain.datasets.DatasetSource;
+import nz.waiwatts.domain.datasets.ExpectedFormat;
+import nz.waiwatts.domain.datasets.Publisher;
 import nz.waiwatts.domain.datasets.ReleaseStatus;
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
@@ -92,6 +94,7 @@ class ExplanationPostgresIntegrationTest {
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        ensureBaselineDatasetSources();
         annualRepository.deleteAll();
         quarterlyRepository.deleteAll();
         lawaStateRepository.deleteAll();
@@ -216,6 +219,62 @@ class ExplanationPostgresIntegrationTest {
         return datasetSourceRepository.findByCode(code).orElseThrow(() ->
             new IllegalStateException("Missing dataset source code in baseline data: " + code)
         );
+    }
+
+    private void ensureBaselineDatasetSources() {
+        ensureDatasetSource(
+            "mbie.generation.annual",
+            "MBIE Electricity Generation (Fuel Type, Annual)",
+            Publisher.MBIE,
+            "https://example.test/mbie/annual.xlsx",
+            ExpectedFormat.XLSX,
+            "quarterly"
+        );
+        ensureDatasetSource(
+            "mbie.generation.quarterly",
+            "MBIE Electricity Generation (Fuel Type, Quarterly)",
+            Publisher.MBIE,
+            "https://example.test/mbie/quarterly.xlsx",
+            ExpectedFormat.XLSX,
+            "quarterly"
+        );
+        ensureDatasetSource(
+            "lawa.water_quality.state.multi_year",
+            "LAWA River Water Quality State (Multi-Year)",
+            Publisher.LAWA,
+            "https://example.test/lawa/state.xlsx",
+            ExpectedFormat.XLSX,
+            "annual"
+        );
+        ensureDatasetSource(
+            "lawa.water_quality.trend.multi_year",
+            "LAWA River Water Quality Trend (Multi-Year)",
+            Publisher.LAWA,
+            "https://example.test/lawa/trend.xlsx",
+            ExpectedFormat.XLSX,
+            "annual"
+        );
+    }
+
+    private void ensureDatasetSource(
+        String code,
+        String name,
+        Publisher publisher,
+        String sourceUrl,
+        ExpectedFormat expectedFormat,
+        String updateCadence
+    ) {
+        if (datasetSourceRepository.findByCode(code).isPresent()) {
+            return;
+        }
+        DatasetSource source = new DatasetSource();
+        source.setCode(code);
+        source.setName(name);
+        source.setPublisher(publisher);
+        source.setSourceUrl(sourceUrl);
+        source.setExpectedFormat(expectedFormat);
+        source.setUpdateCadence(updateCadence);
+        datasetSourceRepository.saveAndFlush(source);
     }
 
     private DatasetRelease release(DatasetSource source, String contentHash, LocalDateTime importedAt) {
