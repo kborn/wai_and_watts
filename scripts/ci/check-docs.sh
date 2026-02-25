@@ -20,9 +20,24 @@ FORBIDDEN_PATTERNS=(
   "docs/PORTFOLIO_ENGINEERING_PROCESS.md"
 )
 
+if command -v rg >/dev/null 2>&1; then
+  SEARCH_TOOL="rg"
+elif command -v grep >/dev/null 2>&1; then
+  SEARCH_TOOL="grep"
+else
+  echo "[docs-check] ERROR: neither 'rg' nor 'grep' is available in PATH"
+  exit 1
+fi
+
 echo "[docs-check] Path lint (legacy references)..."
 for pattern in "${FORBIDDEN_PATTERNS[@]}"; do
-  if rg -n --glob '*.md' --glob '!archive/**' --fixed-strings "$pattern" "${CANONICAL_PATHS[@]}" >/tmp/docs_check_hits.txt; then
+  if [[ "$SEARCH_TOOL" == "rg" ]]; then
+    SEARCH_CMD=(rg -n --glob '*.md' --glob '!archive/**' --fixed-strings "$pattern" "${CANONICAL_PATHS[@]}")
+  else
+    SEARCH_CMD=(grep -R -n -F --include='*.md' --exclude-dir='archive' "$pattern" "${CANONICAL_PATHS[@]}")
+  fi
+
+  if "${SEARCH_CMD[@]}" >/tmp/docs_check_hits.txt; then
     echo "[docs-check] ERROR: found forbidden canonical reference pattern: $pattern"
     cat /tmp/docs_check_hits.txt
     exit 1
