@@ -2,6 +2,7 @@ package nz.waiwatts.explanations.service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public final class CitationValidationUtil {
 
@@ -9,9 +10,36 @@ public final class CitationValidationUtil {
     }
 
     public static boolean validateRequiredCitations(List<String> required, List<String> actual) {
-        List<String> requiredCitations = required != null ? required : List.of();
-        List<String> actualCitations = actual != null ? actual : List.of();
+        List<String> requiredCitations = normalizeCitations(required);
+        List<String> actualCitations = normalizeCitations(actual);
         return requiredCitations.stream().allMatch(req -> hasMatchingCitation(req, actualCitations));
+    }
+
+    public static boolean hasNonEmptyCitations(List<String> actual) {
+        return !normalizeCitations(actual).isEmpty();
+    }
+
+    public static boolean validateActualCitationsAgainstFactIds(List<String> actual, List<String> availableFactIds) {
+        List<String> actualCitations = normalizeCitations(actual);
+        if (actualCitations.isEmpty()) {
+            return false;
+        }
+        Set<String> allowedIds = Set.copyOf(normalizeCitations(availableFactIds));
+        if (allowedIds.isEmpty()) {
+            return false;
+        }
+        return actualCitations.stream().allMatch(allowedIds::contains);
+    }
+
+    public static List<String> normalizeCitations(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return ids.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .map(id -> id.trim().toLowerCase(Locale.ROOT))
+            .distinct()
+            .toList();
     }
 
     public static boolean hasMatchingCitation(String requiredId, List<String> actualIds) {
@@ -19,10 +47,7 @@ public final class CitationValidationUtil {
         if (actualIds == null || actualIds.isEmpty()) return false;
 
         String req = requiredId.trim().toLowerCase(Locale.ROOT);
-        List<String> normalizedActualIds = actualIds.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .map(id -> id.trim().toLowerCase(Locale.ROOT))
-            .toList();
+        List<String> normalizedActualIds = normalizeCitations(actualIds);
 
         if (normalizedActualIds.contains(req)) return true;
 
