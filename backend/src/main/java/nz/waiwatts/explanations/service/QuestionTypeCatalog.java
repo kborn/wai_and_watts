@@ -4,13 +4,11 @@ import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dataset.DatasetDescriptor;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class QuestionTypeCatalog {
@@ -23,21 +21,12 @@ public class QuestionTypeCatalog {
     }
 
     private static final Map<String, String> DESCRIPTION_OVERRIDES = new LinkedHashMap<>();
-    private static final Map<String, String> UNSUPPORTED_DESCRIPTIONS = Map.of(
-        "forecasting", "Predicting future values",
-        "causation", "Claiming cause-and-effect relationships",
-        "policy_recommendation", "Recommending policies",
-        "site_specific_advice", "Providing site-specific water quality advice",
-        "hypothetical", "What-if scenarios or counterfactuals"
-    );
 
     static {
         DESCRIPTION_OVERRIDES.put("renewable_generation_trend", "Explain renewable generation trends between years");
-        DESCRIPTION_OVERRIDES.put("hydro_generation_trend", "Explain hydro generation trends between years");
         DESCRIPTION_OVERRIDES.put("fuel_type_comparison", "Compare two fuel types (e.g., hydro vs geothermal)");
         DESCRIPTION_OVERRIDES.put("generation_mix_overview", "Summarize main sources of electricity generation");
         DESCRIPTION_OVERRIDES.put("water_quality_overview", "Provide overview of water quality state distribution");
-        DESCRIPTION_OVERRIDES.put("excellent_sites_trend", "Explain trends in excellent water quality sites");
         DESCRIPTION_OVERRIDES.put("regional_water_quality", "Compare water quality across regions");
         DESCRIPTION_OVERRIDES.put("water_quality_trends", "Explain overall water quality trend distribution");
         DESCRIPTION_OVERRIDES.put("improving_sites_trend", "Explain trends in improving water quality sites");
@@ -55,20 +44,12 @@ public class QuestionTypeCatalog {
         this.groupsByQuestionType = deriveGroups(datasets);
     }
 
-    public boolean isSupported(String questionType) {
-        return questionType != null && supportedQuestionTypes.contains(questionType);
-    }
-
     public Map<String, String> supportedDescriptions() {
         Map<String, String> out = new LinkedHashMap<>();
         for (String questionType : supportedQuestionTypes.stream().sorted().toList()) {
             out.put(questionType, descriptionFor(questionType));
         }
         return out;
-    }
-
-    public Map<String, String> unsupportedDescriptions() {
-        return UNSUPPORTED_DESCRIPTIONS;
     }
 
     public QuestionTypeGroup groupFor(String questionType) {
