@@ -73,7 +73,7 @@ Backend contract-focused tests:
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 export PATH="$JAVA_HOME/bin:$PATH"
-mvn -pl backend -Dtest=AskEndpointContractIntegrationTest,ExplanationControllerRefusalIntegrationTest,OpenAiIntentParserTest,ExplanationServiceImplEdgeCaseTest test
+mvn -pl backend -Dgroups=contract test
 ```
 
 Frontend compatibility test:

@@ -1,0 +1,18 @@
+# Default owner for all repository paths.
+* @kborn
+
+# Backend/API contracts and migrations
+/backend/ @kborn
+/engineering/design/ @kborn
+
+# Frontend/UI surface
+/frontend/ @kborn
+
+# Canonical docs and governance
+/docs/ @kborn
+/engineering/ @kborn
+/README.md @kborn
+
+# CI and automation
+/.github/workflows/ @kborn
+/scripts/ci/ @kborn

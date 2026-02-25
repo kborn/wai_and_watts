@@ -7,6 +7,7 @@
 | `README.md` | Repo entrypoint, quick onboarding, operability proof | Maintainers |
 | `docs/00-executive-overview.md` to `docs/05-llm-safety-model.md` | Curated portfolio narrative for reviewers | Staff Engineer documentation track |
 | `docs/07-reviewer-quickstart.md` | Operational reviewer checklist and validation commands | Maintainers |
+| `docs/08-change-risk-checklist.md` | Pre-merge risk checklist for high-signal change control | Maintainers |
 | `engineering/project-context.md` | Authority map and guardrails | Staff Engineer |
 | `engineering/roles.md` | Role boundaries and escalation policy | Staff Engineer |
 | `engineering/progress.md` | Delivery log and phase execution history | Staff Engineer |
@@ -39,8 +40,9 @@
 6. `docs/04-operational-model.md`
 7. `docs/05-llm-safety-model.md`
 8. `docs/07-reviewer-quickstart.md`
-9. `engineering/project-context.md`
-10. `engineering/roles.md`
-11. `engineering/progress.md`
-12. `engineering/decisions.md`
-13. `engineering/ai_usage.md`
+9. `docs/08-change-risk-checklist.md`
+10. `engineering/project-context.md`
+11. `engineering/roles.md`
+12. `engineering/progress.md`
+13. `engineering/decisions.md`
+14. `engineering/ai_usage.md`

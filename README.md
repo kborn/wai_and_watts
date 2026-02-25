@@ -171,7 +171,7 @@ GET http://localhost:8080/api/v1/datasets/{code}/releases
 
 Generate explanation:
 
-POST http://localhost:8080/api/v1/explanations
+POST http://localhost:8080/api/v1/explanations/ask
 
 LLMs operate only on structured Fact Packs. They never query the
 database directly.
@@ -200,6 +200,7 @@ See:
 -   docs/05-llm-safety-model.md
 -   docs/06-documentation-governance.md
 -   docs/07-reviewer-quickstart.md
+-   docs/08-change-risk-checklist.md
 
 ------------------------------------------------------------------------
 
