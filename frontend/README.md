@@ -74,6 +74,9 @@ npm run test:ui
 npm run test:e2e
 ```
 
+Current E2E browser target: **Chromium only** (Playwright project `chromium`).
+CI currently runs a Chromium smoke subset (`basic-smoke`, `state-validation`, `api-validation`, `integration`, `loading-states`) for faster feedback.
+
 ## Architecture
 
 - **Feature-first structure** under `src/features/`
