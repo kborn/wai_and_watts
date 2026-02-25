@@ -1,0 +1,20 @@
+name: Docs CI
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: docs-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate canonical docs
+        run: ./scripts/ci/check-docs.sh
