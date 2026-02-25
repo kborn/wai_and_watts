@@ -6,6 +6,7 @@ import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.provider.ExplanationProvider;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.*;
 /**
  * Edge case and comprehensive tests for ExplanationServiceImpl
  */
+@Tag("contract")
 class ExplanationServiceImplEdgeCaseTest {
 
     private ExplanationServiceImpl service;

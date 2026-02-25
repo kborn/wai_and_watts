@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.dto.Citation;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -8,6 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("contract")
 class CitationMapperTest {
 
     private final CitationMapper mapper = new CitationMapper();

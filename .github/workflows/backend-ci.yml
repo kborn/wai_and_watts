@@ -24,10 +24,7 @@ jobs:
           cache: 'maven'
 
       - name: Run backend contract smoke suite
-        run: >
-          mvn -f backend -B
-          -Dtest=AskEndpointContractIntegrationTest,ExplanationControllerRefusalIntegrationTest,NaturalLanguageEndpointIntegrationTest,OpenAiIntentParserTest,ExplanationServiceImplEdgeCaseTest,CitationMapperTest
-          test
+        run: mvn -f backend -B -Dgroups=contract test
 
   build-test:
     runs-on: ubuntu-latest

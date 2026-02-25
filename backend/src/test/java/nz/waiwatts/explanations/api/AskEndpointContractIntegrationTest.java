@@ -7,6 +7,7 @@ import nz.waiwatts.explanations.dto.IntentParseResponse;
 import nz.waiwatts.explanations.service.DatasetSelectionService;
 import nz.waiwatts.explanations.service.RequestValidationService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
+@Tag("contract")
 class AskEndpointContractIntegrationTest {
 
     @Autowired
@@ -158,4 +160,3 @@ class AskEndpointContractIntegrationTest {
         assertEquals("EXPLICIT", body.path("datasetSelection").path("strategy").asText());
     }
 }
-
