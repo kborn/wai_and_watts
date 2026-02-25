@@ -42,6 +42,13 @@ This directory contains comprehensive end-to-end tests for the dynamic filter fe
 npm run test:e2e
 ```
 
+### Browser Coverage
+
+- Automated E2E coverage is **Playwright Chromium only** (local and CI).
+- CI installs Chromium only for faster and more predictable runtime.
+- Local manual usage in Chrome is aligned with this setup, but this suite does not validate Firefox/WebKit behavior.
+- If multi-browser compatibility is a requirement, add Firefox/WebKit Playwright projects and run them in CI.
+
 ### CI Integration
 
 Tests run automatically on:
@@ -50,4 +57,12 @@ Tests run automatically on:
 - Push to main branch
 - Results uploaded as GitHub Actions artifacts
 
-All tests use API mocking to ensure consistent, reliable validation of the dynamic filter functionality.
+CI currently runs a Chromium-only smoke subset:
+
+- `basic-smoke`
+- `state-validation`
+- `api-validation`
+- `integration`
+- `loading-states`
+
+These tests run against the frontend app and backend API endpoints (they do not universally mock all API calls).
