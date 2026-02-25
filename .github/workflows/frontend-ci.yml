@@ -2,13 +2,15 @@ name: Frontend CI
 
 on:
   pull_request:
-    paths: 
+    paths:
       - 'frontend/**'
       - '.github/workflows/frontend-ci.yml'
   push:
     branches: [ main ]
-    paths:
-      - 'frontend/**'
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   frontend-test:
@@ -35,4 +37,3 @@ jobs:
           echo "🧪 Running unit tests..."
           npm run test:run
         working-directory: frontend
-

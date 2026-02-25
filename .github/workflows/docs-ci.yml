@@ -2,6 +2,12 @@ name: Docs CI
 
 on:
   pull_request:
+    paths:
+      - 'README.md'
+      - 'docs/**'
+      - 'engineering/**'
+      - 'scripts/ci/check-docs.sh'
+      - '.github/workflows/docs-ci.yml'
   push:
     branches: [ main ]
 
