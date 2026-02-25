@@ -5,6 +5,10 @@ on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   docs-check:
     runs-on: ubuntu-latest
@@ -50,7 +54,7 @@ jobs:
           cache: 'maven'
 
       - name: Build and test (backend)
-        run: mvn -f backend -B clean verify
+        run: mvn -f backend -B verify
 
       - name: Upload JaCoCo report
         if: always()
