@@ -1533,3 +1533,23 @@ Implications:
 - Frontend must treat indicator filters as view-specific and avoid carrying stale indicator values across State/Trend view switches.
 - UI copy should explicitly state that indicator codes can differ by dataset view.
 - Any future canonical cross-dataset indicator taxonomy requires a separate explicit decision and migration plan.
+
+---
+
+### LAWA Browse Filter Gating Relaxation (State + Trend)
+Date: 2026-02-25
+Supersedes: strict filter gating language under "LAWA Unified Visualization Model (Trend + State)" (2026-02-14)
+
+Decision:
+For LAWA browse data loading and chart rendering, both State and Trend views are gated by:
+- Region selected OR Indicator selected
+
+Rationale:
+- Improves exploration flow by allowing users to start from either geographic scope or indicator scope.
+- Preserves semantic boundaries while reducing unnecessary empty-state friction.
+- Aligns product behavior with reviewer expectations for guided, low-friction discovery.
+
+Implications:
+- Frontend gating logic must treat State and Trend consistently (`region || indicator`).
+- Empty-state copy must instruct users to choose a region or indicator (not both).
+- Existing Trend/State semantic constraints remain unchanged (classification/band interpretations, no derived analytics).

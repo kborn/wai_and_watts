@@ -59,6 +59,17 @@ const formatRegionDisplay = (region: string): string => {
     .join(' ')
 }
 
+const TREND_BUCKETS = [
+  'Very Likely Degrading',
+  'Likely Degrading',
+  'Indeterminate',
+  'Likely Improving',
+  'Very Likely Improving',
+  'Insufficient Data',
+] as const
+
+const BAND_ORDER = ['A', 'B', 'C', 'D', 'E'] as const
+
 const LawaBrowsePage: React.FC = () => {
   const [viewType, setViewType] = useState<'state' | 'trend'>('state')
   const [region, setRegion] = useState('')
@@ -95,7 +106,10 @@ const LawaBrowsePage: React.FC = () => {
 
   const canLoadData =
     viewType === 'trend' ? trendGatingSatisfied : stateGatingSatisfied
-  const data = canLoadData ? rawData : []
+  const data = useMemo(
+    () => (canLoadData ? rawData || [] : []),
+    [canLoadData, rawData]
+  )
 
   const handleExplainThis = () => {
     navigate('/ask')
@@ -131,15 +145,6 @@ const LawaBrowsePage: React.FC = () => {
     },
     [normalizeTrendScore]
   )
-
-  const TREND_BUCKETS = [
-    'Very Likely Degrading',
-    'Likely Degrading',
-    'Indeterminate',
-    'Likely Improving',
-    'Very Likely Improving',
-    'Insufficient Data',
-  ]
 
   const trendChartData = useMemo(() => {
     if (!data || data.length === 0 || viewType !== 'trend') return []
@@ -295,10 +300,8 @@ const LawaBrowsePage: React.FC = () => {
     [viewType]
   )
 
-  const BAND_ORDER = ['A', 'B', 'C', 'D', 'E']
-
   const stateBandChartData = useMemo(() => {
-    if (!data || viewType !== 'state' || (!region && !indicator)) return []
+    if (!data || viewType !== 'state' || !stateGatingSatisfied) return []
 
     const bandCounts: Record<string, number> = {}
     let insufficientCount = 0
@@ -347,7 +350,7 @@ const LawaBrowsePage: React.FC = () => {
     }
 
     return result
-  }, [data, viewType, region, indicator])
+  }, [data, viewType, stateGatingSatisfied])
 
   const stateTotalSites = stateBandChartData.reduce(
     (sum, d) => sum + d.value,
@@ -500,8 +503,12 @@ const LawaBrowsePage: React.FC = () => {
 
   const getEmptyStateMessage = () => {
     if (!region && !indicator) {
-      return 'Choose a region and indicator to explore water quality.'
+      if (viewType === 'trend') {
+        return 'Choose a region or indicator to explore water quality trends.'
+      }
+      return 'Choose a region or indicator to explore water quality.'
     }
+
     return 'No data available for the selected filters'
   }
 
@@ -715,16 +722,6 @@ const LawaBrowsePage: React.FC = () => {
                 </CardContent>
               </Card>
             )}
-
-          {viewType === 'state' && !region && !indicator && (
-            <Card className="mb-6">
-              <CardContent>
-                <p className="text-sm text-neutral-500 py-4 text-center">
-                  Choose a region and indicator to explore water quality.
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {viewType === 'trend' && trendChartData.length > 0 && (
             <Card className="mb-6">

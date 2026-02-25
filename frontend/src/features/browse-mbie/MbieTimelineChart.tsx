@@ -160,7 +160,7 @@ export const MbieTimelineChart: React.FC<MbieTimelineChartProps> = ({
     data?: { breakdown?: Record<string, number> }
   }
 
-  const formatTooltip = (params: TooltipParam[] | TooltipParam) => {
+  const formatTooltip = useCallback((params: TooltipParam[] | TooltipParam) => {
     const items = Array.isArray(params) ? params : [params]
     if (items.length === 0) return ''
     const axisLabel = items[0].axisValueLabel || ''
@@ -190,7 +190,7 @@ export const MbieTimelineChart: React.FC<MbieTimelineChartProps> = ({
     })
 
     return lines.join('<br/>')
-  }
+  }, [])
 
   const option = useMemo(
     () => ({
@@ -259,7 +259,7 @@ export const MbieTimelineChart: React.FC<MbieTimelineChartProps> = ({
       ],
       series,
     }),
-    [series, xAxisLabels, zoomRange]
+    [series, xAxisLabels, zoomRange, formatTooltip]
   )
 
   return (
