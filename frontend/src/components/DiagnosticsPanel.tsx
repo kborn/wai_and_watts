@@ -89,18 +89,3 @@ export function DiagnosticsPanel({ isOpen, onClose }: DiagnosticsPanelProps) {
     </div>
   )
 }
-
-// Hook for toggling diagnostics panel
-export function useDiagnostics() {
-  const [isOpen, setIsOpen] = useState(false)
-
-  const togglePanel = () => setIsOpen(!isOpen)
-
-  return {
-    isOpen,
-    togglePanel,
-    DiagnosticsPanel: () => (
-      <DiagnosticsPanel isOpen={isOpen} onClose={() => setIsOpen(false)} />
-    ),
-  }
-}
