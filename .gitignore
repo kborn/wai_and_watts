@@ -57,3 +57,7 @@ replay_pid*
 /frontend/blob-report/
 /frontend/playwright/.cache/
 **/*.tsbuildinfo
+
+# validation files
+*.jsonl
+validation.json

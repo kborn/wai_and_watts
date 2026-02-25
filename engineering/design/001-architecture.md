@@ -98,7 +98,8 @@ Both tables reference `dataset_release_id`, include region metadata normalizatio
 - Dataset catalog: `/api/v1/datasets/...`
 - MBIE: `/api/v1/mbie/generation/annual`, `/api/v1/mbie/generation/quarterly`, fuel type endpoints.
 - LAWA: `/api/v1/lawa/water-quality/state/multiyear`, `/trend/multiyear`, plus regions/indicators endpoints.
-- Explanations: `/api/v1/explanations`, `/api/v1/explanations/ask`, `/api/v1/explanations/capabilities`.
+- Explanations: `/api/v1/explanations`, `/api/v1/explanations/ask`, `/api/v1/explanations/health`.
+- Capability discovery: `/api/v1/capabilities`.
 - Context: `/api/v1/region-context`.
 - Health/insights: `/api/v1/health`, `/api/v1/insights`.
 
