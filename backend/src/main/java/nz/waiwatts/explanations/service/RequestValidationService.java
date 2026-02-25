@@ -68,55 +68,19 @@ public class RequestValidationService {
         return validateFilters(request);
     }
     
-    private ValidationResult validateCompatibility(ExplanationRequest request) {
-        String questionType = request.getQuestionType();
-        String datasetSource = request.getDatasetSource();
-
-        if (!capabilityRegistry.isDatasetSupportedForQuestion(questionType, datasetSource)) {
-            var supportedSources = capabilityRegistry.supportedDatasetSourcesForQuestion(questionType);
-            if (questionType != null && questionType.startsWith("water_quality_")
-                && datasetSource != null && datasetSource.startsWith("mbie.generation.")) {
-                return ValidationResult.failure("DATASET_MISMATCH",
-                    "Parsed a LAWA water quality question, but selected an MBIE dataset.");
-            }
-            if (questionType != null
-                && (questionType.contains("generation") || questionType.contains("fuel_type"))
-                && datasetSource != null && datasetSource.startsWith("lawa.water_quality.")) {
-                return ValidationResult.failure("DATASET_MISMATCH",
-                    "Parsed an MBIE generation question, but selected a LAWA dataset.");
-            }
-            if (!supportedSources.isEmpty()
-                && supportedSources.stream().allMatch(source -> source.contains(".state."))
-                && datasetSource != null && datasetSource.contains(".trend.")) {
-                return ValidationResult.failure("DATASET_MISMATCH",
-                    "Parsed a LAWA state question, but selected a trend dataset.");
-            }
-            if (!supportedSources.isEmpty()
-                && supportedSources.stream().allMatch(source -> source.contains(".trend."))
-                && datasetSource != null && datasetSource.contains(".state.")) {
-                return ValidationResult.failure("DATASET_MISMATCH",
-                    "Parsed a LAWA trend question, but selected a state dataset.");
-            }
-            return ValidationResult.failure("DATASET_MISMATCH",
-                "Question type and dataset source are not a supported combination.");
-        }
-        
-        return ValidationResult.success();
-    }
-    
     private ValidationResult validateFilters(ExplanationRequest request) {
         Map<String, Object> filters = request.getFilters();
-        
+
         if (filters == null) {
             return ValidationResult.success();
         }
-        
+
         String questionType = request.getQuestionType();
 
         // Check for unknown filter keys
         for (String key : filters.keySet()) {
             if (!capabilityRegistry.getAllowedFilterKeys().contains(key)) {
-                return ValidationResult.failure("VALIDATION_FAILED", 
+                return ValidationResult.failure("VALIDATION_FAILED",
                     "Unknown filter key: " + key);
             }
             if (!capabilityRegistry.isFilterSupportedForQuestion(questionType, key)) {
@@ -129,16 +93,16 @@ public class RequestValidationService {
         for (Map.Entry<String, Object> entry : filters.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            
+
             if ("startYear".equals(key) || "endYear".equals(key)) {
                 if (!(value instanceof Integer)) {
-                    return ValidationResult.failure("VALIDATION_FAILED", 
+                    return ValidationResult.failure("VALIDATION_FAILED",
                         key + " must be an integer");
                 }
             } else if ("fuelType".equals(key) || "fuelTypeB".equals(key) || "indicator".equals(key)
                     || "region".equals(key) || "trend".equals(key) || "stateCategory".equals(key)) {
                 if (!(value instanceof String)) {
-                    return ValidationResult.failure("VALIDATION_FAILED", 
+                    return ValidationResult.failure("VALIDATION_FAILED",
                         key + " must be a string");
                 }
             } else if ("metricType".equals(key)) {
@@ -201,10 +165,46 @@ public class RequestValidationService {
                     "water_quality_state_sites_trend requires stateCategory");
             }
         }
-        
+
         return ValidationResult.success();
     }
-    
+
+    private ValidationResult validateCompatibility(ExplanationRequest request) {
+        String questionType = request.getQuestionType();
+        String datasetSource = request.getDatasetSource();
+
+        if (!capabilityRegistry.isDatasetSupportedForQuestion(questionType, datasetSource)) {
+            var supportedSources = capabilityRegistry.supportedDatasetSourcesForQuestion(questionType);
+            if (questionType != null && questionType.startsWith("water_quality_")
+                    && datasetSource != null && datasetSource.startsWith("mbie.generation.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                        "Parsed a LAWA water quality question, but selected an MBIE dataset.");
+            }
+            if (questionType != null
+                    && (questionType.contains("generation") || questionType.contains("fuel_type"))
+                    && datasetSource != null && datasetSource.startsWith("lawa.water_quality.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                        "Parsed an MBIE generation question, but selected a LAWA dataset.");
+            }
+            if (!supportedSources.isEmpty()
+                    && supportedSources.stream().allMatch(source -> source.contains(".state."))
+                    && datasetSource != null && datasetSource.contains(".trend.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                        "Parsed a LAWA state question, but selected a trend dataset.");
+            }
+            if (!supportedSources.isEmpty()
+                    && supportedSources.stream().allMatch(source -> source.contains(".trend."))
+                    && datasetSource != null && datasetSource.contains(".state.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                        "Parsed a LAWA trend question, but selected a state dataset.");
+            }
+            return ValidationResult.failure("DATASET_MISMATCH",
+                    "Question type and dataset source are not a supported combination.");
+        }
+
+        return ValidationResult.success();
+    }
+
     /**
      * Result of validation with optional refusal details.
      */

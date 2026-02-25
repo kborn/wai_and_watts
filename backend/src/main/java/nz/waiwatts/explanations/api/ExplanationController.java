@@ -6,6 +6,7 @@ import nz.waiwatts.explanations.dto.Citation;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.IntentParseResponse;
+import nz.waiwatts.explanations.service.CapabilitiesService;
 import nz.waiwatts.explanations.service.CitationMapper;
 import nz.waiwatts.explanations.service.DatasetSelectionService;
 import nz.waiwatts.explanations.service.ExplanationService;
@@ -38,6 +39,7 @@ public class ExplanationController {
     private final IntentParserService intentParserService;
     private final RequestValidationService validationService;
     private final DatasetSelectionService datasetSelectionService;
+    private final CapabilitiesService capabilitiesService;
     private final CapabilityRegistry capabilityRegistry;
     private final CitationMapper citationMapper = new CitationMapper();
 
@@ -46,12 +48,14 @@ public class ExplanationController {
         IntentParserService intentParserService,
         RequestValidationService validationService,
         DatasetSelectionService datasetSelectionService,
+        CapabilitiesService capabilitiesService,
         CapabilityRegistry capabilityRegistry
     ) {
         this.explanationService = explanationService;
         this.intentParserService = intentParserService;
         this.validationService = validationService;
         this.datasetSelectionService = datasetSelectionService;
+        this.capabilitiesService = capabilitiesService;
         this.capabilityRegistry = capabilityRegistry;
     }
 
@@ -132,7 +136,7 @@ public class ExplanationController {
                     "PARSE"
                 );
                 AskResult result = refusalResult(
-                    parseResponse.getRefusal().getCategory(),
+                    mapParserCode(parseResponse.getRefusal().getCategory()),
                     parseResponse.getRefusal().getMessage(),
                     null,
                     null,
@@ -386,6 +390,16 @@ public class ExplanationController {
         };
     }
 
+    private String mapParserCode(String refusalCategory) {
+        if (refusalCategory == null || refusalCategory.isBlank()) {
+            return "UNABLE_TO_PARSE";
+        }
+        return switch (refusalCategory) {
+            case "UNSUPPORTED_INTENT", "UNSUPPORTED_QUESTION_TYPE" -> "UNSUPPORTED_CAPABILITY";
+            default -> refusalCategory;
+        };
+    }
+
     private String mapExplanationRefusalCode(String reason) {
         if (reason == null || reason.isBlank()) {
             return "INTERNAL_ERROR";
@@ -421,7 +435,7 @@ public class ExplanationController {
      */
     @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
-        return ResponseEntity.ok(capabilityRegistry.toCapabilitiesResponse());
+        return ResponseEntity.ok(capabilitiesService.buildCapabilitiesResponse());
     }
 
     /**

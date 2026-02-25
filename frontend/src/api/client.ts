@@ -149,7 +149,14 @@ class ApiClient {
   }
 
   async getCapabilities(): Promise<CapabilitiesResponse> {
-    return this.request<CapabilitiesResponse>('/api/v1/capabilities')
+    try {
+      return await this.request<CapabilitiesResponse>('/api/v1/capabilities')
+    } catch {
+      // Backward-compatible fallback for older backend deployments.
+      return await this.request<CapabilitiesResponse>(
+        '/api/v1/explanations/capabilities'
+      )
+    }
   }
 
   // MBIE endpoints

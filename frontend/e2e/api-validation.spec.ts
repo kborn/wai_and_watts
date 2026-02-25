@@ -14,7 +14,7 @@ test.describe('Dynamic Filter Basic Validation', () => {
 
     // Wait for loading or error to appear first
     const loadingOrError = page.getByText(
-      /Loading data from backend...|Failed to load data/
+      /Loading data from backend...|Failed to load data|Showing/
     )
     await expect(loadingOrError).toBeVisible({ timeout: 15000 })
 

@@ -7,7 +7,9 @@ import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.provider.OpenAiResponseClient;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
