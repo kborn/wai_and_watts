@@ -106,7 +106,7 @@ class ExplanationStructuredQueryIntegrationTest {
         annualRecord(release, 2023, "Hydro", "HYDRO", "180");
 
         String requestBody = objectMapper.writeValueAsString(Map.of(
-            "questionType", "hydro_generation_trend",
+            "questionType", "fuel_generation_trend",
             "datasetSource", "mbie.generation.annual",
             "filters", Map.of("fuelType", "HyDrO", "startYear", 2020, "endYear", 2023)
         ));

@@ -1,5 +1,7 @@
 package nz.waiwatts.explanations.service;
 
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
+import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import org.junit.jupiter.api.Test;
 
@@ -10,7 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RequestValidationServiceTest {
 
-    private final RequestValidationService service = new RequestValidationService();
+    private final RequestValidationService service =
+        new RequestValidationService(new CapabilityRegistry(new DatasetCatalog()));
 
     @Test
     void validatesHappyPathForMbieRequest() {
@@ -124,6 +127,23 @@ class RequestValidationServiceTest {
     }
 
     @Test
+    void failsWhenFilterIsNotSupportedByQuestionType() {
+        ExplanationRequest request = new ExplanationRequest(
+            "renewable_generation_trend",
+            "mbie.generation.annual",
+            Map.of("trend", "IMPROVING")
+        );
+
+        RequestValidationService.ValidationResult result = service.validateRequest(request);
+
+        assertEquals("UNSUPPORTED_CAPABILITY", result.getRefusalCategory());
+        assertEquals(
+            "Question type renewable_generation_trend does not support filter: trend",
+            result.getRefusalMessage()
+        );
+    }
+
+    @Test
     void failsForInvalidYearRange() {
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",
@@ -204,5 +224,35 @@ class RequestValidationServiceTest {
         RequestValidationService.ValidationResult result = service.validateRequest(request);
 
         assertTrue(result.isValid());
+    }
+
+    @Test
+    void acceptsSupportedMetricTypeForQuestionType() {
+        ExplanationRequest request = new ExplanationRequest(
+            "generation_mix_overview",
+            "mbie.generation.annual",
+            Map.of("metricType", "generation_share_pct")
+        );
+
+        RequestValidationService.ValidationResult result = service.validateRequest(request);
+
+        assertTrue(result.isValid());
+    }
+
+    @Test
+    void rejectsUnsupportedMetricTypeForQuestionType() {
+        ExplanationRequest request = new ExplanationRequest(
+            "fuel_generation_trend",
+            "mbie.generation.annual",
+            Map.of("metricType", "generation_share_pct")
+        );
+
+        RequestValidationService.ValidationResult result = service.validateRequest(request);
+
+        assertEquals("UNSUPPORTED_CAPABILITY", result.getRefusalCategory());
+        assertEquals(
+            "Question type fuel_generation_trend with dataset mbie.generation.annual does not support metricType: generation_share_pct",
+            result.getRefusalMessage()
+        );
     }
 }

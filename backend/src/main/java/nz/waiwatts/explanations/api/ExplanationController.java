@@ -1,7 +1,6 @@
 package nz.waiwatts.explanations.api;
 
-import nz.waiwatts.explanations.dataset.DatasetCatalog;
-import nz.waiwatts.explanations.dataset.DatasetDescriptor;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dto.AskResult;
 import nz.waiwatts.explanations.dto.Citation;
 import nz.waiwatts.explanations.dto.Explanation;
@@ -18,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -40,7 +38,7 @@ public class ExplanationController {
     private final IntentParserService intentParserService;
     private final RequestValidationService validationService;
     private final DatasetSelectionService datasetSelectionService;
-    private final DatasetCatalog datasetCatalog;
+    private final CapabilityRegistry capabilityRegistry;
     private final CitationMapper citationMapper = new CitationMapper();
 
     public ExplanationController(
@@ -48,13 +46,13 @@ public class ExplanationController {
         IntentParserService intentParserService,
         RequestValidationService validationService,
         DatasetSelectionService datasetSelectionService,
-        DatasetCatalog datasetCatalog
+        CapabilityRegistry capabilityRegistry
     ) {
         this.explanationService = explanationService;
         this.intentParserService = intentParserService;
         this.validationService = validationService;
         this.datasetSelectionService = datasetSelectionService;
-        this.datasetCatalog = datasetCatalog;
+        this.capabilityRegistry = capabilityRegistry;
     }
 
     private String summarizeFilters(ExplanationRequest request) {
@@ -283,7 +281,11 @@ public class ExplanationController {
     ) {
         AskResult result = new AskResult();
         result.setRefusal(true);
-        result.setRefusal(new AskResult.Refusal(code, message, null));
+        result.setRefusal(new AskResult.Refusal(
+            code,
+            message,
+            refusalDetails(code, parsedRequest, selectionResult)
+        ));
         result.setParsedRequest(parsedRequest);
         result.setSelectedDatasetSource(resolveSelectedDatasetSource(parsedRequest, selectionResult));
         if (selectionResult != null) {
@@ -307,6 +309,57 @@ public class ExplanationController {
         return result;
     }
 
+    private Map<String, Object> refusalDetails(
+        String code,
+        ExplanationRequest parsedRequest,
+        DatasetSelectionService.DatasetSelectionResult selectionResult
+    ) {
+        LinkedHashMap<String, Object> details = new LinkedHashMap<>();
+        details.put("category", code);
+
+        String datasetSource = resolveSelectedDatasetSource(parsedRequest, selectionResult);
+        String questionType = parsedRequest != null ? parsedRequest.getQuestionType() : null;
+
+        List<String> suggestedQuestionTypes = capabilityRegistry.suggestedQuestionTypes(questionType, datasetSource);
+        if (!suggestedQuestionTypes.isEmpty()) {
+            details.put("supportedQuestionTypes", suggestedQuestionTypes);
+        } else {
+            details.put("supportedQuestionTypes", capabilityRegistry.getSupportedQuestionTypes().stream().sorted().toList());
+        }
+
+        List<String> examples = suggestedQuestionTypes.stream()
+            .flatMap(qt -> capabilityRegistry.examplesForQuestion(qt).stream())
+            .distinct()
+            .limit(3)
+            .toList();
+        if (examples.isEmpty()) {
+            examples = capabilityRegistry.getSupportedQuestionTypes().stream()
+                .sorted()
+                .limit(3)
+                .flatMap(qt -> capabilityRegistry.examplesForQuestion(qt).stream())
+                .distinct()
+                .limit(3)
+                .toList();
+        }
+        details.put("examples", examples);
+
+        if (questionType != null && !questionType.isBlank()) {
+            List<String> metricTypes = capabilityRegistry.supportedMetricTypesForQuestion(questionType).stream()
+                .sorted()
+                .toList();
+            if (!metricTypes.isEmpty()) {
+                details.put("supportedMetricTypes", metricTypes);
+                capabilityRegistry.defaultMetricTypeForQuestion(questionType)
+                    .ifPresent(defaultMetric -> details.put("defaultMetricType", defaultMetric));
+            }
+        }
+        if (datasetSource != null && !datasetSource.isBlank()) {
+            details.put("datasetSource", datasetSource);
+        }
+
+        return details;
+    }
+
     private String resolveSelectedDatasetSource(
         ExplanationRequest parsedRequest,
         DatasetSelectionService.DatasetSelectionResult selectionResult
@@ -326,6 +379,7 @@ public class ExplanationController {
         }
         return switch (refusalCategory) {
             case "UNSUPPORTED_QUESTION_TYPE" -> "UNSUPPORTED_CAPABILITY";
+            case "UNSUPPORTED_CAPABILITY" -> "UNSUPPORTED_CAPABILITY";
             case "MISSING_REQUIRED_FILTERS" -> "MISSING_REQUIRED_FILTERS";
             case "DATASET_MISMATCH" -> "DATASET_MISMATCH";
             default -> "VALIDATION_FAILED";
@@ -367,64 +421,7 @@ public class ExplanationController {
      */
     @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
-        Map<String, Object> supportedTypes = new LinkedHashMap<>();
-        supportedTypes.put("supportedQuestionTypes", Map.of(
-            // MBIE Generation Question Types
-            "renewable_generation_trend", "Explain renewable generation trends between years",
-            "hydro_generation_trend", "Explain hydro generation trends between years",
-            "fuel_type_comparison", "Compare two fuel types (e.g., hydro vs geothermal)",
-            "generation_mix_overview", "Summarize main sources of electricity generation",
-
-            // LAWA Water Quality State Question Types
-            "water_quality_overview", "Provide overview of water quality state distribution",
-            "excellent_sites_trend", "Explain trends in excellent water quality sites",
-            "regional_water_quality", "Compare water quality across regions",
-
-            // LAWA Water Quality Trend Question Types
-            "water_quality_trends", "Explain overall water quality trend distribution",
-            "improving_sites_trend", "Explain trends in improving water quality sites",
-            "regional_trend_comparison", "Compare water quality trends across regions"
-        ));
-        supportedTypes.put("unsupportedQuestionTypes", Map.of(
-            "forecasting", "Predicting future values",
-            "causation", "Claiming cause-and-effect relationships",
-            "policy_recommendation", "Recommending policies",
-            "site_specific_advice", "Providing site-specific water quality advice",
-            "hypothetical", "What-if scenarios or counterfactuals"
-        ));
-        supportedTypes.put("supportedDatasetSources", Map.of(
-            "mbie.generation.annual", "Annual electricity generation data (MBIE)",
-            "mbie.generation.quarterly", "Quarterly electricity generation data (MBIE)",
-            "lawa.water_quality.state.multi_year", "Water quality state assessments (LAWA)",
-            "lawa.water_quality.trend.multi_year", "Water quality trend analyses (LAWA)"
-        ));
-        supportedTypes.put("requiredFilters", Map.of(
-            "datasetSource", "Must specify the data source (e.g., 'mbie.generation.annual', 'lawa.water_quality.state.multi_year')"
-        ));
-        supportedTypes.put("filterStructure", Map.of(
-            "datasetSource", "string (required)",
-            "fuelType", "string (optional, for MBIE data)",
-            "fuelTypeB", "string (optional second fuel for MBIE comparisons)",
-            "indicator", "string (optional, for LAWA data)",
-            "region", "string (optional, for LAWA data)",
-            "trend", "string (optional, for LAWA trend data)",
-            "startYear", "integer (optional)",
-            "endYear", "integer (optional)"
-        ));
-
-        List<Map<String, Object>> datasets = new ArrayList<>();
-        for (DatasetDescriptor descriptor : datasetCatalog.getDatasets()) {
-            datasets.add(Map.of(
-                "datasetSource", descriptor.datasetSource(),
-                "displayName", descriptor.displayName(),
-                "description", descriptor.displayName(),
-                "supportedQuestionTypes", descriptor.supportedQuestionTypes(),
-                "supportedFilters", descriptor.supportedFilters()
-            ));
-        }
-        supportedTypes.put("datasets", datasets);
-        
-        return ResponseEntity.ok(supportedTypes);
+        return ResponseEntity.ok(capabilityRegistry.toCapabilitiesResponse());
     }
 
     /**

@@ -42,7 +42,7 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         ExplanationRequest mbieRequest = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -81,7 +81,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testNoAvailableBuilderReturnsRefusal() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -106,7 +106,7 @@ class ExplanationServiceImplEdgeCaseTest {
         );
 
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -126,7 +126,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testBuilderReturnsNullFactPack() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -142,7 +142,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testProviderReturnsNullExplanation() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -163,7 +163,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testCitationValidationFailsReturnsRefusal() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -187,7 +187,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testBuilderThrowsException() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -204,7 +204,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testProviderThrowsException() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -225,7 +225,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testValidationIsServiceOwnedAndProviderValidationIsNotCalled() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -249,7 +249,7 @@ class ExplanationServiceImplEdgeCaseTest {
         ExplanationService emptyService = new ExplanationServiceImpl(List.of(), explanationProvider);
         
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -274,7 +274,7 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testSuccessfulFlowWithAllComponents() {
         ExplanationRequest request = new ExplanationRequest(
-            "hydro_generation_trend",
+            "fuel_generation_trend",
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
@@ -286,7 +286,7 @@ class ExplanationServiceImplEdgeCaseTest {
 
         when(factPackBuilder.canHandle(request)).thenReturn(true);
         when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
-        when(explanationProvider.generateExplanation("hydro_generation_trend", factPack)).thenReturn(explanation);
+        when(explanationProvider.generateExplanation("fuel_generation_trend", factPack)).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
 
@@ -297,7 +297,7 @@ class ExplanationServiceImplEdgeCaseTest {
         // Verify all components were called correctly
         verify(factPackBuilder).canHandle(request);
         verify(factPackBuilder).buildFactPack(request);
-        verify(explanationProvider).generateExplanation("hydro_generation_trend", factPack);
+        verify(explanationProvider).generateExplanation("fuel_generation_trend", factPack);
         verify(explanationProvider, never()).validateCitations(any(), any());
     }
 

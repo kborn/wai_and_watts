@@ -84,6 +84,16 @@ test.describe('Loading States Validation', () => {
         body: JSON.stringify({ error: 'Internal server error' }),
       })
     })
+    await page.route(
+      '**/api/v1/mbie/generation/quarterly/fuel-types',
+      route => {
+        return route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'Internal server error' }),
+        })
+      }
+    )
 
     await page.goto('/browse/mbie')
 
@@ -93,13 +103,17 @@ test.describe('Loading States Validation', () => {
     ).not.toBeVisible({
       timeout: 10000,
     })
+    await expect(page.getByText('MBIE Electricity Generation')).toBeVisible()
 
     // Keep Fuel Types section visible; it should be empty or unchanged but not crash the page
     const fuelContainer = page.locator(
       'xpath=//div[label[normalize-space()="Fuel Types"]]'
     )
     await expect(fuelContainer).toBeVisible()
-    const fuelCheckboxes = fuelContainer.locator('input[type="checkbox"]')
-    await expect(fuelCheckboxes).toHaveCount(0)
+    const fuelOptionList = fuelContainer.locator('div.flex.flex-wrap.gap-2')
+    await expect(fuelOptionList).toBeVisible()
+    await expect(fuelOptionList.locator('input[type="checkbox"]')).toHaveCount(
+      0
+    )
   })
 })

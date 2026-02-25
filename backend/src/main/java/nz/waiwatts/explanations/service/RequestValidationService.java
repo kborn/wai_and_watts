@@ -1,55 +1,34 @@
 package nz.waiwatts.explanations.service;
 
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
+import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Service for validating ExplanationRequest against Phase 12 contracts.
+ * Service for validating ExplanationRequest against capability contracts.
  * 
  * Enforces:
  * - Supported question types
  * - Supported dataset sources  
  * - Filter schema validation
- * - Cross-field constraint validation
+ * - Cross-field and metric-type constraint validation
  */
 @Service
 public class RequestValidationService {
-    
-    // Supported question types from contract
-    private static final List<String> SUPPORTED_QUESTION_TYPES = List.of(
-        // MBIE Generation Question Types
-        "renewable_generation_trend",
-        "hydro_generation_trend", 
-        "fuel_type_comparison",
-        "generation_mix_overview",
-        
-        // LAWA Water Quality State Question Types
-        "water_quality_overview",
-        "excellent_sites_trend",
-        "regional_water_quality",
-        
-        // LAWA Water Quality Trend Question Types
-        "water_quality_trends",
-        "improving_sites_trend",
-        "regional_trend_comparison"
-    );
-    
-    // Supported dataset sources from contract
-    private static final List<String> SUPPORTED_DATASET_SOURCES = List.of(
-        "mbie.generation.annual",
-        "mbie.generation.quarterly", 
-        "lawa.water_quality.state.multi_year",
-        "lawa.water_quality.trend.multi_year"
-    );
-    
-    // Allowed filter keys
-    private static final Set<String> ALLOWED_FILTER_KEYS = Set.of(
-        "fuelType", "fuelTypeB", "indicator", "region", "trend", "startYear", "endYear"
-    );
+
+    private final CapabilityRegistry capabilityRegistry;
+
+    public RequestValidationService(CapabilityRegistry capabilityRegistry) {
+        this.capabilityRegistry = capabilityRegistry;
+    }
+
+    // Test-only fallback constructor.
+    RequestValidationService() {
+        this(new CapabilityRegistry(new DatasetCatalog()));
+    }
     
     /**
      * Validates an ExplanationRequest according to Phase 12 contract.
@@ -68,13 +47,13 @@ public class RequestValidationService {
         }
         
         // Validate question type
-        if (!SUPPORTED_QUESTION_TYPES.contains(request.getQuestionType())) {
+        if (!capabilityRegistry.isSupportedQuestionType(request.getQuestionType())) {
             return ValidationResult.failure("UNSUPPORTED_QUESTION_TYPE", 
                 "Unsupported question type: " + request.getQuestionType());
         }
         
         // Validate dataset source
-        if (!SUPPORTED_DATASET_SOURCES.contains(request.getDatasetSource())) {
+        if (!capabilityRegistry.isSupportedDatasetSource(request.getDatasetSource())) {
             return ValidationResult.failure("VALIDATION_FAILED", 
                 "Unsupported dataset source: " + request.getDatasetSource());
         }
@@ -92,29 +71,34 @@ public class RequestValidationService {
     private ValidationResult validateCompatibility(ExplanationRequest request) {
         String questionType = request.getQuestionType();
         String datasetSource = request.getDatasetSource();
-        
-        // MBIE question types must use MBIE dataset sources
-        if (isMbieQuestionType(questionType) && !datasetSource.startsWith("mbie.generation.")) {
-            return ValidationResult.failure("DATASET_MISMATCH", 
-                "Parsed an MBIE generation question, but selected a LAWA dataset.");
-        }
-        
-        // LAWA question types must use LAWA dataset sources
-        if (isLawaQuestionType(questionType) && !datasetSource.startsWith("lawa.water_quality.")) {
-            return ValidationResult.failure("DATASET_MISMATCH", 
-                "Parsed a LAWA water quality question, but selected an MBIE dataset.");
-        }
-        
-        // LAWA state question types must use state dataset source
-        if (isLawaStateQuestionType(questionType) && !datasetSource.contains(".state.")) {
-            return ValidationResult.failure("DATASET_MISMATCH", 
-                "Parsed a LAWA state question, but selected a trend dataset.");
-        }
-        
-        // LAWA trend question types must use trend dataset source
-        if (isLawaTrendQuestionType(questionType) && !datasetSource.contains(".trend.")) {
-            return ValidationResult.failure("DATASET_MISMATCH", 
-                "Parsed a LAWA trend question, but selected a state dataset.");
+
+        if (!capabilityRegistry.isDatasetSupportedForQuestion(questionType, datasetSource)) {
+            var supportedSources = capabilityRegistry.supportedDatasetSourcesForQuestion(questionType);
+            if (questionType != null && questionType.startsWith("water_quality_")
+                && datasetSource != null && datasetSource.startsWith("mbie.generation.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                    "Parsed a LAWA water quality question, but selected an MBIE dataset.");
+            }
+            if (questionType != null
+                && (questionType.contains("generation") || questionType.contains("fuel_type"))
+                && datasetSource != null && datasetSource.startsWith("lawa.water_quality.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                    "Parsed an MBIE generation question, but selected a LAWA dataset.");
+            }
+            if (!supportedSources.isEmpty()
+                && supportedSources.stream().allMatch(source -> source.contains(".state."))
+                && datasetSource != null && datasetSource.contains(".trend.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                    "Parsed a LAWA state question, but selected a trend dataset.");
+            }
+            if (!supportedSources.isEmpty()
+                && supportedSources.stream().allMatch(source -> source.contains(".trend."))
+                && datasetSource != null && datasetSource.contains(".state.")) {
+                return ValidationResult.failure("DATASET_MISMATCH",
+                    "Parsed a LAWA trend question, but selected a state dataset.");
+            }
+            return ValidationResult.failure("DATASET_MISMATCH",
+                "Question type and dataset source are not a supported combination.");
         }
         
         return ValidationResult.success();
@@ -127,11 +111,17 @@ public class RequestValidationService {
             return ValidationResult.success();
         }
         
+        String questionType = request.getQuestionType();
+
         // Check for unknown filter keys
         for (String key : filters.keySet()) {
-            if (!ALLOWED_FILTER_KEYS.contains(key)) {
+            if (!capabilityRegistry.getAllowedFilterKeys().contains(key)) {
                 return ValidationResult.failure("VALIDATION_FAILED", 
                     "Unknown filter key: " + key);
+            }
+            if (!capabilityRegistry.isFilterSupportedForQuestion(questionType, key)) {
+                return ValidationResult.failure("UNSUPPORTED_CAPABILITY",
+                    "Question type " + questionType + " does not support filter: " + key);
             }
         }
 
@@ -145,11 +135,16 @@ public class RequestValidationService {
                     return ValidationResult.failure("VALIDATION_FAILED", 
                         key + " must be an integer");
                 }
-            } else if ("fuelType".equals(key) || "fuelTypeB".equals(key) || "indicator".equals(key) || 
-                      "region".equals(key) || "trend".equals(key)) {
+            } else if ("fuelType".equals(key) || "fuelTypeB".equals(key) || "indicator".equals(key)
+                    || "region".equals(key) || "trend".equals(key) || "stateCategory".equals(key)) {
                 if (!(value instanceof String)) {
                     return ValidationResult.failure("VALIDATION_FAILED", 
                         key + " must be a string");
+                }
+            } else if ("metricType".equals(key)) {
+                if (!(value instanceof String)) {
+                    return ValidationResult.failure("VALIDATION_FAILED",
+                        "metricType must be a string");
                 }
             }
         }
@@ -160,6 +155,21 @@ public class RequestValidationService {
         if (startYear != null && endYear != null && startYear > endYear) {
             return ValidationResult.failure("VALIDATION_FAILED",
                 "startYear must be less than or equal to endYear");
+        }
+
+        String metricType = filters.get("metricType") instanceof String s ? s.trim() : null;
+        if (metricType != null && !metricType.isBlank()
+            && !capabilityRegistry.isMetricTypeSupportedForQuestionAndDataset(
+                questionType,
+                request.getDatasetSource(),
+                metricType
+            )) {
+            return ValidationResult.failure(
+                "UNSUPPORTED_CAPABILITY",
+                "Question type " + questionType
+                    + " with dataset " + request.getDatasetSource()
+                    + " does not support metricType: " + metricType
+            );
         }
 
         // Question-type specific filter requirements
@@ -175,36 +185,24 @@ public class RequestValidationService {
                     "fuelType and fuelTypeB must be different");
             }
         }
+
+        if ("fuel_generation_trend".equals(request.getQuestionType())) {
+            String fuelType = filters.get("fuelType") instanceof String s ? s.trim() : null;
+            if (fuelType == null || fuelType.isEmpty()) {
+                return ValidationResult.failure("MISSING_REQUIRED_FILTERS",
+                    "fuel_generation_trend requires fuelType");
+            }
+        }
+
+        if ("water_quality_state_sites_trend".equals(request.getQuestionType())) {
+            String stateCategory = filters.get("stateCategory") instanceof String s ? s.trim() : null;
+            if (stateCategory == null || stateCategory.isEmpty()) {
+                return ValidationResult.failure("MISSING_REQUIRED_FILTERS",
+                    "water_quality_state_sites_trend requires stateCategory");
+            }
+        }
         
         return ValidationResult.success();
-    }
-    
-    private boolean isMbieQuestionType(String questionType) {
-        return questionType.equals("renewable_generation_trend") ||
-               questionType.equals("hydro_generation_trend") ||
-               questionType.equals("fuel_type_comparison") ||
-               questionType.equals("generation_mix_overview");
-    }
-    
-    private boolean isLawaQuestionType(String questionType) {
-        return questionType.equals("water_quality_overview") ||
-               questionType.equals("excellent_sites_trend") ||
-               questionType.equals("regional_water_quality") ||
-               questionType.equals("water_quality_trends") ||
-               questionType.equals("improving_sites_trend") ||
-               questionType.equals("regional_trend_comparison");
-    }
-    
-    private boolean isLawaStateQuestionType(String questionType) {
-        return questionType.equals("water_quality_overview") ||
-               questionType.equals("excellent_sites_trend") ||
-               questionType.equals("regional_water_quality");
-    }
-    
-    private boolean isLawaTrendQuestionType(String questionType) {
-        return questionType.equals("water_quality_trends") ||
-               questionType.equals("improving_sites_trend") ||
-               questionType.equals("regional_trend_comparison");
     }
     
     /**

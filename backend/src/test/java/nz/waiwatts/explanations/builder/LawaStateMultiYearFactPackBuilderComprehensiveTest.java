@@ -231,8 +231,11 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
 
         // Create request
         ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("excellent_sites_trend");
-        request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
+        request.setQuestionType("water_quality_state_sites_trend");
+        request.setFilters(Map.of(
+            "datasetSource", "lawa.water_quality.state.multi_year",
+            "stateCategory", "EXCELLENT"
+        ));
 
         // Build fact pack
         FactPack factPack = builder.buildFactPack(request);
@@ -243,7 +246,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         
         var timeSeries = timeSeriesList.getFirst();
         assertNotNull(timeSeries);
-        assertEquals("excellent_sites_count", timeSeries.getMetricName());
+        assertEquals("state_category_sites_count", timeSeries.getMetricName());
         assertEquals("sites", timeSeries.getUnit());
         assertEquals(3, timeSeries.getPoints().size()); // 2021, 2023, 2024 years
         
@@ -388,11 +391,12 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
 
         // Create request with time range filter
         ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("excellent_sites_trend");
+        request.setQuestionType("water_quality_state_sites_trend");
         request.setFilters(Map.of(
             "datasetSource", "lawa.water_quality.state.multi_year",
             "startYear", 2020,
-            "endYear", 2024
+            "endYear", 2024,
+            "stateCategory", "EXCELLENT"
         ));
 
         // Build fact pack
@@ -618,8 +622,11 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of(olderRecord, newerRecord));
 
         ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("excellent_sites_trend");
-        request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
+        request.setQuestionType("water_quality_state_sites_trend");
+        request.setFilters(Map.of(
+            "datasetSource", "lawa.water_quality.state.multi_year",
+            "stateCategory", "EXCELLENT"
+        ));
 
         FactPack factPack = builder.buildFactPack(request);
 

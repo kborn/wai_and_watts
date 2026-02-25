@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -32,17 +33,20 @@ public class DatasetSelectionService {
     );
 
     private final DatasetCatalog datasetCatalog;
+    private final CapabilityRegistry capabilityRegistry;
     private final OpenAiResponseClient client;
     private final ObjectMapper objectMapper;
     private final LlmProperties llmProperties;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
+        CapabilityRegistry capabilityRegistry,
         OpenAiResponseClient client,
         ObjectMapper objectMapper,
         LlmProperties llmProperties
     ) {
         this.datasetCatalog = datasetCatalog;
+        this.capabilityRegistry = capabilityRegistry;
         this.client = client;
         this.objectMapper = objectMapper;
         this.llmProperties = llmProperties;
@@ -51,7 +55,7 @@ public class DatasetSelectionService {
     public DatasetSelectionResult selectDataset(String question, ExplanationRequest request) {
         String questionType = request != null ? request.getQuestionType() : null;
         QuestionTypeGroup group = resolveQuestionTypeGroup(questionType);
-        List<String> allowedSources = allowedSourcesFor(group);
+        List<String> allowedSources = allowedSourcesFor(group, questionType);
 
         String explicit = request != null ? request.getDatasetSource() : null;
         if (explicit != null && !explicit.isBlank()) {
@@ -311,22 +315,36 @@ public class DatasetSelectionService {
         if (questionType == null) {
             return QuestionTypeGroup.UNKNOWN;
         }
-        return switch (questionType) {
-            case "renewable_generation_trend",
-                 "hydro_generation_trend",
-                 "fuel_type_comparison",
-                 "generation_mix_overview" -> QuestionTypeGroup.MBIE;
-            case "water_quality_overview",
-                 "excellent_sites_trend",
-                 "regional_water_quality" -> QuestionTypeGroup.LAWA_STATE;
-            case "water_quality_trends",
-                 "improving_sites_trend",
-                 "regional_trend_comparison" -> QuestionTypeGroup.LAWA_TREND;
-            default -> QuestionTypeGroup.UNKNOWN;
-        };
+        List<String> sources = capabilityRegistry.supportedDatasetSourcesForQuestion(questionType).stream()
+            .map(String::toLowerCase)
+            .toList();
+        if (sources.isEmpty()) {
+            return QuestionTypeGroup.UNKNOWN;
+        }
+        boolean mbieOnly = sources.stream().allMatch(source -> source.startsWith("mbie."));
+        if (mbieOnly) {
+            return QuestionTypeGroup.MBIE;
+        }
+        boolean stateOnly = sources.stream().allMatch(source -> source.contains(".state."));
+        if (stateOnly) {
+            return QuestionTypeGroup.LAWA_STATE;
+        }
+        boolean trendOnly = sources.stream().allMatch(source -> source.contains(".trend."));
+        if (trendOnly) {
+            return QuestionTypeGroup.LAWA_TREND;
+        }
+        return QuestionTypeGroup.UNKNOWN;
     }
 
-    private List<String> allowedSourcesFor(QuestionTypeGroup group) {
+    private List<String> allowedSourcesFor(QuestionTypeGroup group, String questionType) {
+        if (questionType != null && !questionType.isBlank()) {
+            List<String> supported = capabilityRegistry.supportedDatasetSourcesForQuestion(questionType).stream()
+                .sorted()
+                .toList();
+            if (!supported.isEmpty()) {
+                return supported;
+            }
+        }
         return switch (group) {
             case MBIE -> List.of("mbie.generation.annual", "mbie.generation.quarterly");
             case LAWA_STATE -> List.of("lawa.water_quality.state.multi_year");
@@ -345,7 +363,7 @@ public class DatasetSelectionService {
     }
 
     private boolean isAllowedForGroup(String datasetSource, QuestionTypeGroup group) {
-        List<String> allowed = allowedSourcesFor(group);
+        List<String> allowed = allowedSourcesFor(group, null);
         if (allowed == null) {
             return true;
         }

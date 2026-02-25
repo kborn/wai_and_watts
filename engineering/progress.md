@@ -38,7 +38,7 @@ Links (optional):
 
 ## Current Position
 - **Active Phase:** Phase 16 — Further enhancements to NL explanations capabilities
-- **Status:** Ready to begin (Phase 15 complete)
+- **Status:** Complete
 
 ---
 
@@ -853,29 +853,38 @@ Authoritative historical artifacts for full task-level detail:
 
 ---
 
-## Phase 16 — NL Explanation Final Refinement
+## Phase 16 — NL Explanation Final Refinement ✅
 Goal: finalize NL capabilities as deterministic, discoverable, reviewer-friendly functionality without relaxing backend authority or safety boundaries.
 
-Execution contract:
-- Primary implementation plan: `engineering/Wai_and_Watts_Final_NL_Refinement_Plan.md`
-
 Definition of Done:
-- [ ] Replace hardcoded question-type routing with a capability registry model.
-- [ ] Add composable metric-type support with backend-side validation and computation.
-- [ ] Add capability discovery endpoint (`GET /api/v1/capabilities`) for supported intents, filters, and examples.
-- [ ] Improve refusal UX to return clear refusal category plus guided supported alternatives.
-- [ ] Keep LLM boundary unchanged: interpretation/narrative only; no SQL or computation authority.
-- [ ] Extend deterministic test coverage for capability validation, metric computation, and refusal guidance.
+- [x] Replace hardcoded question-type routing with a capability registry model.
+- [x] Add composable metric-type support with backend-side validation and computation.
+- [x] Add capability discovery endpoint (`GET /api/v1/capabilities`) for supported intents, filters, and examples.
+- [x] Improve refusal UX to return clear refusal category plus guided supported alternatives.
+- [x] Keep LLM boundary unchanged: interpretation/narrative only; no SQL or computation authority.
+- [x] Extend deterministic test coverage for capability validation, metric computation, and refusal guidance.
+
+Work Items:
+- [x] Generalize hydro special intent to `fuel_generation_trend` (requires `fuelType`).
+- [x] Generalize excellent-sites special intent to `water_quality_state_sites_trend` (requires `stateCategory`).
+- [x] Add LAWA state-category mapping and regional sampling configuration.
+- [x] Align parser schema + request validation with capability registry and metric-type constraints.
+- [x] Add canonical capabilities endpoint contract fields for UI-guided discovery.
+- [x] Refine Ask/Results/Landing/MBIE/LAWA UI copy and interaction flow to remove debug/demo tone and add guided alternatives.
 
 Target NL capability outcomes:
-- [ ] MBIE window/ranking/share queries are answered deterministically (or refused deterministically when unsupported).
-- [ ] LAWA improvement/trend comparison queries are answered deterministically (or refused deterministically when unsupported).
-- [ ] Existing explanation determinism and provenance guarantees remain intact after refinement.
+- [x] MBIE window/ranking/share queries are answered deterministically (or refused deterministically when unsupported).
+- [x] LAWA improvement/trend comparison queries are answered deterministically (or refused deterministically when unsupported).
+- [x] Existing explanation determinism and provenance guarantees remain intact after refinement.
 
 Explicit non-goals:
-- [ ] No arbitrary SQL generation.
-- [ ] No LLM-driven computation or planner execution.
-- [ ] No forecasting/predictive analytics expansion in this phase.
+- [x] No arbitrary SQL generation.
+- [x] No LLM-driven computation or planner execution.
+- [x] No forecasting/predictive analytics expansion in this phase.
+
+Notes:
+- Phase 16 implementation included UX refinement work in the same stream because capability discoverability and refusal guidance were tightly coupled.
+- Non-goals were preserved: no arbitrary SQL generation, no LLM-driven computation/planner execution, no forecasting expansion.
 
 
 ---
