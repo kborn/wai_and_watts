@@ -8,9 +8,9 @@ import java.util.Map;
 
 /**
  * TimeSeriesFact represents a series of data points over time.
- * 
+ * <p>
  * Stable ID format: ts:{dataset}:{metric}:{start_year}_{end_year}:{dimensions_hash}
- * 
+ * <p>
  * Data points are sorted deterministically by period for stable serialization.
  */
 public class TimeSeriesFact {

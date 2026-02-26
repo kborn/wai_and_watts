@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Request for an explanation with structured question typing.
- * 
+ * <p>
  * Phase 12 contract: Must include questionType, datasetSource, and optional filters.
  * Enforces supported question classes and prevents freeform chat prompts.
  */

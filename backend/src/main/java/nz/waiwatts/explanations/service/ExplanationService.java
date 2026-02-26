@@ -5,14 +5,14 @@ import nz.waiwatts.explanations.dto.ExplanationRequest;
 
 /**
  * Service for generating explanations from environmental data.
- * 
+ * <p>
  * The Explanation Service:
  * - Accepts explanation requests with structured question typing
  * - Selects appropriate Fact Pack Builder
  * - Generates Fact Pack
  * - Calls LLM Provider Adapter
  * - Validates citation presence
- * 
+ * <p>
  * Must not query DB directly or contain dataset-specific logic.
  * Enforces refusal behavior for unsupported question types.
  */

@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * MetricFact represents a single metric value at a specific point in time.
- * 
+ * <p>
  * Stable ID format: metric:{dataset}:{metric}:{period}:{dimensions_hash}
  */
 public class MetricFact {

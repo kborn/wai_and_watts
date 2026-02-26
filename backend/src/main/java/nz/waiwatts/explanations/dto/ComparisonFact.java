@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * ComparisonFact represents a comparison between two time periods.
- * 
+ * <p>
  * Stable ID format: cmp:{dataset}:{metric}:{dimensions}:{baseline_vs_comparison}
  */
 public class ComparisonFact {

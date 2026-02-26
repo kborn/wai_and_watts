@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  * ClassificationFact represents categorical classifications (LAWA-style).
- * 
+ * <p>
  * Stable ID format: cls:{dataset}:{classification_type}:{subject}:{start_year}_{end_year}:{dimensions_hash}
  */
 public class ClassificationFact {

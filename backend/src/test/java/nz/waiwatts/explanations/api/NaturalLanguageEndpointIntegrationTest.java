@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Integration tests for Phase 12 Natural Language endpoint.
- *
+ * <p>
  * Uses real parser/selection/validation/explanation services under the test profile.
  */
 @SpringBootTest

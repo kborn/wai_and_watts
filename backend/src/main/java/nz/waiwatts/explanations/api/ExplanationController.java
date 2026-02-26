@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * REST API controller for generating explanations from environmental data.
- * 
+ * <p>
  * Versioned public API controller under /api/v1.
- *
+ * <p>
  * Enforces structured question typing and prevents freeform chat prompts.
  * Only accepts question_type from supported classes and structured filters.
  */
@@ -90,7 +90,7 @@ public class ExplanationController {
 
     /**
      * Process a natural language question and generate an explanation.
-     * 
+     * <p>
      * Phase 12 endpoint: Parses natural language → validates → generates explanation.
      * Fact pack builders pin data to one canonical dataset_release per request.
      * Follows same refusal behavior as structured endpoint.

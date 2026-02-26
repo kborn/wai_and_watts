@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Registry of supported NL explanation capabilities.
- *
+ * <p>
  * This is the single source of truth for:
  * - question types
  * - dataset compatibility

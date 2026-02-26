@@ -19,7 +19,7 @@ import java.util.Set;
 
 /**
  * Implementation of IntentParserService using injected IntentParser strategy.
- * 
+ * <p>
  * Follows Phase 12 NL intent parsing contract:
  * - Maps NL to structured ExplanationRequest via injected parser strategy
  * - Returns deterministic refusals for ambiguous/unsupported inputs
@@ -142,10 +142,10 @@ public class IntentParserServiceImpl implements IntentParserService {
 
     /**
      * Deterministic normalization layer to keep parsed requests consistent with builders.
-     *
+     * <p>
      * Key rule: if the parser produces two fuels (fuelType + fuelTypeB), the request MUST be
      * a fuel_type_comparison so the fact pack builder includes both time series.
-     *
+     * <p>
      * This prevents "missing geothermal in fact pack" refusals when the LLM chooses a single-fuel
      * questionType but still extracts fuelTypeB.
      */

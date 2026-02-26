@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  * OpenAI-backed intent parser.
- *
+ * <p>
  * Produces a structured ExplanationRequest or null if parsing is ambiguous.
  */
 public class OpenAiIntentParser implements IntentParser {

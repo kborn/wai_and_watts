@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * OpenAI-backed ExplanationProvider.
- *
+ * <p>
  * Uses the Responses API in JSON mode and returns a structured Explanation.
  * All facts must come from the provided FactPack.
  * Citation validation uses the shared validation layer to stay aligned with stub behavior.

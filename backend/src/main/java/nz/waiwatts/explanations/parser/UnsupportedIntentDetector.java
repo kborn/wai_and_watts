@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 /**
  * Deterministic detector for explain-only guardrails.
- *
+ * <p>
  * Refuses causal, predictive, or normative questions before LLM parsing.
  */
 @Component

@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * Hardcoded demo intent parser for no-LLM-key mode.
- *
+ * <p>
  * Supports exactly the four Ask sample questions and refuses all others.
  */
 public class HardcodedDemoIntentParser implements IntentParser {
