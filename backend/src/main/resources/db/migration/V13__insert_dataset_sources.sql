@@ -1,6 +1,6 @@
 -- V13: Simple dataset source insertion (resolves missing dataset issue)
 -- All dataset sources required for operator ingestion
--- Use database-agnostic UUID generation for H2/PostgreSQL compatibility
+-- Use database-agnostic UUID generation for H2/PostgresSQL compatibility
 
 INSERT INTO dataset_source (id, name, publisher, source_url, expected_format, update_cadence, code, created_at)
 VALUES 
