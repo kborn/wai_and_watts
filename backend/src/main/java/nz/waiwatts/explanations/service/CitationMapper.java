@@ -62,7 +62,7 @@ public class CitationMapper {
                 if (parts.length >= 4 && parts[3] != null && !parts[3].contains("_to_") && !parts[3].contains("_")) {
                     fuelType = parts[3];
                 }
-                String coverage = parts.length >= 5 ? parts[4] : (parts.length >= 4 ? parts[3] : null);
+                String coverage = parts.length >= 5 ? parts[4] : (parts.length == 4 ? parts[3] : null);
                 period = parseCoverage(coverage);
             }
             case "metric" -> {

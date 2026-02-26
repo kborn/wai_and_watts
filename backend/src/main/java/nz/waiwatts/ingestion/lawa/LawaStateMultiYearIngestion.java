@@ -47,7 +47,7 @@ public class LawaStateMultiYearIngestion {
     }
 
     /**
-     * Ingests the LAWA state multi year fixture from classpath. Implements idempotency via (source, content_hash).
+     * Ingests the LAWA state multi-year fixture from classpath. Implements idempotency via (source, content_hash).
      * Only persists domain rows when a new release is created.
      *
      * @param datasetSourceCode stable code of the DatasetSource (e.g., "lawa.water_quality.state.multi_year")

@@ -204,7 +204,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         if (!factPack.getFacts().getMetrics().isEmpty()) {
             var metrics = factPack.getFacts().getMetrics();
             
-            // Find the fuel type with highest generation
+            // Find the fuel type with the highest generation
             var maxMetric = metrics.stream()
                 .max(Comparator.comparing(MetricFact::getValue));
 

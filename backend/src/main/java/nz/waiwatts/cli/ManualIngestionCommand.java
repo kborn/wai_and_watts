@@ -50,7 +50,7 @@ public class ManualIngestionCommand {
         String datasetSourceCode = args[0];
         String filePath = args[1];
         String publishedDateArg = args.length >= 3 ? args[2] : null;
-        String releaseLabel = args.length >= 4 ? args[3] : null;
+        String releaseLabel = args.length == 4 ? args[3] : null;
 
         LocalDate publishedDate;
         try {

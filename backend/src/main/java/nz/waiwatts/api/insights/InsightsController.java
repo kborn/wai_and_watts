@@ -18,9 +18,9 @@ import java.util.Map;
 public class InsightsController {
 
     /**
-     * Returns the markdown content of Insights.md.
+     * Returns the Markdown content of Insights.md.
      * 
-     * @return insights content as JSON with markdown field
+     * @return insights content as JSON with Markdown field
      */
     @GetMapping("/insights")
     public ResponseEntity<Map<String, Object>> getInsights() {

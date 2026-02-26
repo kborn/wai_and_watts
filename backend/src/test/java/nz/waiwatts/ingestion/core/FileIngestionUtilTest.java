@@ -2,6 +2,7 @@ package nz.waiwatts.ingestion.core;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Assumptions;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,17 +47,20 @@ class FileIngestionUtilTest {
         // Arrange
         Path file = tempDir.resolve("test.txt");
         Files.writeString(file, "content");
-        file.toFile().setReadable(false);
+        boolean readabilityChanged = file.toFile().setReadable(false);
+        Assumptions.assumeTrue(readabilityChanged, "Unable to set file unreadable on this filesystem");
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> FileIngestionUtil.readFileBytes(file.toString())
-        );
-        assertTrue(exception.getMessage().contains("File is not readable"));
-        
-        // Cleanup: restore readability for cleanup
-        file.toFile().setReadable(true);
+        try {
+            // Act & Assert
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> FileIngestionUtil.readFileBytes(file.toString())
+            );
+            assertTrue(exception.getMessage().contains("File is not readable"));
+        } finally {
+            // Cleanup: restore readability for cleanup
+            assertTrue(file.toFile().setReadable(true), "Failed to restore test file readability");
+        }
     }
 
     @Test

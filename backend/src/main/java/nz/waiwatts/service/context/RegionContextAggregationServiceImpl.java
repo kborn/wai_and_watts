@@ -115,9 +115,7 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                 int newPeriod = r.getTrendPeriodYears() != null ? r.getTrendPeriodYears() : 0;
 
                 if (preferredPeriod != null) {
-                    if (newPeriod == preferredPeriod) {
-                        result.put(key, r);
-                    } else if (existingPeriod != preferredPeriod && newPeriod == preferredPeriod) {
+                    if (existingPeriod != preferredPeriod && newPeriod == preferredPeriod) {
                         result.put(key, r);
                     }
                 } else {
@@ -139,7 +137,7 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                         (r.getRegion() != null && r.getRegion().equalsIgnoreCase(region)))
                 .filter(r -> indicator == null || indicator.isEmpty() || 
                         (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(indicator)))
-                .collect(Collectors.toList());
+                .toList();
 
         boolean hasIndicatorFilter = indicator != null && !indicator.isEmpty();
 
@@ -151,8 +149,8 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                     .collect(Collectors.toSet());
         } else {
             uniqueUnits = records.stream()
+                    .filter(r -> r.getLawaSiteId() != null && r.getIndicatorNorm() != null)
                     .map(r -> r.getLawaSiteId() + "|" + r.getIndicatorNorm())
-                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
         }
 

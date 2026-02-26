@@ -96,6 +96,24 @@ class RegionContextAggregationServiceImplTest {
     }
 
     @Test
+    void getRegionContext_stateData_withoutIndicatorFilter_excludesNullUnitKeysFromUnitCount() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaStateMultiYearRecord valid = createStateRecord(release, "Auckland", "ECOLI", "A", "site1");
+        LawaStateMultiYearRecord nullSite = createStateRecord(release, "Auckland", "ECOLI", "B", null);
+        LawaStateMultiYearRecord nullIndicator = createStateRecord(release, "Auckland", null, "C", "site2");
+
+        when(stateRepository.findAll()).thenReturn(List.of(valid, nullSite, nullIndicator));
+        when(trendRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", null, null);
+
+        assertThat(result.getWater().getState().getUnitCount()).isEqualTo(1);
+    }
+
+    @Test
     void getRegionContext_mbieData_computesRenewableShare() {
         DatasetRelease release = new DatasetRelease();
         release.setId(UUID.randomUUID());
@@ -172,6 +190,25 @@ class RegionContextAggregationServiceImplTest {
 
         assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(1);
         assertThat(result.getWater().getTrend().getDegradingPct()).isEqualTo(100.0);
+    }
+
+    @Test
+    void getRegionContext_trendWithPreferredPeriod_doesNotReplaceExistingPreferredRecord() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord preferredExisting = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", -1, 10);
+        LawaTrendMultiYearRecord preferredLater = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", 2, 10);
+
+        when(trendRepository.findAll()).thenReturn(List.of(preferredExisting, preferredLater));
+        when(stateRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", 10);
+
+        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(1);
+        assertThat(result.getWater().getTrend().getDegradingPct()).isEqualTo(100.0);
+        assertThat(result.getWater().getTrend().getImprovingPct()).isEqualTo(0.0);
     }
 
     private LawaTrendMultiYearRecord createTrendRecord(DatasetRelease release, String region, String indicator, Integer score) {

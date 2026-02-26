@@ -418,8 +418,7 @@ public class ExplanationController {
             return "VALIDATION_FAILED";
         }
         return switch (refusalCategory) {
-            case "UNSUPPORTED_QUESTION_TYPE" -> "UNSUPPORTED_CAPABILITY";
-            case "UNSUPPORTED_CAPABILITY" -> "UNSUPPORTED_CAPABILITY";
+            case "UNSUPPORTED_QUESTION_TYPE", "UNSUPPORTED_CAPABILITY" -> "UNSUPPORTED_CAPABILITY";
             case "MISSING_REQUIRED_FILTERS" -> "MISSING_REQUIRED_FILTERS";
             case "DATASET_MISMATCH" -> "DATASET_MISMATCH";
             default -> "VALIDATION_FAILED";
