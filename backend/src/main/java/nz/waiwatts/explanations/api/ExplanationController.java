@@ -1,5 +1,6 @@
 package nz.waiwatts.explanations.api;
 
+import io.micrometer.core.instrument.Metrics;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dto.AskResult;
 import nz.waiwatts.explanations.dto.Citation;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * REST API controller for generating explanations from environmental data.
@@ -125,6 +127,7 @@ public class ExplanationController {
             // Parse natural language to structured request
             parseResponse = intentParserService.parseQuestion(question);
             parseDurationMs = (System.nanoTime() - parseStart) / 1_000_000;
+            recordAskStageLatency("parse", parseDurationMs);
         
             if (!parseResponse.isOk()) {
                 logger.info("Intent parse result: refusal - category: {}, message: {}", 
@@ -144,6 +147,7 @@ public class ExplanationController {
                     null,
                     debug
                 );
+                incrementAskRefusalCounter("parse", result.getRefusal().getCode());
                 return ResponseEntity.ok(result);
             }
 
@@ -155,7 +159,10 @@ public class ExplanationController {
                 summarizeFilters(parsedRequest));
 
             // Select dataset if missing or verify explicit dataset
+            long selectionStart = System.nanoTime();
             selectionResult = datasetSelectionService.selectDataset(question, parsedRequest);
+            long selectionDurationMs = (System.nanoTime() - selectionStart) / 1_000_000;
+            recordAskStageLatency("selection", selectionDurationMs);
 
             if (!selectionResult.isSelected()) {
                 logger.info("Dataset selection refusal: category={}, message={}",
@@ -174,13 +181,17 @@ public class ExplanationController {
                     selectionResult,
                     debug
                 );
+                incrementAskRefusalCounter("selection", result.getRefusal().getCode());
                 return ResponseEntity.ok(result);
             }
 
             parsedRequest.setDatasetSource(selectionResult.getDatasetSource());
 
             // Validate the parsed request
+            long validationStart = System.nanoTime();
             RequestValidationService.ValidationResult validationResult = validationService.validateRequest(parsedRequest);
+            long validationDurationMs = (System.nanoTime() - validationStart) / 1_000_000;
+            recordAskStageLatency("validation", validationDurationMs);
             
             if (!validationResult.isValid()) {
                 logger.info("Validation result: refusal - category: {}, message: {}", 
@@ -200,13 +211,17 @@ public class ExplanationController {
                     selectionResult,
                     debug
                 );
+                incrementAskRefusalCounter("validation", result.getRefusal().getCode());
                 return ResponseEntity.ok(result);
             }
 
             logger.info("Validation result: ok - request valid");
 
             // Generate explanation using existing pipeline
+            long explanationStart = System.nanoTime();
             Explanation explanation = explanationService.generateExplanation(parsedRequest);
+            long explanationDurationMs = (System.nanoTime() - explanationStart) / 1_000_000;
+            recordAskStageLatency("explanation", explanationDurationMs);
             
             if (explanation.isRefusal()) {
                 String code = mapExplanationRefusalCode(explanation.getRefusalReason());
@@ -230,6 +245,7 @@ public class ExplanationController {
                     selectionResult,
                     debug
                 );
+                incrementAskRefusalCounter("explanation", result.getRefusal().getCode());
                 return ResponseEntity.ok(result);
             } else {
                 logger.info("Final result: ok - explanation generated");
@@ -257,6 +273,7 @@ public class ExplanationController {
                 selectionResult.getCandidates(),
                 null
             ));
+            Metrics.globalRegistry.counter("waiwatts.ask.success.count").increment();
             
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -274,8 +291,25 @@ public class ExplanationController {
                 selectionResult,
                 debug
             );
+            incrementAskRefusalCounter("internal", result.getRefusal().getCode());
             return ResponseEntity.ok(result);
         }
+    }
+
+    private void recordAskStageLatency(String stage, Long durationMs) {
+        if (durationMs == null) {
+            return;
+        }
+        Metrics.globalRegistry
+            .timer("waiwatts.ask.stage.duration", "stage", stage)
+            .record(Math.max(durationMs, 0L), TimeUnit.MILLISECONDS);
+    }
+
+    private void incrementAskRefusalCounter(String stage, String code) {
+        String refusalCode = (code == null || code.isBlank()) ? "UNKNOWN" : code;
+        Metrics.globalRegistry
+            .counter("waiwatts.ask.refusal.count", "stage", stage, "code", refusalCode)
+            .increment();
     }
 
     private AskResult refusalResult(

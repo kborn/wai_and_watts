@@ -1,5 +1,6 @@
 package nz.waiwatts.explanations.service;
 
+import io.micrometer.core.instrument.Metrics;
 import nz.waiwatts.explanations.builder.FactPackBuilder;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.dto.*;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,7 +127,12 @@ public class ExplanationServiceImpl implements ExplanationService {
         // Generate explanation using provider (question derived from questionType)
         Explanation explanation;
         try {
+            long providerStart = System.nanoTime();
             explanation = explanationProvider.generateExplanation(request.getQuestionType(), factPack);
+            long providerDurationMs = (System.nanoTime() - providerStart) / 1_000_000;
+            Metrics.globalRegistry
+                .timer("waiwatts.explanation.stage.duration", "stage", "provider")
+                .record(Math.max(providerDurationMs, 0L), TimeUnit.MILLISECONDS);
         } catch (RuntimeException e) {
             log.error("Explanation provider failed for questionType={} datasetSource={}: {}",
                     request.getQuestionType(), request.getDatasetSource(), e.getMessage(), e);
@@ -139,7 +146,12 @@ public class ExplanationServiceImpl implements ExplanationService {
 
         // Validate citations — service enforces; provider validation still called for redundancy in Phase 11
         if (!explanation.isRefusal()) {
+            long citationValidationStart = System.nanoTime();
             boolean serviceCitationsOk = validateCitations(explanation, factPack);
+            long citationValidationDurationMs = (System.nanoTime() - citationValidationStart) / 1_000_000;
+            Metrics.globalRegistry
+                .timer("waiwatts.explanation.stage.duration", "stage", "citation_validation")
+                .record(Math.max(citationValidationDurationMs, 0L), TimeUnit.MILLISECONDS);
             if (!serviceCitationsOk) {
                 // Internal debug payload to assist development without leaking to clients
                 logCitationFailureDebug(request, explanation, factPack);

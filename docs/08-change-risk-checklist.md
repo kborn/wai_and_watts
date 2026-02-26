@@ -32,3 +32,25 @@ Use this checklist before merging material changes to `main`.
 ## 6) Rollback/readiness check
 - [ ] Clear rollback path identified (migration rollback strategy or compensating forward fix).
 - [ ] Known limitations or deferred follow-ups captured in `engineering/progress.md`.
+
+## Branch Protection Receipts (Audit Record)
+
+Target branch: `main`
+
+Required status checks:
+- `Backend CI / contract-suite`
+- `Backend CI / build-test`
+- `Frontend CI / frontend-test`
+- `Docs CI / docs-check`
+- `E2E Tests / e2e`
+
+Review policy:
+- CODEOWNERS is enforced via `.github/CODEOWNERS`.
+- Required review owner: `@kborn` (default owner for all paths; scoped ownership for backend/frontend/docs/CI paths).
+- PRs must be merged through protected-branch review flow (no direct pushes as a normal path).
+
+Merge gates:
+- PR is up to date with `main` before merge.
+- All required checks above are green.
+- Required CODEOWNER review is approved.
+- No unresolved review conversations.
