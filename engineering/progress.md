@@ -907,9 +907,9 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
 - [x] Restore capability-driven Ask UI labels/prompts and remove hardcoded selective defaults.
 - [x] Add `suggestedValuesByToken` to capabilities payload for deterministic, non-biased prompt template substitution.
 - [x] Harden integration tests to self-seed required dataset_source records when baseline seed rows are absent in test DB lifecycle.
-- [ ] Enums over strings for capability vocabulary (User addition)
-    - [ ] Introduce internal enums for QuestionType/DatasetSource/MetricType/FilterKey to reduce stringly-typed drift.
-    - [ ] Preserve wire strings at API boundary; registry remains the authoritative support matrix.
+- [x] Enums over strings for capability vocabulary (User addition)
+    - [x] Introduce internal enums for QuestionType/DatasetSource/MetricType/FilterKey to reduce stringly-typed drift.
+    - [x] Preserve wire strings at API boundary; registry remains the authoritative support matrix.
 - [ ] Add NL determinism gate in CI
     - [ ] Run a fixed prompt corpus multiple times and fail on outcome/refusal-category drift.
 - [ ] Normalize parser output contract fully

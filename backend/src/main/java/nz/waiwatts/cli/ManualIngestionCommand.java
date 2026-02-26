@@ -1,6 +1,7 @@
 package nz.waiwatts.cli;
 
 import nz.waiwatts.WaiWattsApplication;
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.ingestion.lawa.LawaStateMultiYearIngestion;
 import nz.waiwatts.ingestion.lawa.LawaTrendMultiYearIngestion;
 import nz.waiwatts.ingestion.mbie.MbieAnnualIngestion;
@@ -29,10 +30,10 @@ public class ManualIngestionCommand {
     private static final int EXIT_VALIDATION = 2;
     private static final int EXIT_INGESTION = 3;
     private static final Set<String> ALLOWED_DATASET_CODES = Set.of(
-            "mbie.generation.annual",
-            "mbie.generation.quarterly",
-            "lawa.water_quality.state.multi_year",
-            "lawa.water_quality.trend.multi_year"
+            DatasetSource.MBIE_GENERATION_ANNUAL.wireValue(),
+            DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue(),
+            DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue(),
+            DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue()
     );
 
     public static void main(String[] args) {
@@ -157,32 +158,33 @@ public class ManualIngestionCommand {
                                           String filePath,
                                           LocalDate publishedDate,
                                           String releaseLabel) {
-        return switch (datasetSourceCode) {
-            case "mbie.generation.annual" -> {
+        DatasetSource datasetSource = DatasetSource.fromWireValue(datasetSourceCode)
+            .orElseThrow(() -> new IllegalArgumentException("No ingestion handler for dataset source code: " + datasetSourceCode));
+        return switch (datasetSource) {
+            case MBIE_GENERATION_ANNUAL -> {
                 MbieAnnualIngestion ingestion = context.getBean(MbieAnnualIngestion.class);
                 UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
                 MbieGenerationAnnualRecordRepository repo = context.getBean(MbieGenerationAnnualRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
-            case "mbie.generation.quarterly" -> {
+            case MBIE_GENERATION_QUARTERLY -> {
                 MbieQuarterlyIngestion ingestion = context.getBean(MbieQuarterlyIngestion.class);
                 UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
                 MbieGenerationQuarterlyRecordRepository repo = context.getBean(MbieGenerationQuarterlyRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
-            case "lawa.water_quality.state.multi_year" -> {
+            case LAWA_WATER_QUALITY_STATE_MULTI_YEAR -> {
                 LawaStateMultiYearIngestion ingestion = context.getBean(LawaStateMultiYearIngestion.class);
                 UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
                 LawaStateMultiYearRecordRepository repo = context.getBean(LawaStateMultiYearRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
-            case "lawa.water_quality.trend.multi_year" -> {
+            case LAWA_WATER_QUALITY_TREND_MULTI_YEAR -> {
                 LawaTrendMultiYearIngestion ingestion = context.getBean(LawaTrendMultiYearIngestion.class);
                 UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
                 LawaTrendMultiYearRecordRepository repo = context.getBean(LawaTrendMultiYearRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
-            default -> throw new IllegalArgumentException("No ingestion handler for dataset source code: " + datasetSourceCode);
         };
     }
 

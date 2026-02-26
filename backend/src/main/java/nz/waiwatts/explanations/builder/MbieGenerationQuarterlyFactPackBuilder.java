@@ -2,6 +2,10 @@ package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.mbie.MbieGenerationQuarterlyRecord;
 import nz.waiwatts.domain.datasets.DatasetRelease;
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.MetricType;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.persistence.repositories.MbieGenerationQuarterlyRecordRepository;
 
@@ -19,9 +23,10 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
     // Centralized renewable types to avoid drift
     private static final Set<String> RENEWABLE_FUEL_TYPES = Set.of("HYDRO", "WIND", "GEOTHERMAL", "BIOMASS", "SOLAR");
-    private static final String METRIC_GENERATION_GWH = "generation_gwh";
-    private static final String METRIC_RENEWABLE_SHARE_PCT = "renewable_share_pct";
-    private static final String METRIC_GENERATION_SHARE_PCT = "generation_share_pct";
+    private static final String MBIE_QUARTERLY_DATASET = DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue();
+    private static final String METRIC_GENERATION_GWH = MetricType.GENERATION_GWH.wireValue();
+    private static final String METRIC_RENEWABLE_SHARE_PCT = MetricType.RENEWABLE_SHARE_PCT.wireValue();
+    private static final String METRIC_GENERATION_SHARE_PCT = MetricType.GENERATION_SHARE_PCT.wireValue();
 
     public MbieGenerationQuarterlyFactPackBuilder(MbieGenerationQuarterlyRecordRepository repository) {
         this.repository = repository;
@@ -34,7 +39,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         // Set request context
         FactPack.RequestContext requestContext = new FactPack.RequestContext();
         requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(List.of("mbie.generation.quarterly"));
+        requestContext.setDatasetScope(List.of(MBIE_QUARTERLY_DATASET));
         requestContext.setFiltersApplied(request.getFilters());
         factPack.setRequestContext(requestContext);
 
@@ -63,7 +68,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                     String releaseKey = entry.getKey();
                     List<MbieGenerationQuarterlyRecord> group = entry.getValue();
                     FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                    source.setDatasetSourceCode("mbie.generation.quarterly");
+                    source.setDatasetSourceCode(MBIE_QUARTERLY_DATASET);
                     source.setDatasetReleaseId(releaseKey);
                     // contentHash from this release specifically if present
                     if (!group.isEmpty()
@@ -94,14 +99,14 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         // Check top-level datasetSource field (Phase 12+)
         String ds = request.getDatasetSource();
         if (ds != null) {
-            return "mbie.generation.quarterly".equals(ds);
+            return MBIE_QUARTERLY_DATASET.equals(ds);
         }
         
         // Backward compatibility: check filters
         Map<String, Object> filters = request.getFilters();
         if (filters != null) {
-            Object dsFilter = filters.get("datasetSource");
-            return "mbie.generation.quarterly".equals(String.valueOf(dsFilter));
+            Object dsFilter = filters.get(FilterKey.DATASET_SOURCE.wireValue());
+            return MBIE_QUARTERLY_DATASET.equals(String.valueOf(dsFilter));
         }
         
         return false;
@@ -109,7 +114,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
     @Override
     public String getSupportedDatasetSourceCode() {
-        return "mbie.generation.quarterly";
+        return MBIE_QUARTERLY_DATASET;
     }
 
     private List<MbieGenerationQuarterlyRecord> getRecordsForRequest(ExplanationRequest request) {
@@ -118,8 +123,8 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         Integer endYear = null;
         if (filters != null && !filters.isEmpty()) {
             try {
-                Object s = filters.get("startYear");
-                Object e = filters.get("endYear");
+                Object s = filters.get(FilterKey.START_YEAR.wireValue());
+                Object e = filters.get(FilterKey.END_YEAR.wireValue());
                 if (s != null) startYear = Integer.parseInt(s.toString());
                 if (e != null) endYear = Integer.parseInt(e.toString());
             } catch (NumberFormatException ignore) {
@@ -129,10 +134,10 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
         // Only apply a fuelType filter for single-fuel trend questions.
         String questionType = (request != null) ? request.getQuestionType() : null;
-        boolean applyFuelType = "fuel_generation_trend".equals(questionType);
+        boolean applyFuelType = QuestionType.FUEL_GENERATION_TREND.wireValue().equals(questionType);
         String fuelType = null;
         if (applyFuelType && filters != null) {
-            Object ftObj = filters.get("fuelType");
+            Object ftObj = filters.get(FilterKey.FUEL_TYPE.wireValue());
             if (ftObj instanceof String str && !str.isBlank()) {
                 fuelType = str.trim().toLowerCase(Locale.ROOT);
             }
@@ -195,19 +200,23 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationQuarterlyRecord> records) {
-        String questionType = request.getQuestionType();
-        
+        QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
+        if (questionType == null) {
+            buildBasicFacts(factPack, records);
+            return;
+        }
+
         switch (questionType) {
-            case "renewable_generation_trend":
+            case RENEWABLE_GENERATION_TREND:
                 buildRenewableGenerationTrendFacts(factPack, records, resolveMetricType(request, METRIC_GENERATION_GWH));
                 break;
-            case "fuel_generation_trend":
+            case FUEL_GENERATION_TREND:
                 buildFuelGenerationTrendFacts(factPack, request, records);
                 break;
-            case "fuel_type_comparison":
+            case FUEL_TYPE_COMPARISON:
                 buildFuelTypeComparisonFacts(factPack, request, records);
                 break;
-            case "generation_mix_overview":
+            case GENERATION_MIX_OVERVIEW:
                 buildGenerationMixOverviewFacts(factPack, request, records);
                 break;
             default:
@@ -500,11 +509,17 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
     }
 
     private void setGuardrails(FactPack factPack, ExplanationRequest request) {
-        String questionType = request.getQuestionType();
-        
+        QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
+        if (questionType == null) {
+            factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+            factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
+            factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
+            return;
+        }
+
         switch (questionType) {
-            case "renewable_generation_trend":
-            case "fuel_generation_trend":
+            case RENEWABLE_GENERATION_TREND:
+            case FUEL_GENERATION_TREND:
                 // If no facts, keep allowedClaims empty to trigger refusal as per tests
                 boolean hasAnyFactsTrend = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -522,8 +537,8 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                     ));
                 }
                 break;
-            case "fuel_type_comparison":
-            case "generation_mix_overview":
+            case FUEL_TYPE_COMPARISON:
+            case GENERATION_MIX_OVERVIEW:
                 // If no facts, keep allowedClaims empty to trigger refusal as per tests
                 boolean hasAnyFactsComp = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -571,8 +586,8 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         if (request == null || request.getFilters() == null) {
             return List.of();
         }
-        Object fuelA = request.getFilters().get("fuelType");
-        Object fuelB = request.getFilters().get("fuelTypeB");
+        Object fuelA = request.getFilters().get(FilterKey.FUEL_TYPE.wireValue());
+        Object fuelB = request.getFilters().get(FilterKey.FUEL_TYPE_B.wireValue());
         List<String> fuels = new ArrayList<>();
         if (fuelA instanceof String s && !s.isBlank()) {
             fuels.add(s.trim().toUpperCase());
@@ -590,7 +605,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         if (request == null || request.getFilters() == null) {
             return fallback;
         }
-        Object metricType = request.getFilters().get("metricType");
+        Object metricType = request.getFilters().get(FilterKey.METRIC_TYPE.wireValue());
         if (metricType instanceof String s && !s.isBlank()) {
             return s.trim();
         }
@@ -601,7 +616,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         if (request == null || request.getFilters() == null) {
             return null;
         }
-        Object fuelType = request.getFilters().get("fuelType");
+        Object fuelType = request.getFilters().get(FilterKey.FUEL_TYPE.wireValue());
         if (fuelType instanceof String s && !s.isBlank()) {
             return s.trim().toUpperCase(Locale.ROOT);
         }

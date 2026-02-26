@@ -1,6 +1,9 @@
 package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import org.springframework.stereotype.Service;
@@ -94,18 +97,22 @@ public class RequestValidationService {
             String key = entry.getKey();
             Object value = entry.getValue();
 
-            if ("startYear".equals(key) || "endYear".equals(key)) {
+            if (FilterKey.START_YEAR.wireValue().equals(key) || FilterKey.END_YEAR.wireValue().equals(key)) {
                 if (!(value instanceof Integer)) {
                     return ValidationResult.failure("VALIDATION_FAILED",
                         key + " must be an integer");
                 }
-            } else if ("fuelType".equals(key) || "fuelTypeB".equals(key) || "indicator".equals(key)
-                    || "region".equals(key) || "trend".equals(key) || "stateCategory".equals(key)) {
+            } else if (FilterKey.FUEL_TYPE.wireValue().equals(key)
+                    || FilterKey.FUEL_TYPE_B.wireValue().equals(key)
+                    || FilterKey.INDICATOR.wireValue().equals(key)
+                    || FilterKey.REGION.wireValue().equals(key)
+                    || FilterKey.TREND.wireValue().equals(key)
+                    || FilterKey.STATE_CATEGORY.wireValue().equals(key)) {
                 if (!(value instanceof String)) {
                     return ValidationResult.failure("VALIDATION_FAILED",
                         key + " must be a string");
                 }
-            } else if ("metricType".equals(key)) {
+            } else if (FilterKey.METRIC_TYPE.wireValue().equals(key)) {
                 if (!(value instanceof String)) {
                     return ValidationResult.failure("VALIDATION_FAILED",
                         "metricType must be a string");
@@ -114,14 +121,14 @@ public class RequestValidationService {
         }
 
         // Validate year filters after type checks to avoid ClassCastException
-        Integer startYear = (Integer) filters.get("startYear");
-        Integer endYear = (Integer) filters.get("endYear");
+        Integer startYear = (Integer) filters.get(FilterKey.START_YEAR.wireValue());
+        Integer endYear = (Integer) filters.get(FilterKey.END_YEAR.wireValue());
         if (startYear != null && endYear != null && startYear > endYear) {
             return ValidationResult.failure("VALIDATION_FAILED",
                 "startYear must be less than or equal to endYear");
         }
 
-        String metricType = filters.get("metricType") instanceof String s ? s.trim() : null;
+        String metricType = filters.get(FilterKey.METRIC_TYPE.wireValue()) instanceof String s ? s.trim() : null;
         if (metricType != null && !metricType.isBlank()
             && !capabilityRegistry.isMetricTypeSupportedForQuestionAndDataset(
                 questionType,
@@ -137,9 +144,9 @@ public class RequestValidationService {
         }
 
         // Question-type specific filter requirements
-        if ("fuel_type_comparison".equals(request.getQuestionType())) {
-            String fuelA = filters.get("fuelType") instanceof String s ? s.trim() : null;
-            String fuelB = filters.get("fuelTypeB") instanceof String s ? s.trim() : null;
+        if (QuestionType.FUEL_TYPE_COMPARISON.wireValue().equals(request.getQuestionType())) {
+            String fuelA = filters.get(FilterKey.FUEL_TYPE.wireValue()) instanceof String s ? s.trim() : null;
+            String fuelB = filters.get(FilterKey.FUEL_TYPE_B.wireValue()) instanceof String s ? s.trim() : null;
             if (fuelA == null || fuelA.isEmpty() || fuelB == null || fuelB.isEmpty()) {
                 return ValidationResult.failure("MISSING_REQUIRED_FILTERS",
                     "fuel_type_comparison requires fuelType and fuelTypeB");
@@ -150,16 +157,16 @@ public class RequestValidationService {
             }
         }
 
-        if ("fuel_generation_trend".equals(request.getQuestionType())) {
-            String fuelType = filters.get("fuelType") instanceof String s ? s.trim() : null;
+        if (QuestionType.FUEL_GENERATION_TREND.wireValue().equals(request.getQuestionType())) {
+            String fuelType = filters.get(FilterKey.FUEL_TYPE.wireValue()) instanceof String s ? s.trim() : null;
             if (fuelType == null || fuelType.isEmpty()) {
                 return ValidationResult.failure("MISSING_REQUIRED_FILTERS",
                     "fuel_generation_trend requires fuelType");
             }
         }
 
-        if ("water_quality_state_sites_trend".equals(request.getQuestionType())) {
-            String stateCategory = filters.get("stateCategory") instanceof String s ? s.trim() : null;
+        if (QuestionType.WATER_QUALITY_STATE_SITES_TREND.wireValue().equals(request.getQuestionType())) {
+            String stateCategory = filters.get(FilterKey.STATE_CATEGORY.wireValue()) instanceof String s ? s.trim() : null;
             if (stateCategory == null || stateCategory.isEmpty()) {
                 return ValidationResult.failure("MISSING_REQUIRED_FILTERS",
                     "water_quality_state_sites_trend requires stateCategory");
@@ -172,17 +179,17 @@ public class RequestValidationService {
     private ValidationResult validateCompatibility(ExplanationRequest request) {
         String questionType = request.getQuestionType();
         String datasetSource = request.getDatasetSource();
+        QuestionType parsedQuestionType = QuestionType.fromWireValue(questionType).orElse(null);
 
         if (!capabilityRegistry.isDatasetSupportedForQuestion(questionType, datasetSource)) {
             var supportedSources = capabilityRegistry.supportedDatasetSourcesForQuestion(questionType);
-            if (questionType != null && questionType.startsWith("water_quality_")
-                    && datasetSource != null && datasetSource.startsWith("mbie.generation.")) {
+            if (isLawaQuestionType(parsedQuestionType)
+                    && isMbieDataset(datasetSource)) {
                 return ValidationResult.failure("DATASET_MISMATCH",
                         "Parsed a LAWA water quality question, but selected an MBIE dataset.");
             }
-            if (questionType != null
-                    && (questionType.contains("generation") || questionType.contains("fuel_type"))
-                    && datasetSource != null && datasetSource.startsWith("lawa.water_quality.")) {
+            if (isMbieQuestionType(parsedQuestionType)
+                    && isLawaDataset(datasetSource)) {
                 return ValidationResult.failure("DATASET_MISMATCH",
                         "Parsed an MBIE generation question, but selected a LAWA dataset.");
             }
@@ -203,6 +210,34 @@ public class RequestValidationService {
         }
 
         return ValidationResult.success();
+    }
+
+    private boolean isMbieQuestionType(QuestionType questionType) {
+        return questionType == QuestionType.RENEWABLE_GENERATION_TREND
+            || questionType == QuestionType.FUEL_GENERATION_TREND
+            || questionType == QuestionType.FUEL_TYPE_COMPARISON
+            || questionType == QuestionType.GENERATION_MIX_OVERVIEW;
+    }
+
+    private boolean isLawaQuestionType(QuestionType questionType) {
+        return questionType == QuestionType.WATER_QUALITY_OVERVIEW
+            || questionType == QuestionType.WATER_QUALITY_STATE_SITES_TREND
+            || questionType == QuestionType.REGIONAL_WATER_QUALITY
+            || questionType == QuestionType.WATER_QUALITY_TRENDS
+            || questionType == QuestionType.IMPROVING_SITES_TREND
+            || questionType == QuestionType.REGIONAL_TREND_COMPARISON;
+    }
+
+    private boolean isMbieDataset(String datasetSource) {
+        return datasetSource != null
+            && (datasetSource.equals(DatasetSource.MBIE_GENERATION_ANNUAL.wireValue())
+            || datasetSource.equals(DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue()));
+    }
+
+    private boolean isLawaDataset(String datasetSource) {
+        return datasetSource != null
+            && (datasetSource.equals(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue())
+            || datasetSource.equals(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue()));
     }
 
     /**

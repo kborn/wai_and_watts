@@ -2,6 +2,9 @@ package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.config.LlmProperties;
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.IntentParseResponse;
 import nz.waiwatts.explanations.parser.IntentParser;
@@ -140,18 +143,18 @@ public class IntentParserServiceImpl implements IntentParserService {
         String qt = request.getQuestionType();
         String ds = request.getDatasetSource();
         if (qt != null && ds != null) {
-            boolean isLawaStateQt = qt.equals("water_quality_overview")
-                    || qt.equals("water_quality_state_sites_trend")
-                    || qt.equals("regional_water_quality");
-            boolean isLawaTrendQt = qt.equals("water_quality_trends")
-                    || qt.equals("improving_sites_trend")
-                    || qt.equals("regional_trend_comparison");
+            boolean isLawaStateQt = qt.equals(QuestionType.WATER_QUALITY_OVERVIEW.wireValue())
+                    || qt.equals(QuestionType.WATER_QUALITY_STATE_SITES_TREND.wireValue())
+                    || qt.equals(QuestionType.REGIONAL_WATER_QUALITY.wireValue());
+            boolean isLawaTrendQt = qt.equals(QuestionType.WATER_QUALITY_TRENDS.wireValue())
+                    || qt.equals(QuestionType.IMPROVING_SITES_TREND.wireValue())
+                    || qt.equals(QuestionType.REGIONAL_TREND_COMPARISON.wireValue());
 
-            if (isLawaStateQt && ds.equals("lawa.water_quality.trend.multi_year")) {
-                return new ExplanationRequest(qt, "lawa.water_quality.state.multi_year", request.getFilters());
+            if (isLawaStateQt && ds.equals(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue())) {
+                return new ExplanationRequest(qt, DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue(), request.getFilters());
             }
-            if (isLawaTrendQt && ds.equals("lawa.water_quality.state.multi_year")) {
-                return new ExplanationRequest(qt, "lawa.water_quality.trend.multi_year", request.getFilters());
+            if (isLawaTrendQt && ds.equals(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue())) {
+                return new ExplanationRequest(qt, DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue(), request.getFilters());
             }
         }
         Map<String, Object> filters = request.getFilters();
@@ -159,21 +162,21 @@ public class IntentParserServiceImpl implements IntentParserService {
 
         // Parser may emit metricType=unknown when intent is otherwise valid.
         // Treat unknown as absent so validation/builder defaults remain deterministic.
-        Object metricType = filters.get("metricType");
+        Object metricType = filters.get(FilterKey.METRIC_TYPE.wireValue());
         if (metricType instanceof String s && "unknown".equalsIgnoreCase(s.trim())) {
-            filters.remove("metricType");
+            filters.remove(FilterKey.METRIC_TYPE.wireValue());
         }
 
-        Object ftA = filters.get("fuelType");
-        Object ftB = filters.get("fuelTypeB");
+        Object ftA = filters.get(FilterKey.FUEL_TYPE.wireValue());
+        Object ftB = filters.get(FilterKey.FUEL_TYPE_B.wireValue());
         boolean hasA = ftA instanceof String s && !s.isBlank() && !"null".equalsIgnoreCase(s);
         boolean hasB = ftB instanceof String s && !s.isBlank() && !"null".equalsIgnoreCase(s);
 
-        if (hasA && hasB && !"fuel_type_comparison".equals(request.getQuestionType())) {
-            logger.info("Normalizing parsed request: fuelTypeB present → forcing questionType=fuel_type_comparison (was {})",
+        if (hasA && hasB && !QuestionType.FUEL_TYPE_COMPARISON.wireValue().equals(request.getQuestionType())) {
+            logger.info("Normalizing parsed request: fuelTypeB present -> forcing questionType=fuel_type_comparison (was {})",
                     request.getQuestionType());
             return new ExplanationRequest(
-                    "fuel_type_comparison",
+                    QuestionType.FUEL_TYPE_COMPARISON.wireValue(),
                     request.getDatasetSource(),
                     filters
             );

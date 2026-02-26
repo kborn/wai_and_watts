@@ -1,5 +1,8 @@
 package nz.waiwatts.explanations.dataset;
 
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,54 +17,76 @@ public class DatasetCatalog {
 
     private final List<DatasetDescriptor> datasets = List.of(
         new DatasetDescriptor(
-            "mbie.generation.annual",
+            DatasetSource.MBIE_GENERATION_ANNUAL.wireValue(),
             "MBIE Generation (Annual)",
             "MBIE",
             "annual",
             List.of(
-                "renewable_generation_trend",
-                "fuel_generation_trend",
-                "fuel_type_comparison",
-                "generation_mix_overview"
+                QuestionType.RENEWABLE_GENERATION_TREND.wireValue(),
+                QuestionType.FUEL_GENERATION_TREND.wireValue(),
+                QuestionType.FUEL_TYPE_COMPARISON.wireValue(),
+                QuestionType.GENERATION_MIX_OVERVIEW.wireValue()
             ),
-            Set.of("fuelType", "fuelTypeB", "startYear", "endYear")
+            Set.of(
+                FilterKey.FUEL_TYPE.wireValue(),
+                FilterKey.FUEL_TYPE_B.wireValue(),
+                FilterKey.START_YEAR.wireValue(),
+                FilterKey.END_YEAR.wireValue()
+            )
         ),
         new DatasetDescriptor(
-            "mbie.generation.quarterly",
+            DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue(),
             "MBIE Generation (Quarterly)",
             "MBIE",
             "quarterly",
             List.of(
-                "renewable_generation_trend",
-                "fuel_generation_trend",
-                "fuel_type_comparison",
-                "generation_mix_overview"
+                QuestionType.RENEWABLE_GENERATION_TREND.wireValue(),
+                QuestionType.FUEL_GENERATION_TREND.wireValue(),
+                QuestionType.FUEL_TYPE_COMPARISON.wireValue(),
+                QuestionType.GENERATION_MIX_OVERVIEW.wireValue()
             ),
-            Set.of("fuelType", "fuelTypeB", "startYear", "endYear")
+            Set.of(
+                FilterKey.FUEL_TYPE.wireValue(),
+                FilterKey.FUEL_TYPE_B.wireValue(),
+                FilterKey.START_YEAR.wireValue(),
+                FilterKey.END_YEAR.wireValue()
+            )
         ),
         new DatasetDescriptor(
-            "lawa.water_quality.state.multi_year",
+            DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue(),
             "LAWA Water Quality State (Multi-Year)",
             "LAWA",
             "multi_year",
             List.of(
-                "water_quality_overview",
-                "water_quality_state_sites_trend",
-                "regional_water_quality"
+                QuestionType.WATER_QUALITY_OVERVIEW.wireValue(),
+                QuestionType.WATER_QUALITY_STATE_SITES_TREND.wireValue(),
+                QuestionType.REGIONAL_WATER_QUALITY.wireValue()
             ),
-            Set.of("stateCategory", "indicator", "region", "startYear", "endYear")
+            Set.of(
+                FilterKey.STATE_CATEGORY.wireValue(),
+                FilterKey.INDICATOR.wireValue(),
+                FilterKey.REGION.wireValue(),
+                FilterKey.START_YEAR.wireValue(),
+                FilterKey.END_YEAR.wireValue()
+            )
         ),
         new DatasetDescriptor(
-            "lawa.water_quality.trend.multi_year",
+            DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue(),
             "LAWA Water Quality Trend (Multi-Year)",
             "LAWA",
             "multi_year",
             List.of(
-                "water_quality_trends",
-                "improving_sites_trend",
-                "regional_trend_comparison"
+                QuestionType.WATER_QUALITY_TRENDS.wireValue(),
+                QuestionType.IMPROVING_SITES_TREND.wireValue(),
+                QuestionType.REGIONAL_TREND_COMPARISON.wireValue()
             ),
-            Set.of("indicator", "region", "trend", "startYear", "endYear")
+            Set.of(
+                FilterKey.INDICATOR.wireValue(),
+                FilterKey.REGION.wireValue(),
+                FilterKey.TREND.wireValue(),
+                FilterKey.START_YEAR.wireValue(),
+                FilterKey.END_YEAR.wireValue()
+            )
         )
     );
 
