@@ -1,9 +1,8 @@
 package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.builder.FactPackBuilder;
-import nz.waiwatts.explanations.dto.Explanation;
-import nz.waiwatts.explanations.dto.ExplanationRequest;
-import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.explanations.provider.ExplanationProvider;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +50,7 @@ public class ExplanationServiceImpl implements ExplanationService {
             try {
                 String ds = request.getDatasetSource();
                 if (ds == null && request.getFilters() != null) {
-                    ds = (String) request.getFilters().get("datasetSource");
+                    ds = (String) request.getFilters().get(FilterKey.DATASET_SOURCE.wireValue());
                 }
                 log.info("FactPackBuilder selection: none found for questionType={} datasetSource={}",
                         request.getQuestionType(), ds);
@@ -65,7 +64,9 @@ public class ExplanationServiceImpl implements ExplanationService {
         try {
             String ds = request.getDatasetSource();
             if (ds == null) {
-                ds = request.getFilters() != null ? (String) request.getFilters().get("datasetSource") : null;
+                ds = request.getFilters() != null
+                    ? (String) request.getFilters().get(FilterKey.DATASET_SOURCE.wireValue())
+                    : null;
             }
             log.info("FactPackBuilder selected: {} for questionType={} datasetSource={}",
                     builder.getClass().getSimpleName(), request.getQuestionType(), ds);
@@ -216,16 +217,16 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
         List<String> ids = new ArrayList<>();
         if (factPack.getFacts().getMetrics() != null) {
-            ids.addAll(factPack.getFacts().getMetrics().stream().map(f -> f.getId()).toList());
+            ids.addAll(factPack.getFacts().getMetrics().stream().map(MetricFact::getId).toList());
         }
         if (factPack.getFacts().getComparisons() != null) {
-            ids.addAll(factPack.getFacts().getComparisons().stream().map(f -> f.getId()).toList());
+            ids.addAll(factPack.getFacts().getComparisons().stream().map(ComparisonFact::getId).toList());
         }
         if (factPack.getFacts().getTimeSeries() != null) {
-            ids.addAll(factPack.getFacts().getTimeSeries().stream().map(f -> f.getId()).toList());
+            ids.addAll(factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList());
         }
         if (factPack.getFacts().getClassifications() != null) {
-            ids.addAll(factPack.getFacts().getClassifications().stream().map(f -> f.getId()).toList());
+            ids.addAll(factPack.getFacts().getClassifications().stream().map(ClassificationFact::getId).toList());
         }
         return ids;
     }
@@ -269,7 +270,7 @@ public class ExplanationServiceImpl implements ExplanationService {
         if (datasetSource == null || datasetSource.trim().isEmpty()) {
             // Backward compatibility: check filters for datasetSource
             if (filters != null) {
-                Object dsObj = filters.get("datasetSource");
+                Object dsObj = filters.get(FilterKey.DATASET_SOURCE.wireValue());
                 if (dsObj instanceof String) {
                     datasetSource = (String) dsObj;
                 }
@@ -295,8 +296,8 @@ public class ExplanationServiceImpl implements ExplanationService {
         if (filters == null) {
             return null;
         }
-        Object startYear = filters.get("startYear");
-        Object endYear = filters.get("endYear");
+        Object startYear = filters.get(FilterKey.START_YEAR.wireValue());
+        Object endYear = filters.get(FilterKey.END_YEAR.wireValue());
 
         if (startYear != null && endYear != null) {
             try {

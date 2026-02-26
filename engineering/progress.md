@@ -905,6 +905,7 @@ Work Items:
 - [x] Restore capability-driven Ask UI labels/prompts and remove hardcoded selective defaults.
 - [x] Add `suggestedValuesByToken` to capabilities payload for deterministic, non-biased prompt template substitution.
 - [x] Harden integration tests to self-seed required `dataset_source` records when baseline seed rows are absent in test DB lifecycle.
+- [x] Migrate capability vocabulary usage to enum-backed wire values across runtime paths (registry, validation, parser, dataset selection, fact-pack builders, and manual ingestion/transform commands) while preserving API wire contracts.
 - [ ] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
 - [ ] Add explicit capability contract stability assertions for long-term frontend compatibility.
 
@@ -916,5 +917,8 @@ Non-Goals:
 Notes:
 - Phase 17 exists to improve determinism and declaration quality without expanding product scope.
 - The capability registry remains the authoritative support matrix; any internal structuring aids are implementation detail.
+- Runtime structural refactor completed without contract changes:
+  - New internal enums: `QuestionType`, `DatasetSource`, `MetricType`, `FilterKey`.
+  - Targeted backend verification passed after migration (`compile` + focused parser/validation/builder/service tests).
 
 ---

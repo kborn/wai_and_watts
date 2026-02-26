@@ -1,5 +1,6 @@
 package nz.waiwatts.cli;
 
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.ingestion.transform.lawa.LawaStateMultiYearXlsxTransformer;
 import nz.waiwatts.ingestion.transform.lawa.LawaTrendMultiYearXlsxTransformer;
 import nz.waiwatts.ingestion.transform.mbie.MbieAnnualXlsxTransformer;
@@ -17,10 +18,10 @@ public class ManualTransformCommand {
     private static final int EXIT_FAILURE = 3;
     private static final String OUTPUT_EXTENSION = ".csv";
     private static final java.util.Set<String> ALLOWED_DATASETS = java.util.Set.of(
-            "mbie.generation.annual",
-            "mbie.generation.quarterly",
-            "lawa.water_quality.state.multi_year",
-            "lawa.water_quality.trend.multi_year"
+            DatasetSource.MBIE_GENERATION_ANNUAL.wireValue(),
+            DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue(),
+            DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue(),
+            DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue()
     );
 
     public static void main(String[] args) {
@@ -54,12 +55,13 @@ public class ManualTransformCommand {
         try {
             byte[] csvBytes;
             try (var in = Files.newInputStream(Paths.get(inputPath))) {
-                csvBytes = switch (datasetSourceCode) {
-                    case "mbie.generation.annual" -> new MbieAnnualXlsxTransformer().transform(in);
-                    case "mbie.generation.quarterly" -> new MbieQuarterlyXlsxTransformer().transform(in);
-                    case "lawa.water_quality.state.multi_year" -> new LawaStateMultiYearXlsxTransformer().transform(in);
-                    case "lawa.water_quality.trend.multi_year" -> new LawaTrendMultiYearXlsxTransformer().transform(in);
-                    default -> throw new IllegalArgumentException(buildUnsupportedDatasetMessage(datasetSourceCode));
+                DatasetSource datasetSource = DatasetSource.fromWireValue(datasetSourceCode)
+                    .orElseThrow(() -> new IllegalArgumentException(buildUnsupportedDatasetMessage(datasetSourceCode)));
+                csvBytes = switch (datasetSource) {
+                    case MBIE_GENERATION_ANNUAL -> new MbieAnnualXlsxTransformer().transform(in);
+                    case MBIE_GENERATION_QUARTERLY -> new MbieQuarterlyXlsxTransformer().transform(in);
+                    case LAWA_WATER_QUALITY_STATE_MULTI_YEAR -> new LawaStateMultiYearXlsxTransformer().transform(in);
+                    case LAWA_WATER_QUALITY_TREND_MULTI_YEAR -> new LawaTrendMultiYearXlsxTransformer().transform(in);
                 };
             }
 

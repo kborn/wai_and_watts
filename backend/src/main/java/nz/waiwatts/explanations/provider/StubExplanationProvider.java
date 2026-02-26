@@ -1,5 +1,6 @@
 package nz.waiwatts.explanations.provider;
 
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.ClassificationFact;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
@@ -55,29 +56,31 @@ public class StubExplanationProvider implements ExplanationProvider {
     }
 
     private Explanation generateDeterministicExplanation(String questionType, FactPack factPack) {
-        return switch (questionType) {
-            case "renewable_generation_trend" ->
+        QuestionType parsedQuestionType = QuestionType.fromWireValue(questionType).orElse(null);
+        if (parsedQuestionType == null) {
+            return Explanation.refusal("Question type not supported in Phase 11: " + questionType);
+        }
+        return switch (parsedQuestionType) {
+            case RENEWABLE_GENERATION_TREND ->
                     generateRenewableGenerationTrendExplanation(factPack);
-            case "fuel_generation_trend" ->
+            case FUEL_GENERATION_TREND ->
                     generateHydroGenerationTrendExplanation(factPack);
-            case "fuel_type_comparison" ->
+            case FUEL_TYPE_COMPARISON ->
                     generateFuelTypeComparisonExplanation(factPack);
-            case "generation_mix_overview" ->
+            case GENERATION_MIX_OVERVIEW ->
                     generateGenerationMixOverviewExplanation(factPack);
-            case "water_quality_overview" ->
+            case WATER_QUALITY_OVERVIEW ->
                     generateWaterQualityOverviewExplanation(factPack);
-            case "water_quality_state_sites_trend" ->
+            case WATER_QUALITY_STATE_SITES_TREND ->
                     generateExcellentSitesTrendExplanation(factPack);
-            case "regional_water_quality" ->
+            case REGIONAL_WATER_QUALITY ->
                     generateRegionalWaterQualityExplanation(factPack);
-            case "water_quality_trends" ->
+            case WATER_QUALITY_TRENDS ->
                     generateWaterQualityTrendsExplanation(factPack);
-            case "improving_sites_trend" ->
+            case IMPROVING_SITES_TREND ->
                     generateImprovingSitesTrendExplanation(factPack);
-            case "regional_trend_comparison" ->
+            case REGIONAL_TREND_COMPARISON ->
                     generateRegionalTrendComparisonExplanation(factPack);
-            default ->
-                    Explanation.refusal("Question type not supported in Phase 11: " + questionType);
         };
     }
 

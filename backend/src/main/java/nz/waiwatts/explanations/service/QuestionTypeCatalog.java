@@ -1,5 +1,7 @@
 package nz.waiwatts.explanations.service;
 
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dataset.DatasetDescriptor;
 import org.springframework.stereotype.Component;
@@ -23,14 +25,14 @@ public class QuestionTypeCatalog {
     private static final Map<String, String> DESCRIPTION_OVERRIDES = new LinkedHashMap<>();
 
     static {
-        DESCRIPTION_OVERRIDES.put("renewable_generation_trend", "Explain renewable generation trends between years");
-        DESCRIPTION_OVERRIDES.put("fuel_type_comparison", "Compare two fuel types (e.g., hydro vs geothermal)");
-        DESCRIPTION_OVERRIDES.put("generation_mix_overview", "Summarize main sources of electricity generation");
-        DESCRIPTION_OVERRIDES.put("water_quality_overview", "Provide overview of water quality state distribution");
-        DESCRIPTION_OVERRIDES.put("regional_water_quality", "Compare water quality across regions");
-        DESCRIPTION_OVERRIDES.put("water_quality_trends", "Explain overall water quality trend distribution");
-        DESCRIPTION_OVERRIDES.put("improving_sites_trend", "Explain trends in improving water quality sites");
-        DESCRIPTION_OVERRIDES.put("regional_trend_comparison", "Compare water quality trends across regions");
+        DESCRIPTION_OVERRIDES.put(QuestionType.RENEWABLE_GENERATION_TREND.wireValue(), "Explain renewable generation trends between years");
+        DESCRIPTION_OVERRIDES.put(QuestionType.FUEL_TYPE_COMPARISON.wireValue(), "Compare two fuel types (e.g., hydro vs geothermal)");
+        DESCRIPTION_OVERRIDES.put(QuestionType.GENERATION_MIX_OVERVIEW.wireValue(), "Summarize main sources of electricity generation");
+        DESCRIPTION_OVERRIDES.put(QuestionType.WATER_QUALITY_OVERVIEW.wireValue(), "Provide overview of water quality state distribution");
+        DESCRIPTION_OVERRIDES.put(QuestionType.REGIONAL_WATER_QUALITY.wireValue(), "Compare water quality across regions");
+        DESCRIPTION_OVERRIDES.put(QuestionType.WATER_QUALITY_TRENDS.wireValue(), "Explain overall water quality trend distribution");
+        DESCRIPTION_OVERRIDES.put(QuestionType.IMPROVING_SITES_TREND.wireValue(), "Explain trends in improving water quality sites");
+        DESCRIPTION_OVERRIDES.put(QuestionType.REGIONAL_TREND_COMPARISON.wireValue(), "Compare water quality trends across regions");
     }
 
     private final Set<String> supportedQuestionTypes;
@@ -94,19 +96,22 @@ public class QuestionTypeCatalog {
         if (datasetSources == null || datasetSources.isEmpty()) {
             return QuestionTypeGroup.UNKNOWN;
         }
-        boolean allMbie = datasetSources.stream().allMatch(ds -> ds.startsWith("mbie."));
+        boolean allMbie = datasetSources.stream().allMatch(ds ->
+            ds.equals(DatasetSource.MBIE_GENERATION_ANNUAL.wireValue())
+                || ds.equals(DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue())
+        );
         if (allMbie) {
             return QuestionTypeGroup.MBIE;
         }
 
         boolean allLawaState = datasetSources.stream()
-            .allMatch(ds -> ds.startsWith("lawa.") && ds.contains(".state."));
+            .allMatch(ds -> ds.equals(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue()));
         if (allLawaState) {
             return QuestionTypeGroup.LAWA_STATE;
         }
 
         boolean allLawaTrend = datasetSources.stream()
-            .allMatch(ds -> ds.startsWith("lawa.") && ds.contains(".trend."));
+            .allMatch(ds -> ds.equals(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue()));
         if (allLawaTrend) {
             return QuestionTypeGroup.LAWA_TREND;
         }

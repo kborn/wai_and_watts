@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.provider.OpenAiResponseClient;
 import org.slf4j.Logger;
@@ -114,7 +115,7 @@ public class OpenAiIntentParser implements IntentParser {
     }
 
     private Object normalizeFilterValue(String key, JsonNode value) {
-        if ("startYear".equals(key) || "endYear".equals(key)) {
+        if (FilterKey.START_YEAR.wireValue().equals(key) || FilterKey.END_YEAR.wireValue().equals(key)) {
             if (value.isInt()) {
                 return value.intValue();
             }
@@ -169,29 +170,29 @@ public class OpenAiIntentParser implements IntentParser {
         filters.put("additionalProperties", false);
 
         ObjectNode filterProps = filters.putObject("properties");
-        filterProps.set("fuelType", nullableType("string"));
-        filterProps.set("fuelTypeB", nullableType("string"));
-        filterProps.set("indicator", nullableType("string"));
-        filterProps.set("stateCategory", nullableType("string"));
-        filterProps.set("region", nullableType("string"));
-        filterProps.set("trend", nullableType("string"));
-        filterProps.set("startYear", nullableType("integer"));
-        filterProps.set("endYear", nullableType("integer"));
-        filterProps.set("metricType", nullableEnumNode(
+        filterProps.set(FilterKey.FUEL_TYPE.wireValue(), nullableType("string"));
+        filterProps.set(FilterKey.FUEL_TYPE_B.wireValue(), nullableType("string"));
+        filterProps.set(FilterKey.INDICATOR.wireValue(), nullableType("string"));
+        filterProps.set(FilterKey.STATE_CATEGORY.wireValue(), nullableType("string"));
+        filterProps.set(FilterKey.REGION.wireValue(), nullableType("string"));
+        filterProps.set(FilterKey.TREND.wireValue(), nullableType("string"));
+        filterProps.set(FilterKey.START_YEAR.wireValue(), nullableType("integer"));
+        filterProps.set(FilterKey.END_YEAR.wireValue(), nullableType("integer"));
+        filterProps.set(FilterKey.METRIC_TYPE.wireValue(), nullableEnumNode(
             capabilityRegistry.getAllSupportedMetricTypes(),
             UNKNOWN
         ));
 
         ArrayNode filterRequired = filters.putArray("required");
-        filterRequired.add("fuelType");
-        filterRequired.add("fuelTypeB");
-        filterRequired.add("indicator");
-        filterRequired.add("stateCategory");
-        filterRequired.add("region");
-        filterRequired.add("trend");
-        filterRequired.add("startYear");
-        filterRequired.add("endYear");
-        filterRequired.add("metricType");
+        filterRequired.add(FilterKey.FUEL_TYPE.wireValue());
+        filterRequired.add(FilterKey.FUEL_TYPE_B.wireValue());
+        filterRequired.add(FilterKey.INDICATOR.wireValue());
+        filterRequired.add(FilterKey.STATE_CATEGORY.wireValue());
+        filterRequired.add(FilterKey.REGION.wireValue());
+        filterRequired.add(FilterKey.TREND.wireValue());
+        filterRequired.add(FilterKey.START_YEAR.wireValue());
+        filterRequired.add(FilterKey.END_YEAR.wireValue());
+        filterRequired.add(FilterKey.METRIC_TYPE.wireValue());
 
         ArrayNode required = schema.putArray("required");
         required.add("questionType");

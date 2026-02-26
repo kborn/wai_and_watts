@@ -2,6 +2,9 @@ package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
 import nz.waiwatts.domain.datasets.DatasetRelease;
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.config.LawaStateCategoryProperties;
 import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
@@ -21,6 +24,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
     private final Map<String, Set<String>> stateCategoryBands;
     private final int regionalTopK;
     private final int regionalBottomK;
+    private static final String LAWA_STATE_DATASET = DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue();
 
     public LawaStateMultiYearFactPackBuilder(LawaStateMultiYearRecordRepository repository) {
         this(repository, null);
@@ -47,7 +51,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         // Set request context
         FactPack.RequestContext requestContext = new FactPack.RequestContext();
         requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(List.of("lawa.water_quality.state.multi_year"));
+        requestContext.setDatasetScope(List.of(LAWA_STATE_DATASET));
         requestContext.setFiltersApplied(request.getFilters());
         factPack.setRequestContext(requestContext);
 
@@ -76,7 +80,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                     String releaseKey = entry.getKey();
                     List<LawaStateMultiYearRecord> group = entry.getValue();
                     FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                    source.setDatasetSourceCode("lawa.water_quality.state.multi_year");
+                    source.setDatasetSourceCode(LAWA_STATE_DATASET);
                     source.setDatasetReleaseId(releaseKey);
                     // contentHash from this release specifically if present
                     if (!group.isEmpty()
@@ -107,14 +111,14 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         // Check top-level datasetSource field (Phase 12+)
         String ds = request.getDatasetSource();
         if (ds != null) {
-            return "lawa.water_quality.state.multi_year".equals(ds);
+            return LAWA_STATE_DATASET.equals(ds);
         }
         
         // Backward compatibility: check filters
         Map<String, Object> filters = request.getFilters();
         if (filters != null) {
-            Object dsFilter = filters.get("datasetSource");
-            return "lawa.water_quality.state.multi_year".equals(String.valueOf(dsFilter));
+            Object dsFilter = filters.get(FilterKey.DATASET_SOURCE.wireValue());
+            return LAWA_STATE_DATASET.equals(String.valueOf(dsFilter));
         }
         
         return false;
@@ -122,7 +126,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
     @Override
     public String getSupportedDatasetSourceCode() {
-        return "lawa.water_quality.state.multi_year";
+        return LAWA_STATE_DATASET;
     }
 
     private List<LawaStateMultiYearRecord> getRecordsForRequest(ExplanationRequest request) {
@@ -131,8 +135,8 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         Integer endYear = null;
         if (filters != null && !filters.isEmpty()) {
             try {
-                Object s = filters.get("startYear");
-                Object e = filters.get("endYear");
+                Object s = filters.get(FilterKey.START_YEAR.wireValue());
+                Object e = filters.get(FilterKey.END_YEAR.wireValue());
                 if (s != null) startYear = Integer.parseInt(s.toString());
                 if (e != null) endYear = Integer.parseInt(e.toString());
             } catch (NumberFormatException ignore) {
@@ -142,7 +146,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
         String indicatorFilter = null;
         if (filters != null && !filters.isEmpty()) {
-            Object indObj = filters.get("indicator");
+            Object indObj = filters.get(FilterKey.INDICATOR.wireValue());
             if (indObj instanceof String str && !str.isBlank()) {
                 indicatorFilter = str.trim().toLowerCase(Locale.ROOT);
             }
@@ -150,7 +154,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
         String regionFilter = null;
         if (filters != null && !filters.isEmpty()) {
-            Object regObj = filters.get("region");
+            Object regObj = filters.get(FilterKey.REGION.wireValue());
             if (regObj instanceof String str && !str.isBlank()) {
                 regionFilter = str.trim().toLowerCase(Locale.ROOT);
             }
@@ -212,16 +216,20 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaStateMultiYearRecord> records) {
-        String questionType = request.getQuestionType();
-        
+        QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
+        if (questionType == null) {
+            buildBasicFacts(factPack, records);
+            return;
+        }
+
         switch (questionType) {
-            case "water_quality_overview":
+            case WATER_QUALITY_OVERVIEW:
                 buildWaterQualityOverviewFacts(factPack, records);
                 break;
-            case "water_quality_state_sites_trend":
+            case WATER_QUALITY_STATE_SITES_TREND:
                 buildStateCategorySitesTrendFacts(factPack, request, records);
                 break;
-            case "regional_water_quality":
+            case REGIONAL_WATER_QUALITY:
                 buildRegionalWaterQualityFacts(factPack, records);
                 break;
             default:
@@ -513,11 +521,17 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     private void setGuardrails(FactPack factPack, ExplanationRequest request) {
-        String questionType = request.getQuestionType();
-        
+        QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
+        if (questionType == null) {
+            factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+            factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
+            factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
+            return;
+        }
+
         switch (questionType) {
-            case "water_quality_overview":
-            case "water_quality_state_sites_trend":
+            case WATER_QUALITY_OVERVIEW:
+            case WATER_QUALITY_STATE_SITES_TREND:
                 // If there are no facts, keep allowed claims empty to trigger refusal as per tests
                 boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -540,7 +554,7 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                     ));
                 }
                 break;
-            case "regional_water_quality":
+            case REGIONAL_WATER_QUALITY:
                 boolean hasRegionalFacts = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
                         && factPack.getFacts().getTimeSeries().isEmpty());

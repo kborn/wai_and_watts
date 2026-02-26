@@ -2,6 +2,9 @@ package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
 import nz.waiwatts.domain.datasets.DatasetRelease;
+import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 
@@ -22,6 +25,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
     private static final Set<String> IMPROVING_TRENDS = Set.of("IMPROVING");
     private static final Set<String> DEGRADING_TRENDS = Set.of("DEGRADING");
     private static final int REGIONAL_SAMPLE_K = 2;
+    private static final String LAWA_TREND_DATASET = DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue();
 
     public LawaTrendMultiYearFactPackBuilder(LawaTrendMultiYearRecordRepository repository) {
         this.repository = repository;
@@ -34,7 +38,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         // Set request context
         FactPack.RequestContext requestContext = new FactPack.RequestContext();
         requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(List.of("lawa.water_quality.trend.multi_year"));
+        requestContext.setDatasetScope(List.of(LAWA_TREND_DATASET));
         requestContext.setFiltersApplied(request.getFilters());
         factPack.setRequestContext(requestContext);
 
@@ -63,7 +67,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
                     String releaseKey = entry.getKey();
                     List<LawaTrendMultiYearRecord> group = entry.getValue();
                     FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                    source.setDatasetSourceCode("lawa.water_quality.trend.multi_year");
+                    source.setDatasetSourceCode(LAWA_TREND_DATASET);
                     source.setDatasetReleaseId(releaseKey);
                     // contentHash from this release specifically if present
                     if (!group.isEmpty()
@@ -94,14 +98,14 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         // Check top-level datasetSource field (Phase 12+)
         String ds = request.getDatasetSource();
         if (ds != null) {
-            return "lawa.water_quality.trend.multi_year".equals(ds);
+            return LAWA_TREND_DATASET.equals(ds);
         }
         
         // Backward compatibility: check filters
         Map<String, Object> filters = request.getFilters();
         if (filters != null) {
-            Object dsFilter = filters.get("datasetSource");
-            return "lawa.water_quality.trend.multi_year".equals(String.valueOf(dsFilter));
+            Object dsFilter = filters.get(FilterKey.DATASET_SOURCE.wireValue());
+            return LAWA_TREND_DATASET.equals(String.valueOf(dsFilter));
         }
         
         return false;
@@ -109,7 +113,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
 
     @Override
     public String getSupportedDatasetSourceCode() {
-        return "lawa.water_quality.trend.multi_year";
+        return LAWA_TREND_DATASET;
     }
 
     private List<LawaTrendMultiYearRecord> getRecordsForRequest(ExplanationRequest request) {
@@ -118,8 +122,8 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         Integer endYear = null;
         if (filters != null && !filters.isEmpty()) {
             try {
-                Object s = filters.get("startYear");
-                Object e = filters.get("endYear");
+                Object s = filters.get(FilterKey.START_YEAR.wireValue());
+                Object e = filters.get(FilterKey.END_YEAR.wireValue());
                 if (s != null) startYear = Integer.parseInt(s.toString());
                 if (e != null) endYear = Integer.parseInt(e.toString());
             } catch (NumberFormatException ignore) {
@@ -129,7 +133,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
 
         String indicatorFilter = null;
         if (filters != null && !filters.isEmpty()) {
-            Object indObj = filters.get("indicator");
+            Object indObj = filters.get(FilterKey.INDICATOR.wireValue());
             if (indObj instanceof String str && !str.isBlank()) {
                 indicatorFilter = str.trim().toLowerCase(Locale.ROOT);
             }
@@ -137,7 +141,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
 
         String regionFilter = null;
         if (filters != null && !filters.isEmpty()) {
-            Object regObj = filters.get("region");
+            Object regObj = filters.get(FilterKey.REGION.wireValue());
             if (regObj instanceof String str && !str.isBlank()) {
                 regionFilter = str.trim().toLowerCase(Locale.ROOT);
             }
@@ -145,7 +149,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
 
         String trendFilter = null;
         if (filters != null && !filters.isEmpty()) {
-            Object trendObj = filters.get("trend");
+            Object trendObj = filters.get(FilterKey.TREND.wireValue());
             if (trendObj instanceof String str && !str.isBlank()) {
                 trendFilter = str.trim().toLowerCase(Locale.ROOT);
             }
@@ -207,16 +211,20 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaTrendMultiYearRecord> records) {
-        String questionType = request.getQuestionType();
-        
+        QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
+        if (questionType == null) {
+            buildBasicFacts(factPack, records);
+            return;
+        }
+
         switch (questionType) {
-            case "water_quality_trends":
+            case WATER_QUALITY_TRENDS:
                 buildWaterQualityTrendsFacts(factPack, records);
                 break;
-            case "improving_sites_trend":
+            case IMPROVING_SITES_TREND:
                 buildImprovingSitesTrendFacts(factPack, records);
                 break;
-            case "regional_trend_comparison":
+            case REGIONAL_TREND_COMPARISON:
                 buildRegionalTrendComparisonFacts(factPack, records);
                 break;
             default:
@@ -513,11 +521,17 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     private void setGuardrails(FactPack factPack, ExplanationRequest request) {
-        String questionType = request.getQuestionType();
-        
+        QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
+        if (questionType == null) {
+            factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+            factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
+            factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
+            return;
+        }
+
         switch (questionType) {
-            case "water_quality_trends":
-            case "improving_sites_trend":
+            case WATER_QUALITY_TRENDS:
+            case IMPROVING_SITES_TREND:
                 // If there are no facts, keep allowed claims empty to trigger refusal as per tests
                 boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
@@ -540,7 +554,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
                     ));
                 }
                 break;
-            case "regional_trend_comparison":
+            case REGIONAL_TREND_COMPARISON:
                 boolean hasRegionalFacts = !(factPack.getFacts().getClassifications().isEmpty()
                         && factPack.getFacts().getMetrics().isEmpty()
                         && factPack.getFacts().getTimeSeries().isEmpty());
