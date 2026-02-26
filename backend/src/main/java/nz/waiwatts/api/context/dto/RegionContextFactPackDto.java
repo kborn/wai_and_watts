@@ -1,7 +1,6 @@
 package nz.waiwatts.api.context.dto;
 
 import java.time.Instant;
-import java.util.Map;
 
 public class RegionContextFactPackDto {
     private String regionId;

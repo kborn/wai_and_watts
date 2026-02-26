@@ -9,7 +9,6 @@ import nz.waiwatts.explanations.provider.StubExplanationProvider;
 import nz.waiwatts.explanations.parser.IntentParser;
 import nz.waiwatts.explanations.parser.OpenAiIntentParser;
 import nz.waiwatts.explanations.parser.HardcodedDemoIntentParser;
-import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

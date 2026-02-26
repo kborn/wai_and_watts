@@ -10,7 +10,6 @@ import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Locale;
 import java.util.*;
 import java.util.stream.Collectors;
 

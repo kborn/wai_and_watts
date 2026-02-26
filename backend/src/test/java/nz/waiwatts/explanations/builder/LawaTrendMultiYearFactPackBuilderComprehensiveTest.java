@@ -511,29 +511,9 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
 
         LawaTrendMultiYearRecord canterburyImproving = getTrendMultiYearRecord(release);
 
-        LawaTrendMultiYearRecord waikatoDegrading = new LawaTrendMultiYearRecord();
-        waikatoDegrading.setLawaSiteId("SITE002");
-        waikatoDegrading.setSiteName("Site SITE002");
-        waikatoDegrading.setRegion("Waikato");
-        waikatoDegrading.setTrendNorm("DEGRADING");
-        waikatoDegrading.setTrendScore(-2);
-        waikatoDegrading.setTrendPeriodYears(10);
-        waikatoDegrading.setPeriodType("HYDRO_NYR_WINDOW");
-        waikatoDegrading.setPeriodStartYear(2019);
-        waikatoDegrading.setPeriodEndYear(2023);
-        waikatoDegrading.setDatasetRelease(release);
+        LawaTrendMultiYearRecord waikatoDegrading = getTrendMultiYearRecord2(release);
 
-        LawaTrendMultiYearRecord otagoInsufficient = new LawaTrendMultiYearRecord();
-        otagoInsufficient.setLawaSiteId("SITE003");
-        otagoInsufficient.setSiteName("Site SITE003");
-        otagoInsufficient.setRegion("Otago");
-        otagoInsufficient.setTrendNorm("INSUFFICIENT_DATA");
-        otagoInsufficient.setTrendScore(0);
-        otagoInsufficient.setTrendPeriodYears(10);
-        otagoInsufficient.setPeriodType("HYDRO_NYR_WINDOW");
-        otagoInsufficient.setPeriodStartYear(2019);
-        otagoInsufficient.setPeriodEndYear(2023);
-        otagoInsufficient.setDatasetRelease(release);
+        LawaTrendMultiYearRecord otagoInsufficient = getTrendMultiYearRecord3(release);
 
         ExplanationRequest request = new ExplanationRequest();
         request.setQuestionType("regional_trend_comparison");
@@ -549,6 +529,36 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
             first.getGuardrails().getRequiredCitations(),
             second.getGuardrails().getRequiredCitations()
         );
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getTrendMultiYearRecord3(DatasetRelease release) {
+        LawaTrendMultiYearRecord otagoInsufficient = new LawaTrendMultiYearRecord();
+        otagoInsufficient.setLawaSiteId("SITE003");
+        otagoInsufficient.setSiteName("Site SITE003");
+        otagoInsufficient.setRegion("Otago");
+        otagoInsufficient.setTrendNorm("INSUFFICIENT_DATA");
+        otagoInsufficient.setTrendScore(0);
+        otagoInsufficient.setTrendPeriodYears(10);
+        otagoInsufficient.setPeriodType("HYDRO_NYR_WINDOW");
+        otagoInsufficient.setPeriodStartYear(2019);
+        otagoInsufficient.setPeriodEndYear(2023);
+        otagoInsufficient.setDatasetRelease(release);
+        return otagoInsufficient;
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getTrendMultiYearRecord2(DatasetRelease release) {
+        LawaTrendMultiYearRecord waikatoDegrading = new LawaTrendMultiYearRecord();
+        waikatoDegrading.setLawaSiteId("SITE002");
+        waikatoDegrading.setSiteName("Site SITE002");
+        waikatoDegrading.setRegion("Waikato");
+        waikatoDegrading.setTrendNorm("DEGRADING");
+        waikatoDegrading.setTrendScore(-2);
+        waikatoDegrading.setTrendPeriodYears(10);
+        waikatoDegrading.setPeriodType("HYDRO_NYR_WINDOW");
+        waikatoDegrading.setPeriodStartYear(2019);
+        waikatoDegrading.setPeriodEndYear(2023);
+        waikatoDegrading.setDatasetRelease(release);
+        return waikatoDegrading;
     }
 
     private static @NotNull LawaTrendMultiYearRecord getTrendMultiYearRecord(DatasetRelease release) {
