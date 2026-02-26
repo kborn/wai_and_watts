@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 16 — Further enhancements to NL explanations capabilities
-- **Status:** Complete
+- **Active Phase:** Phase 17 — Capability declaration and NL determinism
+- **Status:** In progress
 
 ---
 
@@ -887,4 +887,61 @@ Notes:
 - Non-goals were preserved: no arbitrary SQL generation, no LLM-driven computation/planner execution, no forecasting expansion.
 
 
+---
+
+## Phase 17 — Capability Declaration, NL Determinism, Quality and Governance (in progress)
+
+### Phase goal
+Formalize supported capabilities as a declared, testable contract and eliminate NL parse drift that can produce inconsistent outcomes for the same prompt.
+
+### Definition of Done
+- [ ] Parser normalization removes non-actionable categorical placeholders (e.g., `unknown`) before validation.
+- [ ] NL determinism checks exist for a fixed prompt corpus and fail on outcome/refusal-category drift.
+- [ ] `/api/v1/capabilities` contract stability tests include capability schema, suggested token values, and examples.
+- [ ] Capability declaration remains registry-authoritative; internal structuring additions do not create a second source of truth.
+- [ ] Existing API wire contracts remain backward compatible.
+
+### Work items
+- [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
+- [x] Add parser-service test coverage for unknown-metric normalization behavior.
+- [x] Restore capability-driven Ask UI labels/prompts and remove hardcoded selective defaults.
+- [x] Add `suggestedValuesByToken` to capabilities payload for deterministic, non-biased prompt template substitution.
+- [x] Harden integration tests to self-seed required dataset_source records when baseline seed rows are absent in test DB lifecycle.
+- [ ] Enums over strings for capability vocabulary (User addition)
+    - [ ] Introduce internal enums for QuestionType/DatasetSource/MetricType/FilterKey to reduce stringly-typed drift.
+    - [ ] Preserve wire strings at API boundary; registry remains the authoritative support matrix.
+- [ ] Add NL determinism gate in CI
+    - [ ] Run a fixed prompt corpus multiple times and fail on outcome/refusal-category drift.
+- [ ] Normalize parser output contract fully
+    - [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
+    - [x] Add parser-service test coverage for unknown-metric normalization behavior.
+    - [ ] Extend normalization rules for all nullable categorical filters to prevent similar flake classes.
+- [ ] Formal API deprecation policy
+    - [ ] Document canonical endpoints and legacy aliases explicitly.
+    - [ ] Add parity tests for aliases and define sunset behavior.
+- [ ] Add architecture fitness tests
+    - [ ] Enforce controller→service boundaries (no controllers calling repositories).
+    - [ ] Enforce “no entity responses” (DTO-only at API boundary).
+    - [ ] Enforce explanation boundary constraints (provider/explanation logic only consumes FactPack + guardrails).
+- [ ] Add observability metrics by decision stage
+    - [ ] Emit counters/timers for parse → selection → validation → explanation → citation validation.
+    - [ ] Track refusal codes as tagged metrics.
+- [ ] Add branch protection receipts to repo docs
+    - [ ] In docs (e.g., docs/04 or docs/08), capture required checks, CODEOWNERS review policy, and merge gates so governance is auditable.
+- [ ] Add performance budget checks
+    - [ ] Track and report p95 latency for critical endpoints (at least `/ask`) on seeded data in CI.
+    - [ ] Start as non-blocking trend reporting; consider gating once stable.
+- [ ] Add backward-compat contract tests for capabilities payload
+    - [ ] Pin required JSON fields and semantics for `/api/v1/capabilities` including `suggestedValuesByToken`, examples, and capability schema.
+- [ ] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
+- [ ] Add explicit capability contract stability assertions for long-term frontend compatibility.
+
+### Non-goals (explicit)
+- [ ] No new datasets or explanation types in this phase.
+- [ ] No forecasting/derived-analytics expansion.
+- [ ] No replacement of capability registry authority with enum-only routing.
+
+### Notes
+Phase 17 improves determinism and declaration quality without expanding product scope.
+The capability registry remains the authoritative support matrix; internal structuring aids (like enums) must not create a competing source of truth.
 ---
