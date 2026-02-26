@@ -30,7 +30,7 @@ public class DatasetCatalogController {
     }
 
     @GetMapping("/sources/{id}/releases")
-    public ResponseEntity<List<nz.waiwatts.api.datasets.dto.DatasetReleaseDto>> listReleasesBySource(@PathVariable UUID id) {
+    public ResponseEntity<List<nz.waiwatts.api.datasets.dto.DatasetReleaseDto>> listReleasesBySource(@PathVariable("id") UUID id) {
         return datasetSourceService.findSourceById(id)
                 .map(src -> ResponseEntity.ok(
                         datasetSourceService.findReleasesBySourceId(id).stream().map(nz.waiwatts.api.datasets.dto.DatasetReleaseDto::from).toList()
