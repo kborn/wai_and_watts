@@ -47,32 +47,16 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         FactPack.Provenance provenance = new FactPack.Provenance();
         List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
 
-        // Get records for facts and derive provenance from them (Phase 11 acceptable)
-        // TODO(Phase 12+): Replace with distinct release lookup to avoid heavy loads
+        // Get records and pin to one canonical release for deterministic ask behavior.
         List<MbieGenerationAnnualRecord> records = pinToCanonicalRelease(getRecordsForRequest(request));
         if (!records.isEmpty()) {
-            // Group by dataset release to ensure correct contentHash and per-release coverage.
-            // Use a stable key: UUID string when available, else hash fallback.
-            Map<String, List<MbieGenerationAnnualRecord>> byReleaseKey = records.stream()
-                .filter(r -> r.getDatasetRelease() != null)
-                .collect(Collectors.groupingBy(r -> releaseKey(r.getDatasetRelease())));
-
-            byReleaseKey.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> {
-                    String releaseKey = entry.getKey();
-                    List<MbieGenerationAnnualRecord> group = entry.getValue();
-                    FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                    source.setDatasetSourceCode(MBIE_ANNUAL_DATASET);
-                    source.setDatasetReleaseId(releaseKey);
-                    // contentHash from this release specifically
-                    if (!group.isEmpty() && group.getFirst().getDatasetRelease() != null) {
-                        source.setContentHash(group.getFirst().getDatasetRelease().getContentHash());
-                    }
-                    // periodCoverage computed for this release's records only
-                    source.setPeriodCoverage(getPeriodCoverage(group));
-                    sources.add(source);
-                });
+            DatasetRelease release = records.getFirst().getDatasetRelease();
+            FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
+            source.setDatasetSourceCode(MBIE_ANNUAL_DATASET);
+            source.setDatasetReleaseId(releaseKey(release));
+            source.setContentHash(release != null ? release.getContentHash() : null);
+            source.setPeriodCoverage(getPeriodCoverage(records));
+            sources.add(source);
         }
         // Always set a (possibly empty) list to avoid nulls upstream
         provenance.setDatasetSources(sources);

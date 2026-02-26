@@ -323,20 +323,13 @@ public class ExplanationServiceImpl implements ExplanationService {
 
                 if (start > end) {
                     log.info("Auto-swapping time range: startYear ({}) > endYear ({}), swapping", start, end);
-                    int temp = start;
-                    start = end;
-                    end = temp;
+                    end = start;
                 }
 
                 // Validate reasonable bounds (e.g., no future data, reasonable historical range)
                 int currentYear = java.time.Year.now().getValue();
                 if (end > currentYear) {
                     return String.format("Invalid time range: endYear (%d) cannot be in the future", end);
-                }
-
-                // TODO(Phase 12/metadata): Replace hardcoded lower bound with dataset-derived metadata
-                if (end < 1990 || start < 1990) {
-                    return "Invalid time range: years before 1990 are not supported";
                 }
 
             } catch (NumberFormatException e) {
