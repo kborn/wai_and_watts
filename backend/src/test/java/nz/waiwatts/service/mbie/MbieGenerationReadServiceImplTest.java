@@ -17,12 +17,11 @@ import static org.mockito.Mockito.when;
 
 class MbieGenerationReadServiceImplTest {
 
-    private MbieGenerationAnnualRecordRepository repo;
     private MbieGenerationAnnualReadServiceImpl service;
 
     @BeforeEach
     void setup() {
-        repo = Mockito.mock(MbieGenerationAnnualRecordRepository.class);
+        MbieGenerationAnnualRecordRepository repo = Mockito.mock(MbieGenerationAnnualRecordRepository.class);
         service = new MbieGenerationAnnualReadServiceImpl(repo);
 
         // Seed mocked repository with a small set of entities

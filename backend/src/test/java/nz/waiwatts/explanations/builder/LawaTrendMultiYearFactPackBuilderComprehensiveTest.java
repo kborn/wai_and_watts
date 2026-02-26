@@ -5,6 +5,7 @@ import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -355,17 +356,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
         // Setup test data with mixed trend types
         DatasetRelease release = createDatasetRelease();
 
-        LawaTrendMultiYearRecord record_improving = new LawaTrendMultiYearRecord();
-        record_improving.setLawaSiteId("SITE001");
-        record_improving.setSiteName("Site SITE001");
-        record_improving.setRegion("Canterbury");
-        record_improving.setTrendNorm("IMPROVING");
-        record_improving.setTrendScore(3);
-        record_improving.setTrendPeriodYears(10);
-        record_improving.setPeriodType("HYDRO_NYR_WINDOW");
-        record_improving.setPeriodStartYear(2019);
-        record_improving.setPeriodEndYear(2023);
-        record_improving.setDatasetRelease(release);
+        LawaTrendMultiYearRecord record_improving = getLawaTrendMultiYearRecord(release);
 
         when(repository.findForAsk(null, null, null, null, "improving"))
             .thenReturn(List.of(record_improving));
@@ -401,6 +392,21 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
             .toList();
         
         assertEquals(1, improvingMetrics.size()); // Single improving percentage metric
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getLawaTrendMultiYearRecord(DatasetRelease release) {
+        LawaTrendMultiYearRecord record_improving = new LawaTrendMultiYearRecord();
+        record_improving.setLawaSiteId("SITE001");
+        record_improving.setSiteName("Site SITE001");
+        record_improving.setRegion("Canterbury");
+        record_improving.setTrendNorm("IMPROVING");
+        record_improving.setTrendScore(3);
+        record_improving.setTrendPeriodYears(10);
+        record_improving.setPeriodType("HYDRO_NYR_WINDOW");
+        record_improving.setPeriodStartYear(2019);
+        record_improving.setPeriodEndYear(2023);
+        record_improving.setDatasetRelease(release);
+        return record_improving;
     }
 
     @Test
@@ -503,17 +509,7 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
     void testDeterministicRequiredCitationsUnderInputShuffle() {
         DatasetRelease release = createDatasetRelease();
 
-        LawaTrendMultiYearRecord canterburyImproving = new LawaTrendMultiYearRecord();
-        canterburyImproving.setLawaSiteId("SITE001");
-        canterburyImproving.setSiteName("Site SITE001");
-        canterburyImproving.setRegion("Canterbury");
-        canterburyImproving.setTrendNorm("IMPROVING");
-        canterburyImproving.setTrendScore(3);
-        canterburyImproving.setTrendPeriodYears(10);
-        canterburyImproving.setPeriodType("HYDRO_NYR_WINDOW");
-        canterburyImproving.setPeriodStartYear(2019);
-        canterburyImproving.setPeriodEndYear(2023);
-        canterburyImproving.setDatasetRelease(release);
+        LawaTrendMultiYearRecord canterburyImproving = getTrendMultiYearRecord(release);
 
         LawaTrendMultiYearRecord waikatoDegrading = new LawaTrendMultiYearRecord();
         waikatoDegrading.setLawaSiteId("SITE002");
@@ -553,6 +549,21 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
             first.getGuardrails().getRequiredCitations(),
             second.getGuardrails().getRequiredCitations()
         );
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getTrendMultiYearRecord(DatasetRelease release) {
+        LawaTrendMultiYearRecord canterburyImproving = new LawaTrendMultiYearRecord();
+        canterburyImproving.setLawaSiteId("SITE001");
+        canterburyImproving.setSiteName("Site SITE001");
+        canterburyImproving.setRegion("Canterbury");
+        canterburyImproving.setTrendNorm("IMPROVING");
+        canterburyImproving.setTrendScore(3);
+        canterburyImproving.setTrendPeriodYears(10);
+        canterburyImproving.setPeriodType("HYDRO_NYR_WINDOW");
+        canterburyImproving.setPeriodStartYear(2019);
+        canterburyImproving.setPeriodEndYear(2023);
+        canterburyImproving.setDatasetRelease(release);
+        return canterburyImproving;
     }
 
     @Test

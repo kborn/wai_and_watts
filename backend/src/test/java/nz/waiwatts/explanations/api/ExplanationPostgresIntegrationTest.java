@@ -18,6 +18,7 @@ import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationQuarterlyRecordRepository;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,21 +137,7 @@ class ExplanationPostgresIntegrationTest {
         DatasetSource source = datasetSource("lawa.water_quality.trend.multi_year");
         DatasetRelease release = release(source, "sha256:pg-lawa-trend", LocalDateTime.of(2026, 1, 11, 10, 0));
 
-        LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
-        rec.setDatasetRelease(release);
-        rec.setLawaSiteId("trend-site-1");
-        rec.setSiteName("Trend Site");
-        rec.setRegion("Auckland");
-        rec.setIndicatorRaw("E.coli");
-        rec.setIndicatorNorm("ECOLI");
-        rec.setTrendRaw("Likely improving");
-        rec.setTrendNorm("IMPROVING");
-        rec.setTrendScore(1);
-        rec.setTrendPeriodYears(5);
-        rec.setTrendDataFrequency("Monthly");
-        rec.setPeriodType("HYDRO_5YR_ROLLING");
-        rec.setPeriodStartYear(2019);
-        rec.setPeriodEndYear(2024);
+        LawaTrendMultiYearRecord rec = getLawaTrendMultiYearRecord(release);
         lawaTrendRepository.saveAndFlush(rec);
 
         IntentParseResponse parse = IntentParseResponse.success(
@@ -181,11 +168,47 @@ class ExplanationPostgresIntegrationTest {
             .andExpect(jsonPath("$.selectedDatasetSource").value("lawa.water_quality.trend.multi_year"));
     }
 
+    private static @NotNull LawaTrendMultiYearRecord getLawaTrendMultiYearRecord(DatasetRelease release) {
+        LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
+        rec.setDatasetRelease(release);
+        rec.setLawaSiteId("trend-site-1");
+        rec.setSiteName("Trend Site");
+        rec.setRegion("Auckland");
+        rec.setIndicatorRaw("E.coli");
+        rec.setIndicatorNorm("ECOLI");
+        rec.setTrendRaw("Likely improving");
+        rec.setTrendNorm("IMPROVING");
+        rec.setTrendScore(1);
+        rec.setTrendPeriodYears(5);
+        rec.setTrendDataFrequency("Monthly");
+        rec.setPeriodType("HYDRO_5YR_ROLLING");
+        rec.setPeriodStartYear(2019);
+        rec.setPeriodEndYear(2024);
+        return rec;
+    }
+
     @Test
     void structuredEndpoint_lawaStateNullOptionalFilters_executesAgainstPostgresWithoutSqlErrors() throws Exception {
         DatasetSource source = datasetSource("lawa.water_quality.state.multi_year");
         DatasetRelease release = release(source, "sha256:pg-lawa-state", LocalDateTime.of(2026, 1, 12, 10, 0));
 
+        LawaStateMultiYearRecord rec = getLawaStateMultiYearRecord(release);
+        lawaStateRepository.saveAndFlush(rec);
+
+        String requestBody = objectMapper.writeValueAsString(Map.of(
+            "questionType", "water_quality_overview",
+            "datasetSource", "lawa.water_quality.state.multi_year",
+            "filters", Map.of()
+        ));
+
+        mockMvc.perform(post("/api/v1/explanations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.isRefusal").value(false));
+    }
+
+    private static @NotNull LawaStateMultiYearRecord getLawaStateMultiYearRecord(DatasetRelease release) {
         LawaStateMultiYearRecord rec = new LawaStateMultiYearRecord();
         rec.setDatasetRelease(release);
         rec.setLawaSiteId("state-site-1");
@@ -200,19 +223,7 @@ class ExplanationPostgresIntegrationTest {
         rec.setPeriodType("HYDRO_5YR_ROLLING");
         rec.setPeriodStartYear(2019);
         rec.setPeriodEndYear(2024);
-        lawaStateRepository.saveAndFlush(rec);
-
-        String requestBody = objectMapper.writeValueAsString(Map.of(
-            "questionType", "water_quality_overview",
-            "datasetSource", "lawa.water_quality.state.multi_year",
-            "filters", Map.of()
-        ));
-
-        mockMvc.perform(post("/api/v1/explanations")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.isRefusal").value(false));
+        return rec;
     }
 
     private DatasetSource datasetSource(String code) {

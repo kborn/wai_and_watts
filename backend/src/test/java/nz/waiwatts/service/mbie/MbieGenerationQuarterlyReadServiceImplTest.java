@@ -17,12 +17,11 @@ import static org.mockito.Mockito.when;
 
 class MbieGenerationQuarterlyReadServiceImplTest {
 
-    private MbieGenerationQuarterlyRecordRepository repo;
     private MbieGenerationQuarterlyReadServiceImpl service;
 
     @BeforeEach
     void setup() {
-        repo = Mockito.mock(MbieGenerationQuarterlyRecordRepository.class);
+        MbieGenerationQuarterlyRecordRepository repo = Mockito.mock(MbieGenerationQuarterlyRecordRepository.class);
         service = new MbieGenerationQuarterlyReadServiceImpl(repo);
 
         DatasetRelease rel = new DatasetRelease();

@@ -34,7 +34,6 @@ class MbieGenerationAnnualFactPackBuilderTest {
     private MbieGenerationAnnualRecordRepository repository;
 
     private MbieGenerationAnnualFactPackBuilder builder;
-    private DatasetSource datasetSource;
     private DatasetRelease datasetRelease;
 
     @BeforeEach
@@ -42,7 +41,7 @@ class MbieGenerationAnnualFactPackBuilderTest {
         builder = new MbieGenerationAnnualFactPackBuilder(repository);
         
         // Setup test data
-        datasetSource = new DatasetSource();
+        DatasetSource datasetSource = new DatasetSource();
         datasetSource.setCode("mbie.generation.annual");
         
         datasetRelease = new DatasetRelease();

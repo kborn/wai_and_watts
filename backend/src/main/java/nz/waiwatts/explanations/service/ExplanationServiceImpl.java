@@ -105,21 +105,7 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         // Treat null lists as empty to avoid NPEs
-        boolean noFacts;
-        if (factPack.getFacts() == null) {
-            noFacts = true;
-        } else {
-            var facts = factPack.getFacts();
-            var ts = facts.getTimeSeries();
-            var mets = facts.getMetrics();
-            var comps = facts.getComparisons();
-            var classes = facts.getClassifications();
-            boolean tsEmpty = (ts == null || ts.isEmpty());
-            boolean metsEmpty = (mets == null || mets.isEmpty());
-            boolean compsEmpty = (comps == null || comps.isEmpty());
-            boolean classesEmpty = (classes == null || classes.isEmpty());
-            noFacts = tsEmpty && metsEmpty && compsEmpty && classesEmpty;
-        }
+        boolean noFacts = isNoFacts(factPack);
         if (noFacts) {
             return Explanation.refusal("No facts available to answer the question");
         }
@@ -160,6 +146,25 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         return explanation;
+    }
+
+    private static boolean isNoFacts(FactPack factPack) {
+        boolean noFacts;
+        if (factPack.getFacts() == null) {
+            noFacts = true;
+        } else {
+            var facts = factPack.getFacts();
+            var ts = facts.getTimeSeries();
+            var mets = facts.getMetrics();
+            var comps = facts.getComparisons();
+            var classes = facts.getClassifications();
+            boolean tsEmpty = (ts == null || ts.isEmpty());
+            boolean metsEmpty = (mets == null || mets.isEmpty());
+            boolean compsEmpty = (comps == null || comps.isEmpty());
+            boolean classesEmpty = (classes == null || classes.isEmpty());
+            noFacts = tsEmpty && metsEmpty && compsEmpty && classesEmpty;
+        }
+        return noFacts;
     }
 
     @Override
