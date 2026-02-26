@@ -910,19 +910,19 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
 - [x] Enums over strings for capability vocabulary (User addition)
     - [x] Introduce internal enums for QuestionType/DatasetSource/MetricType/FilterKey to reduce stringly-typed drift.
     - [x] Preserve wire strings at API boundary; registry remains the authoritative support matrix.
-- [ ] Add NL determinism gate in CI
+- [x] Add NL determinism gate in CI
     - [x] Run a fixed prompt corpus multiple times and fail on parse/validation outcome or refusal-category drift.
-- [ ] Normalize parser output contract fully
+- [x] Normalize parser output contract fully
     - [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
     - [x] Add parser-service test coverage for unknown-metric normalization behavior.
     - [x] Extend normalization rules for all nullable categorical filters to prevent similar flake classes.
-- [ ] Formal API deprecation policy
+- [x] Formal API deprecation policy
     - [x] Document canonical endpoints and legacy aliases explicitly.
     - [x] Add parity tests for aliases and define sunset behavior.
-- [ ] Add architecture fitness tests
-    - [ ] Enforce controller→service boundaries (no controllers calling repositories).
-    - [ ] Enforce “no entity responses” (DTO-only at API boundary).
-    - [ ] Enforce explanation boundary constraints (provider/explanation logic only consumes FactPack + guardrails).
+- [x] Add architecture fitness tests
+    - [x] Enforce controller→service boundaries (no controllers calling repositories).
+    - [x] Enforce “no entity responses” (DTO-only at API boundary).
+    - [x] Enforce explanation boundary constraints (provider/explanation logic only consumes FactPack + guardrails).
 - [ ] Add observability metrics by decision stage
     - [ ] Emit counters/timers for parse → selection → validation → explanation → citation validation.
     - [ ] Track refusal codes as tagged metrics.
@@ -931,10 +931,10 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
 - [ ] Add performance budget checks
     - [ ] Track and report p95 latency for critical endpoints (at least `/ask`) on seeded data in CI.
     - [ ] Start as non-blocking trend reporting; consider gating once stable.
-- [ ] Add backward-compat contract tests for capabilities payload
-    - [ ] Pin required JSON fields and semantics for `/api/v1/capabilities` including `suggestedValuesByToken`, examples, and capability schema.
+- [x] Add backward-compat contract tests for capabilities payload
+    - [x] Pin required JSON fields and semantics for `/api/v1/capabilities` including `suggestedValuesByToken`, examples, and capability schema.
 - [ ] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
-- [ ] Add explicit capability contract stability assertions for long-term frontend compatibility.
+- [x] Add explicit capability contract stability assertions for long-term frontend compatibility.
 
 ### Non-goals (explicit)
 - [ ] No new datasets or explanation types in this phase.
