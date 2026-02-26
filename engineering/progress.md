@@ -915,7 +915,7 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
 - [ ] Normalize parser output contract fully
     - [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
     - [x] Add parser-service test coverage for unknown-metric normalization behavior.
-    - [ ] Extend normalization rules for all nullable categorical filters to prevent similar flake classes.
+    - [x] Extend normalization rules for all nullable categorical filters to prevent similar flake classes.
 - [ ] Formal API deprecation policy
     - [ ] Document canonical endpoints and legacy aliases explicitly.
     - [ ] Add parity tests for aliases and define sunset behavior.

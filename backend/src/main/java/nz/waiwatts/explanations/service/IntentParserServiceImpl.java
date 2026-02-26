@@ -13,7 +13,9 @@ import nz.waiwatts.explanations.parser.UnsupportedIntentDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation of IntentParserService using injected IntentParser strategy.
@@ -27,6 +29,16 @@ import java.util.Map;
 public class IntentParserServiceImpl implements IntentParserService {
     
     private static final Logger logger = LoggerFactory.getLogger(IntentParserServiceImpl.class);
+    private static final Set<String> NULLISH_TOKENS = Set.of("unknown", "null");
+    private static final Set<String> NULLABLE_CATEGORICAL_FILTERS = Set.of(
+        FilterKey.FUEL_TYPE.wireValue(),
+        FilterKey.FUEL_TYPE_B.wireValue(),
+        FilterKey.INDICATOR.wireValue(),
+        FilterKey.STATE_CATEGORY.wireValue(),
+        FilterKey.REGION.wireValue(),
+        FilterKey.TREND.wireValue(),
+        FilterKey.METRIC_TYPE.wireValue()
+    );
     
     private final IntentParser intentParser;
     private final LlmProperties llmProperties;
@@ -160,12 +172,7 @@ public class IntentParserServiceImpl implements IntentParserService {
         Map<String, Object> filters = request.getFilters();
         if (filters == null) return request;
 
-        // Parser may emit metricType=unknown when intent is otherwise valid.
-        // Treat unknown as absent so validation/builder defaults remain deterministic.
-        Object metricType = filters.get(FilterKey.METRIC_TYPE.wireValue());
-        if (metricType instanceof String s && "unknown".equalsIgnoreCase(s.trim())) {
-            filters.remove(FilterKey.METRIC_TYPE.wireValue());
-        }
+        removeNullishCategoricalFilters(filters);
 
         Object ftA = filters.get(FilterKey.FUEL_TYPE.wireValue());
         Object ftB = filters.get(FilterKey.FUEL_TYPE_B.wireValue());
@@ -183,5 +190,16 @@ public class IntentParserServiceImpl implements IntentParserService {
         }
 
         return request;
+    }
+
+    private void removeNullishCategoricalFilters(Map<String, Object> filters) {
+        Set<String> keysToRemove = new LinkedHashSet<>();
+        for (String filterKey : NULLABLE_CATEGORICAL_FILTERS) {
+            Object value = filters.get(filterKey);
+            if (value instanceof String s && NULLISH_TOKENS.contains(s.trim().toLowerCase())) {
+                keysToRemove.add(filterKey);
+            }
+        }
+        keysToRemove.forEach(filters::remove);
     }
 }
