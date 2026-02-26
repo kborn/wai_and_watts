@@ -169,4 +169,47 @@ class IntentParserServiceImplTest {
         assertNotNull(response.getRequest().getFilters());
         assertFalse(response.getRequest().getFilters().containsKey("metricType"));
     }
+
+    @Test
+    void llmModeNormalizesNullishCategoricalFiltersAsAbsent() {
+        LlmProperties props = new LlmProperties();
+        props.setProvider(LlmProvider.OPENAI);
+        props.setModel("gpt-4.1");
+        props.setApiKey("test-key");
+        props.setBaseUrl("https://api.openai.com");
+
+        IntentParser llmParser = mock(IntentParser.class);
+        Map<String, Object> filters = new HashMap<>();
+        filters.put("region", "unknown");
+        filters.put("indicator", "null");
+        filters.put("stateCategory", "Unknown");
+        filters.put("trend", "NULL");
+        filters.put("fuelType", "hydro");
+
+        when(llmParser.parseQuestion(any())).thenReturn(
+            new ExplanationRequest(
+                "water_quality_trends",
+                "lawa.water_quality.trend.multi_year",
+                filters
+            )
+        );
+
+        IntentParserServiceImpl service = new IntentParserServiceImpl(
+            llmParser,
+            props,
+            new UnsupportedIntentDetector()
+        );
+
+        IntentParseResponse response = service.parseQuestion("Is water quality improving?");
+
+        assertTrue(response.isOk());
+        assertEquals("LLM", response.getParserUsed());
+        assertNotNull(response.getRequest());
+        assertNotNull(response.getRequest().getFilters());
+        assertFalse(response.getRequest().getFilters().containsKey("region"));
+        assertFalse(response.getRequest().getFilters().containsKey("indicator"));
+        assertFalse(response.getRequest().getFilters().containsKey("stateCategory"));
+        assertFalse(response.getRequest().getFilters().containsKey("trend"));
+        assertEquals("hydro", response.getRequest().getFilters().get("fuelType"));
+    }
 }
