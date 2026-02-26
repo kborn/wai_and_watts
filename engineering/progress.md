@@ -911,7 +911,7 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Introduce internal enums for QuestionType/DatasetSource/MetricType/FilterKey to reduce stringly-typed drift.
     - [x] Preserve wire strings at API boundary; registry remains the authoritative support matrix.
 - [ ] Add NL determinism gate in CI
-    - [ ] Run a fixed prompt corpus multiple times and fail on outcome/refusal-category drift.
+    - [x] Run a fixed prompt corpus multiple times and fail on parse/validation outcome or refusal-category drift.
 - [ ] Normalize parser output contract fully
     - [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
     - [x] Add parser-service test coverage for unknown-metric normalization behavior.
