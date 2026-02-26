@@ -48,6 +48,10 @@ jobs:
       - name: Build and test (backend)
         run: mvn -f backend -B verify
 
+      - name: Report /ask p95 latency trend (non-blocking)
+        continue-on-error: true
+        run: mvn -f backend -B -Dtest=AskLatencyTrendContractTest test
+
       - name: Upload JaCoCo report
         if: always()
         uses: actions/upload-artifact@v4

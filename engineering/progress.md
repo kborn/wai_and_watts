@@ -895,11 +895,11 @@ Notes:
 Formalize supported capabilities as a declared, testable contract and eliminate NL parse drift that can produce inconsistent outcomes for the same prompt.
 
 ### Definition of Done
-- [ ] Parser normalization removes non-actionable categorical placeholders (e.g., `unknown`) before validation.
-- [ ] NL determinism checks exist for a fixed prompt corpus and fail on outcome/refusal-category drift.
-- [ ] `/api/v1/capabilities` contract stability tests include capability schema, suggested token values, and examples.
-- [ ] Capability declaration remains registry-authoritative; internal structuring additions do not create a second source of truth.
-- [ ] Existing API wire contracts remain backward compatible.
+- [x] Parser normalization removes non-actionable categorical placeholders (e.g., `unknown`) before validation.
+- [x] NL determinism checks exist for a fixed prompt corpus and fail on outcome/refusal-category drift.
+- [x] `/api/v1/capabilities` contract stability tests include capability schema, suggested token values, and examples.
+- [x] Capability declaration remains registry-authoritative; internal structuring additions do not create a second source of truth.
+- [x] Existing API wire contracts remain backward compatible.
 
 ### Work items
 - [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
@@ -923,17 +923,17 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Enforce controller→service boundaries (no controllers calling repositories).
     - [x] Enforce “no entity responses” (DTO-only at API boundary).
     - [x] Enforce explanation boundary constraints (provider/explanation logic only consumes FactPack + guardrails).
-- [ ] Add observability metrics by decision stage
-    - [ ] Emit counters/timers for parse → selection → validation → explanation → citation validation.
-    - [ ] Track refusal codes as tagged metrics.
-- [ ] Add branch protection receipts to repo docs
-    - [ ] In docs (e.g., docs/04 or docs/08), capture required checks, CODEOWNERS review policy, and merge gates so governance is auditable.
-- [ ] Add performance budget checks
-    - [ ] Track and report p95 latency for critical endpoints (at least `/ask`) on seeded data in CI.
-    - [ ] Start as non-blocking trend reporting; consider gating once stable.
+- [x] Add observability metrics by decision stage
+    - [x] Emit counters/timers for parse → selection → validation → explanation → citation validation.
+    - [x] Track refusal codes as tagged metrics.
+- [x] Add branch protection receipts to repo docs
+    - [x] In docs (e.g., docs/04 or docs/08), capture required checks, CODEOWNERS review policy, and merge gates so governance is auditable.
+- [x] Add performance budget checks
+    - [x] Track and report p95 latency for critical endpoints (at least `/ask`) on seeded data in CI.
+    - [x] Start as non-blocking trend reporting; consider gating once stable.
 - [x] Add backward-compat contract tests for capabilities payload
     - [x] Pin required JSON fields and semantics for `/api/v1/capabilities` including `suggestedValuesByToken`, examples, and capability schema.
-- [ ] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
+- [x] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
 - [x] Add explicit capability contract stability assertions for long-term frontend compatibility.
 
 ### Non-goals (explicit)
