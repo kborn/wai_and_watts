@@ -175,6 +175,44 @@ class RegionContextAggregationServiceImplTest {
     }
 
     @Test
+    void getRegionContext_trendCanonicalFallback_prefersCanonicalOverHigherNonCanonicalPeriod() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord period25 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", -1, 25);
+        LawaTrendMultiYearRecord period20 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", 2, 20);
+
+        when(trendRepository.findAll()).thenReturn(List.of(period25, period20));
+        when(stateRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", null);
+
+        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(1);
+        assertThat(result.getWater().getTrend().getImprovingPct()).isEqualTo(100.0);
+        assertThat(result.getWater().getTrend().getDegradingPct()).isEqualTo(0.0);
+    }
+
+    @Test
+    void getRegionContext_trendCanonicalFallback_prefersHigherCanonicalPriorityOrder() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord period15 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", -1, 15);
+        LawaTrendMultiYearRecord period20 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", 2, 20);
+
+        when(trendRepository.findAll()).thenReturn(List.of(period15, period20));
+        when(stateRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", null);
+
+        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(1);
+        assertThat(result.getWater().getTrend().getImprovingPct()).isEqualTo(100.0);
+        assertThat(result.getWater().getTrend().getDegradingPct()).isEqualTo(0.0);
+    }
+
+    @Test
     void getRegionContext_trendWithPreferredPeriod_filtersCorrectly() {
         DatasetRelease release = new DatasetRelease();
         release.setId(UUID.randomUUID());

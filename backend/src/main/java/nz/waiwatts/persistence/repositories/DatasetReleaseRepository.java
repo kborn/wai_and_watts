@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface DatasetReleaseRepository extends JpaRepository<DatasetRelease, UUID> {
     List<DatasetRelease> findByDatasetSourceId(UUID datasetSourceId);
-    boolean existsByDatasetSourceIdAndContentHash(UUID datasetSourceId, String contentHash);
     java.util.Optional<DatasetRelease> findFirstByDatasetSourceIdAndContentHash(UUID datasetSourceId, String contentHash);
 }
