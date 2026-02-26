@@ -24,12 +24,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -238,6 +235,68 @@ class ExplanationControllerRefusalIntegrationTest {
             for (String questionType : descriptor.supportedQuestionTypes()) {
                 assertTrue(supported.has(questionType), "Missing supportedQuestionTypes entry for " + questionType);
             }
+        }
+    }
+
+    @Test
+    void capabilitiesSuggestedValuesByTokenContractRemainsStable() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        JsonNode suggested = objectMapper.readTree(result.getResponse().getContentAsString())
+            .path("suggestedValuesByToken");
+        assertObjectFieldSet(suggested, Set.of(
+            "fuelType",
+            "fuelTypeB",
+            "stateCategory",
+            "region",
+            "indicator",
+            "trend"
+        ));
+
+        suggested.fields().forEachRemaining(entry -> {
+            JsonNode values = entry.getValue();
+            assertTrue(values.isArray(), "suggestedValuesByToken." + entry.getKey() + " must be an array");
+            assertFalse(values.isEmpty(), "suggestedValuesByToken." + entry.getKey() + " must not be empty");
+            values.forEach(v -> assertTrue(v.isTextual() && !v.asText().isBlank(),
+                "suggestedValuesByToken." + entry.getKey() + " must contain non-blank strings"));
+        });
+    }
+
+    @Test
+    void capabilitiesRowsExposeStableSchemaAndExampleSemantics() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+        JsonNode capabilities = objectMapper.readTree(result.getResponse().getContentAsString()).path("capabilities");
+        assertTrue(capabilities.isArray(), "capabilities must be an array");
+        assertFalse(capabilities.isEmpty(), "capabilities must not be empty");
+
+        for (JsonNode row : capabilities) {
+            assertObjectFieldSet(row, Set.of(
+                "intentId",
+                "displayName",
+                "questionType",
+                "description",
+                "supportedDatasets",
+                "datasetSources",
+                "requiredFilters",
+                "optionalFilters",
+                "supportedFilters",
+                "metricTypes",
+                "defaultMetricType",
+                "exampleTemplates",
+                "examples"
+            ));
+            assertTrue(row.path("displayName").isTextual() && !row.path("displayName").asText().isBlank());
+            assertTrue(row.path("questionType").isTextual() && !row.path("questionType").asText().isBlank());
+            assertTrue(row.path("datasetSources").isArray());
+            assertTrue(row.path("supportedFilters").isArray());
+            assertTrue(row.path("metricTypes").isArray());
+            assertTrue(row.path("exampleTemplates").isArray());
+            assertTrue(row.path("examples").isArray());
+            assertFalse(row.path("examples").isEmpty(), "capability examples must not be empty");
         }
     }
 
