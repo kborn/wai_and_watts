@@ -27,6 +27,8 @@ import java.util.Set;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -201,6 +203,30 @@ class ExplanationControllerRefusalIntegrationTest {
     }
 
     @Test
+    void legacyCapabilitiesEndpointDeclaresDeprecationAndSunsetHeaders() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/explanations/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals("true", result.getResponse().getHeader("Deprecation"));
+        assertNotNull(result.getResponse().getHeader("Sunset"));
+        String link = result.getResponse().getHeader("Link");
+        assertNotNull(link);
+        assertTrue(link.contains("/api/v1/capabilities"));
+        assertNotNull(result.getResponse().getHeader("Warning"));
+    }
+
+    @Test
+    void canonicalCapabilitiesEndpointHasNoDeprecationHeaders() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertNull(result.getResponse().getHeader("Deprecation"));
+        assertNull(result.getResponse().getHeader("Sunset"));
+    }
+
+    @Test
     void capabilitiesSupportedQuestionTypesCoverAllCatalogQuestionTypes() throws Exception {
         MvcResult result = mockMvc.perform(get("/api/v1/capabilities"))
             .andExpect(status().isOk())
@@ -222,6 +248,20 @@ class ExplanationControllerRefusalIntegrationTest {
                 .andExpect(jsonPath("$.status").value("healthy"))
                 .andExpect(jsonPath("$.service").value("explanation-api"))
                 .andExpect(jsonPath("$.phase").value("11"));
+    }
+
+    @Test
+    void legacyHealthEndpointDeclaresDeprecationAndSunsetHeaders() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/explanations/health"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        assertEquals("true", result.getResponse().getHeader("Deprecation"));
+        assertNotNull(result.getResponse().getHeader("Sunset"));
+        String link = result.getResponse().getHeader("Link");
+        assertNotNull(link);
+        assertTrue(link.contains("/api/v1/health"));
+        assertNotNull(result.getResponse().getHeader("Warning"));
     }
 
     @Test
