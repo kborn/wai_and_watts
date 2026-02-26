@@ -37,8 +37,8 @@ Links (optional):
 ---
 
 ## Current Position
-- **Active Phase:** Phase 16 — Further enhancements to NL explanations capabilities
-- **Status:** Complete
+- **Active Phase:** Phase 17 — Capability declaration and NL determinism
+- **Status:** In progress
 
 ---
 
@@ -886,5 +886,35 @@ Notes:
 - Phase 16 implementation included UX refinement work in the same stream because capability discoverability and refusal guidance were tightly coupled.
 - Non-goals were preserved: no arbitrary SQL generation, no LLM-driven computation/planner execution, no forecasting expansion.
 
+
+---
+
+## Phase 17 — Capability Declaration and NL Determinism
+Goal: formalize capabilities as a declared contract and eliminate NL parse drift that can produce inconsistent outcomes for the same prompt.
+
+Definition of Done:
+- [ ] Parser normalization removes non-actionable categorical placeholders (for example `unknown`) before validation.
+- [ ] NL determinism checks exist for a fixed prompt corpus and fail on outcome/refusal-category drift.
+- [ ] `/api/v1/capabilities` contract stability tests include capability schema, suggested token values, and examples.
+- [ ] Capability declaration remains registry-authoritative; internal structuring additions do not create a second source of truth.
+- [ ] Existing API wire contracts remain backward compatible.
+
+Work Items:
+- [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
+- [x] Add parser-service test coverage for unknown-metric normalization behavior.
+- [x] Restore capability-driven Ask UI labels/prompts and remove hardcoded selective defaults.
+- [x] Add `suggestedValuesByToken` to capabilities payload for deterministic, non-biased prompt template substitution.
+- [x] Harden integration tests to self-seed required `dataset_source` records when baseline seed rows are absent in test DB lifecycle.
+- [ ] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
+- [ ] Add explicit capability contract stability assertions for long-term frontend compatibility.
+
+Non-Goals:
+- [ ] No new datasets or explanation types in this phase.
+- [ ] No forecasting/derived-analytics expansion.
+- [ ] No replacement of capability registry authority with enum-only routing.
+
+Notes:
+- Phase 17 exists to improve determinism and declaration quality without expanding product scope.
+- The capability registry remains the authoritative support matrix; any internal structuring aids are implementation detail.
 
 ---

@@ -1553,3 +1553,39 @@ Implications:
 - Frontend gating logic must treat State and Trend consistently (`region || indicator`).
 - Empty-state copy must instruct users to choose a region or indicator (not both).
 - Existing Trend/State semantic constraints remain unchanged (classification/band interpretations, no derived analytics).
+
+---
+
+### Phase 17 — Capability Vocabulary Structuring Without Registry Replacement
+Date: 2026-02-25
+
+Decision:
+Internal capability vocabulary may be represented with stronger typing/structure for maintainability, but capability support authority remains the central capability registry contract.
+
+Rationale:
+- String-only internal handling increases accidental inconsistency risk during capability expansion.
+- Structured internal vocabulary improves maintainability and reviewability.
+- Replacing registry authority would create hidden coupling and reduce contract audibility.
+
+Implications:
+- API/DTO wire contracts remain string-based and backward compatible.
+- Registry remains source of truth for supported questionType/dataset/filter combinations.
+- Internal structuring must not become a second support matrix.
+
+---
+
+### Phase 17 — Parser Normalization Must Drop Non-Actionable Categorical Placeholders
+Date: 2026-02-25
+
+Decision:
+If NL parsing yields placeholder categorical values (for example `metricType=unknown`), normalization must treat them as absent before validation.
+
+Rationale:
+- Placeholder categorical values create nondeterministic refusal/answer behavior for identical prompts.
+- Validation should reject explicit unsupported values, not parser uncertainty placeholders.
+- Deterministic outcomes are a core contract for reviewer trust.
+
+Implications:
+- Normalization layer strips placeholder categorical values before capability validation.
+- Builders/default metric behavior applies when optional categorical filters are absent.
+- Determinism regressions are covered by parser/service tests and expanded corpus checks.
