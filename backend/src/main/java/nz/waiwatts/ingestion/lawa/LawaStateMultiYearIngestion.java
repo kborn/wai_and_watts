@@ -93,24 +93,24 @@ public class LawaStateMultiYearIngestion {
         for (LawaStateMultiYearParsedRecord r : rows) {
             LawaStateMultiYearRecord e = new LawaStateMultiYearRecord();
             e.setDatasetRelease(release);
-            e.setLawaSiteId(r.getLawaSiteId());
-            e.setSiteName(r.getSiteName());
-            e.setRegion(normalizeRegion(r.getRegion()));
-            e.setCatchment(normalizeCatchment(r.getCatchment()));
-            e.setLatitude(r.getLatitude());
-            e.setLongitude(r.getLongitude());
-            e.setIndicatorRaw(r.getIndicatorRaw());
-            e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setUnits(r.getUnits());
-            e.setAttributeBand(r.getAttributeBand());
-            e.setStateNorm(r.getStateNorm());
-            e.setMedian(r.getMedian());
-            e.setP95(r.getP95());
-            e.setRecHealthExceed260Pct(r.getRecHealthExceed260Pct());
-            e.setRecHealthExceed540Pct(r.getRecHealthExceed540Pct());
-            e.setPeriodType(r.getPeriodType());
-            e.setPeriodStartYear(r.getPeriodStartYear());
-            e.setPeriodEndYear(r.getPeriodEndYear());
+            e.setLawaSiteId(r.lawaSiteId());
+            e.setSiteName(r.siteName());
+            e.setRegion(normalizeRegion(r.region()));
+            e.setCatchment(normalizeCatchment(r.catchment()));
+            e.setLatitude(r.latitude());
+            e.setLongitude(r.longitude());
+            e.setIndicatorRaw(r.indicatorRaw());
+            e.setIndicatorNorm(r.indicatorNorm());
+            e.setUnits(r.units());
+            e.setAttributeBand(r.attributeBand());
+            e.setStateNorm(r.stateNorm());
+            e.setMedian(r.median());
+            e.setP95(r.p95());
+            e.setRecHealthExceed260Pct(r.recHealthExceed260Pct());
+            e.setRecHealthExceed540Pct(r.recHealthExceed540Pct());
+            e.setPeriodType(r.periodType());
+            e.setPeriodStartYear(r.periodStartYear());
+            e.setPeriodEndYear(r.periodEndYear());
             batch.add(e);
         }
         if (!batch.isEmpty()) {
@@ -165,24 +165,24 @@ public class LawaStateMultiYearIngestion {
         for (LawaStateMultiYearParsedRecord r : rows) {
             LawaStateMultiYearRecord e = new LawaStateMultiYearRecord();
             e.setDatasetRelease(release);
-            e.setLawaSiteId(r.getLawaSiteId());
-            e.setSiteName(r.getSiteName());
-            e.setRegion(normalizeRegion(r.getRegion()));
-            e.setCatchment(normalizeCatchment(r.getCatchment()));
-            e.setLatitude(r.getLatitude());
-            e.setLongitude(r.getLongitude());
-            e.setIndicatorRaw(r.getIndicatorRaw());
-            e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setUnits(r.getUnits());
-            e.setAttributeBand(r.getAttributeBand());
-            e.setStateNorm(r.getStateNorm());
-            e.setMedian(r.getMedian());
-            e.setP95(r.getP95());
-            e.setRecHealthExceed260Pct(r.getRecHealthExceed260Pct());
-            e.setRecHealthExceed540Pct(r.getRecHealthExceed540Pct());
-            e.setPeriodType(r.getPeriodType());
-            e.setPeriodStartYear(r.getPeriodStartYear());
-            e.setPeriodEndYear(r.getPeriodEndYear());
+            e.setLawaSiteId(r.lawaSiteId());
+            e.setSiteName(r.siteName());
+            e.setRegion(normalizeRegion(r.region()));
+            e.setCatchment(normalizeCatchment(r.catchment()));
+            e.setLatitude(r.latitude());
+            e.setLongitude(r.longitude());
+            e.setIndicatorRaw(r.indicatorRaw());
+            e.setIndicatorNorm(r.indicatorNorm());
+            e.setUnits(r.units());
+            e.setAttributeBand(r.attributeBand());
+            e.setStateNorm(r.stateNorm());
+            e.setMedian(r.median());
+            e.setP95(r.p95());
+            e.setRecHealthExceed260Pct(r.recHealthExceed260Pct());
+            e.setRecHealthExceed540Pct(r.recHealthExceed540Pct());
+            e.setPeriodType(r.periodType());
+            e.setPeriodStartYear(r.periodStartYear());
+            e.setPeriodEndYear(r.periodEndYear());
             batch.add(e);
         }
         if (!batch.isEmpty()) {

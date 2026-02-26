@@ -77,11 +77,11 @@ public class MbieQuarterlyIngestion {
         for (MbieGenerationQuarterlyParsedRecord r : rows) {
             MbieGenerationQuarterlyRecord e = new MbieGenerationQuarterlyRecord();
             e.setDatasetRelease(release);
-            e.setPeriodYear(r.getPeriodYear());
-            e.setPeriodQuarter(r.getPeriodQuarter());
-            e.setFuelTypeRaw(r.getFuelTypeRaw());
-            e.setFuelTypeNorm(r.getFuelTypeNorm());
-            BigDecimal gwh = r.getGenerationGwh();
+            e.setPeriodYear(r.periodYear());
+            e.setPeriodQuarter(r.periodQuarter());
+            e.setFuelTypeRaw(r.fuelTypeRaw());
+            e.setFuelTypeNorm(r.fuelTypeNorm());
+            BigDecimal gwh = r.generationGwh();
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }
@@ -133,11 +133,11 @@ public class MbieQuarterlyIngestion {
         for (MbieGenerationQuarterlyParsedRecord r : rows) {
             MbieGenerationQuarterlyRecord e = new MbieGenerationQuarterlyRecord();
             e.setDatasetRelease(release);
-            e.setPeriodYear(r.getPeriodYear());
-            e.setPeriodQuarter(r.getPeriodQuarter());
-            e.setFuelTypeRaw(r.getFuelTypeRaw());
-            e.setFuelTypeNorm(r.getFuelTypeNorm());
-            BigDecimal gwh = r.getGenerationGwh();
+            e.setPeriodYear(r.periodYear());
+            e.setPeriodQuarter(r.periodQuarter());
+            e.setFuelTypeRaw(r.fuelTypeRaw());
+            e.setFuelTypeNorm(r.fuelTypeNorm());
+            BigDecimal gwh = r.generationGwh();
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }

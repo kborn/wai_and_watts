@@ -184,7 +184,6 @@ public class MbieAnnualXlsxTransformer {
                                                     Map<String, Integer> headerIndex,
                                                     DataFormatter formatter) throws IOException {
         Map<Integer, String> result = new LinkedHashMap<>();
-        List<String> missing = new ArrayList<>();
         for (Map.Entry<String, String> entry : FUEL_HEADERS.entrySet()) {
             Integer idx = headerIndex.get(entry.getKey());
             if (idx != null) {
@@ -192,10 +191,10 @@ public class MbieAnnualXlsxTransformer {
                 result.put(idx, raw.isEmpty() ? entry.getValue() : raw);
             }
         }
-        if (!result.keySet().isEmpty()) {
+        if (!result.isEmpty()) {
             return result;
         }
-        missing.addAll(FUEL_HEADERS.keySet());
+        List<String> missing = new ArrayList<>(FUEL_HEADERS.keySet());
         throw new IOException("Missing fuel columns: " + String.join(", ", missing));
     }
 

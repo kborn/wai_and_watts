@@ -90,10 +90,10 @@ public class MbieAnnualIngestion {
         for (MbieGenerationAnnualParsedRecord r : rows) {
             MbieGenerationAnnualRecord e = new MbieGenerationAnnualRecord();
             e.setDatasetRelease(release);
-            e.setPeriodYear(r.getPeriodYear());
-            e.setFuelTypeRaw(r.getFuelTypeRaw());
-            e.setFuelTypeNorm(r.getFuelTypeNorm());
-            BigDecimal gwh = r.getGenerationGwh();
+            e.setPeriodYear(r.periodYear());
+            e.setFuelTypeRaw(r.fuelTypeRaw());
+            e.setFuelTypeNorm(r.fuelTypeNorm());
+            BigDecimal gwh = r.generationGwh();
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }
@@ -148,10 +148,10 @@ public class MbieAnnualIngestion {
         for (MbieGenerationAnnualParsedRecord r : rows) {
             MbieGenerationAnnualRecord e = new MbieGenerationAnnualRecord();
             e.setDatasetRelease(release);
-            e.setPeriodYear(r.getPeriodYear());
-            e.setFuelTypeRaw(r.getFuelTypeRaw());
-            e.setFuelTypeNorm(r.getFuelTypeNorm());
-            BigDecimal gwh = r.getGenerationGwh();
+            e.setPeriodYear(r.periodYear());
+            e.setFuelTypeRaw(r.fuelTypeRaw());
+            e.setFuelTypeNorm(r.fuelTypeNorm());
+            BigDecimal gwh = r.generationGwh();
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }
