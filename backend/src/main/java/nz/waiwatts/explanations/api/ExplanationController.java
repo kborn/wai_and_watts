@@ -14,6 +14,7 @@ import nz.waiwatts.explanations.service.IntentParserService;
 import nz.waiwatts.explanations.service.RequestValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,7 @@ import java.util.Map;
 public class ExplanationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ExplanationController.class);
+    private static final String LEGACY_API_SUNSET = "Wed, 31 Dec 2026 23:59:59 GMT";
     
     private final ExplanationService explanationService;
     private final IntentParserService intentParserService;
@@ -435,7 +437,12 @@ public class ExplanationController {
      */
     @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
-        return ResponseEntity.ok(capabilitiesService.buildCapabilitiesResponse());
+        return ResponseEntity.ok()
+            .header("Deprecation", "true")
+            .header("Sunset", LEGACY_API_SUNSET)
+            .header(HttpHeaders.LINK, "</api/v1/capabilities>; rel=\"successor-version\"")
+            .header(HttpHeaders.WARNING, "299 - \"Deprecated API; use /api/v1/capabilities\"")
+            .body(capabilitiesService.buildCapabilitiesResponse());
     }
 
     /**
@@ -445,11 +452,16 @@ public class ExplanationController {
      */
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> healthCheck() {
-        return ResponseEntity.ok(Map.of(
-            "status", "healthy",
-            "service", "explanation-api",
-            "phase", "11"
-        ));
+        return ResponseEntity.ok()
+            .header("Deprecation", "true")
+            .header("Sunset", LEGACY_API_SUNSET)
+            .header(HttpHeaders.LINK, "</api/v1/health>; rel=\"successor-version\"")
+            .header(HttpHeaders.WARNING, "299 - \"Deprecated API; use /api/v1/health\"")
+            .body(Map.of(
+                "status", "healthy",
+                "service", "explanation-api",
+                "phase", "11"
+            ));
     }
 
     /**
