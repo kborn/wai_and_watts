@@ -469,6 +469,7 @@ public class ExplanationController {
     @GetMapping("/capabilities")
     public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
         return ResponseEntity.ok()
+            .header("Deprecation", "true")
             .header("Sunset", LEGACY_API_SUNSET)
             .header(HttpHeaders.LINK, "</api/v1/capabilities>; rel=\"successor-version\"")
             .header(HttpHeaders.WARNING, "299 - \"Deprecated API; use /api/v1/capabilities\"")
@@ -483,6 +484,7 @@ public class ExplanationController {
     @GetMapping("/health")
     public ResponseEntity<Map<String, String>> healthCheck() {
         return ResponseEntity.ok()
+            .header("Deprecation", "true")
             .header("Sunset", LEGACY_API_SUNSET)
             .header(HttpHeaders.LINK, "</api/v1/health>; rel=\"successor-version\"")
             .header(HttpHeaders.WARNING, "299 - \"Deprecated API; use /api/v1/health\"")

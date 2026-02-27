@@ -32,6 +32,11 @@
 
 ## API deprecation policy
 
+#### Note on tooling: 
+Some IDE HTTP inspections flag `Deprecation`/`Sunset` as “unknown headers”.
+These headers are intentionally used as part of the API deprecation contract.
+If your IDE flags them, add them to the HTTP Client inspection’s custom header allow-list.
+
 Canonical endpoints:
 - `GET /api/v1/capabilities`
 - `GET /api/v1/health`
