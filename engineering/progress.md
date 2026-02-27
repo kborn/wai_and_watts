@@ -935,6 +935,11 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Pin required JSON fields and semantics for `/api/v1/capabilities` including `suggestedValuesByToken`, examples, and capability schema.
 - [x] Add fixed-corpus NL determinism suite (multiple executions per prompt) to CI.
 - [x] Add explicit capability contract stability assertions for long-term frontend compatibility.
+- [x] Add retroactive Python tooling bootstrap support for archived scripts
+    - [x] Add `archive/tools/python/Makefile` convenience targets (`python-setup`, `python-venv`, `python-runner-help`)
+    - [x] Add `archive/tools/python/setup-python.sh` venv bootstrap
+    - [x] Add `archive/tools/python/requirements.txt`
+    - [x] Add `archive/tools/python/README.md`
 
 ### Non-goals (explicit)
 - [ ] No new datasets or explanation types in this phase.

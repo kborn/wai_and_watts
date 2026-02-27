@@ -1,0 +1,5 @@
+# Archived Python tooling dependencies
+# Used by historical scripts under archive/phase_notes/phase15 and scripts/archive.
+requests>=2.31.0,<3
+pandas>=2.2.0,<3
+openpyxl>=3.1.0,<4
