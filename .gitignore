@@ -42,6 +42,7 @@ replay_pid*
 /transforms/
 
 .env
+.venv/
 
 .DS_Store
 

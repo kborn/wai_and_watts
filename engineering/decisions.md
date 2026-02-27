@@ -1589,3 +1589,20 @@ Implications:
 - Normalization layer strips placeholder categorical values before capability validation.
 - Builders/default metric behavior applies when optional categorical filters are absent.
 - Determinism regressions are covered by parser/service tests and expanded corpus checks.
+
+---
+
+### Retroactive Python Tooling Bootstrap for Archived Scripts
+Date: 2026-02-27
+
+Decision:
+Provide optional, retroactive Python tooling bootstrap support for archived scripts under `archive/`, using local `.venv` setup and dependency pinning in `archive/tools/python/`.
+
+Rationale:
+- Python-based helper scripts exist in repository history/artifacts and can trigger IDE unresolved-reference noise without interpreter/dependency setup.
+- A lightweight, optional bootstrap improves contributor/reviewer onboarding without coupling runtime paths to Python.
+
+Implications:
+- Python tooling remains optional and is not required for backend/frontend runtime.
+- Bootstrap entrypoints and docs live under `archive/tools/python/` (`README.md`, `Makefile`, `setup-python.sh`, `requirements.txt`).
+- Root runtime paths (Docker ingestion, backend/frontend startup) remain Java/Node only and do not depend on Python.
