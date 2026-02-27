@@ -100,15 +100,15 @@ public class CitationMapper {
             }
         }
 
-        Citation citation = new Citation();
-        citation.setId(id);
-        citation.setType(type);
-        citation.setDatasetSource(datasetSource);
-        citation.setField(field);
-        citation.setFuelType(fuelType);
-        citation.setPeriodYear(periodYear);
-        citation.setPeriod(period);
-        return citation;
+        return Citation.builder()
+            .id(id)
+            .type(type)
+            .datasetSource(datasetSource)
+            .field(field)
+            .fuelType(fuelType)
+            .periodYear(periodYear)
+            .period(period)
+            .build();
     }
 
     private Optional<Integer> parseYear(String value) {

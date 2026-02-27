@@ -256,23 +256,22 @@ public class ExplanationController {
                 selectionResult.getDatasetSource()
             );
 
-            AskResult result = new AskResult();
-            result.setRefusal(false);
-            result.setRefusal(new AskResult.Refusal(null, null, null));
-            result.setParsedRequest(parsedRequest);
-            result.setSelectedDatasetSource(selectionResult.getDatasetSource());
-            result.setDatasetSelection(new AskResult.DatasetSelection(
-                selectionResult.getStrategy().name(),
-                selectionResult.getReason()
-            ));
-            result.setExplanation(explanation.getExplanationText());
-            result.setCitations(citations != null ? citations : List.of());
-            result.setDebug(new AskResult.Debug(
-                parseResponse.getParserUsed(),
-                parseDurationMs,
-                selectionResult.getCandidates(),
-                null
-            ));
+            AskResult result = AskResult.success(
+                parsedRequest,
+                selectionResult.getDatasetSource(),
+                new AskResult.DatasetSelection(
+                    selectionResult.getStrategy().name(),
+                    selectionResult.getReason()
+                ),
+                explanation.getExplanationText(),
+                citations,
+                new AskResult.Debug(
+                    parseResponse.getParserUsed(),
+                    parseDurationMs,
+                    selectionResult.getCandidates(),
+                    null
+                )
+            );
             Metrics.globalRegistry.counter("waiwatts.ask.success.count").increment();
             
             return ResponseEntity.ok(result);
@@ -319,34 +318,33 @@ public class ExplanationController {
         DatasetSelectionService.DatasetSelectionResult selectionResult,
         AskResult.Debug debug
     ) {
-        AskResult result = new AskResult();
-        result.setRefusal(true);
-        result.setRefusal(new AskResult.Refusal(
-            code,
-            message,
-            refusalDetails(code, parsedRequest, selectionResult)
-        ));
-        result.setParsedRequest(parsedRequest);
-        result.setSelectedDatasetSource(resolveSelectedDatasetSource(parsedRequest, selectionResult));
+        String selectedDatasetSource = resolveSelectedDatasetSource(parsedRequest, selectionResult);
+        AskResult.DatasetSelection datasetSelection;
         if (selectionResult != null) {
             String reason = selectionResult.getReason();
             if (reason == null || reason.isBlank()) {
                 reason = selectionResult.getRefusalMessage();
             }
-            result.setDatasetSelection(new AskResult.DatasetSelection(
+            datasetSelection = new AskResult.DatasetSelection(
                 selectionResult.getStrategy().name(),
                 reason
-            ));
+            );
         } else {
-            result.setDatasetSelection(new AskResult.DatasetSelection(
+            datasetSelection = new AskResult.DatasetSelection(
                 DatasetSelectionService.DatasetSelectionStrategy.NONE.name(),
                 "No dataset selection performed."
-            ));
+            );
         }
-        result.setExplanation("");
-        result.setCitations(List.of());
-        result.setDebug(debug);
-        return result;
+
+        return AskResult.refusal(
+            code,
+            message,
+            refusalDetails(code, parsedRequest, selectionResult),
+            parsedRequest,
+            selectedDatasetSource,
+            datasetSelection,
+            debug
+        );
     }
 
     private Map<String, Object> refusalDetails(
