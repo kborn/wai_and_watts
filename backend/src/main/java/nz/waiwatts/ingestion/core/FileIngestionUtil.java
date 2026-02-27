@@ -8,13 +8,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.List;
 
 /**
  * Utility class for file operations in ingestion.
  * Provides common methods for reading files from classpath or local filesystem.
  */
 public class FileIngestionUtil {
+
+    private static final List<Path> TRUSTED_ROOTS = buildTrustedRoots();
 
     private FileIngestionUtil() {
         // Utility class - no instantiation
@@ -86,6 +90,7 @@ public class FileIngestionUtil {
         } catch (InvalidPathException e) {
             throw new IllegalArgumentException("File path is invalid: " + filePath, e);
         }
+        requireTrustedRoot(normalized, "File path");
 
         if (!Files.exists(normalized, LinkOption.NOFOLLOW_LINKS)) {
             throw new IllegalArgumentException("File does not exist: " + normalized);
@@ -145,6 +150,7 @@ public class FileIngestionUtil {
         } catch (InvalidPathException e) {
             throw new IllegalArgumentException("Output path is invalid: " + outputPath, e);
         }
+        requireTrustedRoot(normalized, "Output path");
 
         String fileName = normalized.getFileName() == null ? "" : normalized.getFileName().toString();
         if (!fileName.toLowerCase().endsWith(".csv")) {
@@ -179,5 +185,24 @@ public class FileIngestionUtil {
 
     public static String fileUri(Path path) {
         return path.toUri().toString();
+    }
+
+    private static List<Path> buildTrustedRoots() {
+        List<Path> roots = new ArrayList<>();
+        roots.add(Paths.get("").toAbsolutePath().normalize());
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        if (tmpDir != null && !tmpDir.isBlank()) {
+            roots.add(Paths.get(tmpDir).toAbsolutePath().normalize());
+        }
+        return roots;
+    }
+
+    private static void requireTrustedRoot(Path path, String label) {
+        for (Path root : TRUSTED_ROOTS) {
+            if (path.startsWith(root)) {
+                return;
+            }
+        }
+        throw new IllegalArgumentException(label + " must be under trusted roots: " + path);
     }
 }
