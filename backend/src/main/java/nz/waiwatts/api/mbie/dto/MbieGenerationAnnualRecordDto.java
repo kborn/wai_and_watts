@@ -3,60 +3,17 @@ package nz.waiwatts.api.mbie.dto;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public class MbieGenerationAnnualRecordDto {
-    private int periodYear;
-    private String fuelType; // normalized fuel type (was source)
-    private String fuelTypeRaw;
-    private BigDecimal generationGwh;
-    private UUID releaseId;
-
-    public MbieGenerationAnnualRecordDto() {}
-
-    public MbieGenerationAnnualRecordDto(int periodYear, String fuelType, String fuelTypeRaw, BigDecimal generationGwh, UUID releaseId) {
-        this.periodYear = periodYear;
-        this.fuelType = fuelType;
-        this.fuelTypeRaw = fuelTypeRaw;
-        this.generationGwh = generationGwh;
-        this.releaseId = releaseId;
-    }
-
-    public int getPeriodYear() {
-        return periodYear;
-    }
-
-    public void setPeriodYear(int periodYear) {
-        this.periodYear = periodYear;
-    }
-
-    public String getFuelType() {
-        return fuelType;
-    }
-
-    public void setFuelType(String fuelType) {
-        this.fuelType = fuelType;
-    }
-
-    public String getFuelTypeRaw() {
-        return fuelTypeRaw;
-    }
-
-    public void setFuelTypeRaw(String fuelTypeRaw) {
-        this.fuelTypeRaw = fuelTypeRaw;
-    }
-
-    public BigDecimal getGenerationGwh() {
-        return generationGwh;
-    }
-
-    public void setGenerationGwh(BigDecimal generationGwh) {
-        this.generationGwh = generationGwh;
-    }
-
-    public UUID getReleaseId() {
-        return releaseId;
-    }
-
-    public void setReleaseId(UUID releaseId) {
-        this.releaseId = releaseId;
-    }
+public record MbieGenerationAnnualRecordDto(
+    int periodYear,
+    String fuelType,
+    String fuelTypeRaw,
+    BigDecimal generationGwh,
+    UUID releaseId
+) {
+    // Compatibility getters for existing call sites.
+    public int getPeriodYear() { return periodYear; }
+    public String getFuelType() { return fuelType; }
+    public String getFuelTypeRaw() { return fuelTypeRaw; }
+    public BigDecimal getGenerationGwh() { return generationGwh; }
+    public UUID getReleaseId() { return releaseId; }
 }
