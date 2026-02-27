@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.sql.DataSource;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -45,11 +47,22 @@ class ManualIngestionCommandTest {
     @Autowired
     private MbieGenerationAnnualRecordRepository recordRepository;
 
+    @Autowired
+    private DataSource dataSource;
+
     private static String previousProfiles;
+    private static String previousDatasourceUrl;
+    private static String previousDatasourceUsername;
+    private static String previousDatasourcePassword;
+    private static String previousDatasourceDriver;
 
     @BeforeAll
     static void setProfiles() {
         previousProfiles = System.getProperty("spring.profiles.active");
+        previousDatasourceUrl = System.getProperty("spring.datasource.url");
+        previousDatasourceUsername = System.getProperty("spring.datasource.username");
+        previousDatasourcePassword = System.getProperty("spring.datasource.password");
+        previousDatasourceDriver = System.getProperty("spring.datasource.driver-class-name");
         System.setProperty("spring.profiles.active", "test");
     }
 
@@ -60,10 +73,21 @@ class ManualIngestionCommandTest {
         } else {
             System.setProperty("spring.profiles.active", previousProfiles);
         }
+        restoreSystemProperty("spring.datasource.url", previousDatasourceUrl);
+        restoreSystemProperty("spring.datasource.username", previousDatasourceUsername);
+        restoreSystemProperty("spring.datasource.password", previousDatasourcePassword);
+        restoreSystemProperty("spring.datasource.driver-class-name", previousDatasourceDriver);
     }
 
     @BeforeEach
-    void setup() {
+    void setup() throws SQLException {
+        try (var connection = dataSource.getConnection()) {
+            System.setProperty("spring.datasource.url", connection.getMetaData().getURL());
+        }
+        System.setProperty("spring.datasource.username", "sa");
+        System.setProperty("spring.datasource.password", "");
+        System.setProperty("spring.datasource.driver-class-name", "org.h2.Driver");
+
         recordRepository.deleteAll();
         releaseRepository.deleteAll();
         sourceRepository.deleteAll();
@@ -76,6 +100,14 @@ class ManualIngestionCommandTest {
         src.setExpectedFormat(ExpectedFormat.CSV);
         src.setUpdateCadence("annual");
         sourceRepository.save(src);
+    }
+
+    private static void restoreSystemProperty(String key, String value) {
+        if (value == null) {
+            System.clearProperty(key);
+        } else {
+            System.setProperty(key, value);
+        }
     }
 
     @Test

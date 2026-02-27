@@ -37,10 +37,9 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Flyway versions are managed by the Spring Boot BOM imported in the parent -->
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -63,6 +62,21 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway-test</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -144,8 +158,8 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[21,22)</version>
-                                    <message>Maven must run on Java 21.x (not just compile with --release 21). Check `mvn -v` and set JAVA_HOME accordingly.</message>
+                                    <version>[21,)</version>
+                                    <message>Maven must run on Java 21+ (not below 21). Check `mvn -v` and set JAVA_HOME accordingly.</message>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>

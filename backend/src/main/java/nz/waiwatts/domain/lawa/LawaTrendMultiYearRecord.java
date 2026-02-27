@@ -51,10 +51,10 @@ public class LawaTrendMultiYearRecord {
     private String trendNorm;
 
     @Column(name = "trend_score", nullable = false)
-    private Integer trendScore;
+    private Short trendScore;
 
     @Column(name = "trend_period_years", nullable = false)
-    private Integer trendPeriodYears;
+    private Short trendPeriodYears;
 
     @Column(name = "trend_data_frequency")
     private String trendDataFrequency;
@@ -94,10 +94,10 @@ public class LawaTrendMultiYearRecord {
     public void setTrendRaw(String trendRaw) { this.trendRaw = trendRaw; }
     public String getTrendNorm() { return trendNorm; }
     public void setTrendNorm(String trendNorm) { this.trendNorm = trendNorm; }
-    public Integer getTrendScore() { return trendScore; }
-    public void setTrendScore(Integer trendScore) { this.trendScore = trendScore; }
-    public Integer getTrendPeriodYears() { return trendPeriodYears; }
-    public void setTrendPeriodYears(Integer trendPeriodYears) { this.trendPeriodYears = trendPeriodYears; }
+    public Integer getTrendScore() { return trendScore == null ? null : trendScore.intValue(); }
+    public void setTrendScore(Integer trendScore) { this.trendScore = trendScore == null ? null : trendScore.shortValue(); }
+    public Integer getTrendPeriodYears() { return trendPeriodYears == null ? null : trendPeriodYears.intValue(); }
+    public void setTrendPeriodYears(Integer trendPeriodYears) { this.trendPeriodYears = trendPeriodYears == null ? null : trendPeriodYears.shortValue(); }
     public String getTrendDataFrequency() { return trendDataFrequency; }
     public void setTrendDataFrequency(String trendDataFrequency) { this.trendDataFrequency = trendDataFrequency; }
     public String getPeriodType() { return periodType; }
