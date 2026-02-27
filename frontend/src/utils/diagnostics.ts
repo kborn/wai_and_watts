@@ -20,11 +20,3 @@ export function addDiagnostic(diagnostic: ApiDiagnostics): void {
     diagnostics = diagnostics.slice(-20)
   }
 }
-
-export function getDiagnostics(): ApiDiagnostics[] {
-  return [...diagnostics]
-}
-
-export function clearDiagnostics(): void {
-  diagnostics = []
-}

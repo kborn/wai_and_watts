@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { type SyntheticEvent, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAskQuestion, useCapabilities } from '../../api/hooks'
 import type {
@@ -47,7 +47,7 @@ const buildPromptFromTemplate = (
   })
 }
 
-const AskPage: React.FC = () => {
+const AskPage = () => {
   const location = useLocation()
   const initialQuestion =
     (location.state as { seedQuestion?: string } | undefined)?.seedQuestion ||
@@ -62,7 +62,9 @@ const AskPage: React.FC = () => {
   const capabilitiesData: CapabilitiesResponseWithSuggestions | undefined =
     capabilities.data as CapabilitiesResponseWithSuggestions | undefined
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: SyntheticEvent<HTMLFormElement, SubmitEvent>
+  ) => {
     e.preventDefault()
 
     if (!question.trim()) {
