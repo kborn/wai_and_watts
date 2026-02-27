@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -35,12 +36,12 @@ public class CorsLoggingFilter implements Filter {
         
         // Add CORS headers manually for OPTIONS requests
         if (method.equals("OPTIONS")) {
-            httpResponse.setHeader("Access-Control-Allow-Origin", origin);
-            httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            httpResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, Request-Id, Authorization");
-            httpResponse.setHeader("Access-Control-Expose-Headers", "Request-Id");
-            httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-            httpResponse.setHeader("Access-Control-Max-Age", "3600");
+            httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+            httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT, DELETE, OPTIONS");
+            httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "Content-Type, Request-Id, Authorization");
+            httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Request-Id");
+            httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+            httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "3600");
             httpResponse.setStatus(HttpServletResponse.SC_OK);
             return;
         }
@@ -50,8 +51,8 @@ public class CorsLoggingFilter implements Filter {
         } finally {
             // Add CORS headers to all responses
             if (origin != null) {
-                httpResponse.setHeader("Access-Control-Allow-Origin", origin);
-                httpResponse.setHeader("Access-Control-Expose-Headers", "Request-Id");
+                httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                httpResponse.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Request-Id");
             }
         }
     }
