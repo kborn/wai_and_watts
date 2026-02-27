@@ -65,6 +65,16 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Keep H2 only if you actually use it for tests; otherwise remove once you move to Testcontainers -->
         <dependency>
@@ -144,8 +154,8 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[21,22)</version>
-                                    <message>Maven must run on Java 21.x (not just compile with --release 21). Check `mvn -v` and set JAVA_HOME accordingly.</message>
+                                    <version>[21,)</version>
+                                    <message>Maven must run on Java 21+ (not below 21). Check `mvn -v` and set JAVA_HOME accordingly.</message>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
