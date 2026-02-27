@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useMemo, useState } from 'react'
+import { type SyntheticEvent, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAskQuestion, useCapabilities } from '../../api/hooks'
 import type {
@@ -55,6 +55,7 @@ const AskPage = () => {
   const [question, setQuestion] = useState(initialQuestion.trim())
   const [error, setError] = useState<string | null>(null)
   const [selectedIntent, setSelectedIntent] = useState<string | null>(null)
+  const questionInputRef = useRef<HTMLTextAreaElement>(null)
   const navigate = useNavigate()
 
   const askQuestion = useAskQuestion()
@@ -62,12 +63,9 @@ const AskPage = () => {
   const capabilitiesData: CapabilitiesResponseWithSuggestions | undefined =
     capabilities.data as CapabilitiesResponseWithSuggestions | undefined
 
-  const handleSubmit = async (
-    e: SyntheticEvent<HTMLFormElement, SubmitEvent>
-  ) => {
-    e.preventDefault()
-
-    if (!question.trim()) {
+  const submitQuestion = async (rawQuestion: string) => {
+    const trimmedQuestion = rawQuestion.trim()
+    if (!trimmedQuestion) {
       setError('Please enter a question')
       return
     }
@@ -75,13 +73,13 @@ const AskPage = () => {
     setError(null)
 
     try {
-      const request: AskRequest = { question: question.trim() }
+      const request: AskRequest = { question: trimmedQuestion }
       const result = await askQuestion.mutateAsync(request)
 
       // Navigate to results page with response data
       navigate('/results', {
         state: {
-          question: question.trim(),
+          question: trimmedQuestion,
           explanation: result,
         },
       })
@@ -90,6 +88,25 @@ const AskPage = () => {
         'We hit a technical issue while contacting the explanation service. Please try again.'
       )
     }
+  }
+
+  const handleSubmit = async (
+    e: SyntheticEvent<HTMLFormElement, SubmitEvent>
+  ) => {
+    e.preventDefault()
+    await submitQuestion(question)
+  }
+
+  const handleExampleClick = (example: string) => {
+    setQuestion(example)
+    requestAnimationFrame(() => {
+      questionInputRef.current?.focus()
+      questionInputRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    })
+    void submitQuestion(example)
   }
 
   const capabilityList = useMemo(
@@ -209,6 +226,7 @@ const AskPage = () => {
               Your Question
             </label>
             <textarea
+              ref={questionInputRef}
               id="question"
               value={question}
               onChange={e => setQuestion(e.target.value)}
@@ -310,7 +328,8 @@ const AskPage = () => {
             <button
               key={index}
               type="button"
-              onClick={() => setQuestion(example)}
+              onClick={() => handleExampleClick(example)}
+              disabled={askQuestion.isPending}
               className="w-full text-left p-3 border border-neutral-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 group"
             >
               <p className="text-sm text-neutral-700 group-hover:text-primary-700">
