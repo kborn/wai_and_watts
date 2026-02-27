@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(value = RegionContextController.class, properties = {"spring.jackson.serialization.write-dates-as-timestamps=false"})
+@WebMvcTest(RegionContextController.class)
 class RegionContextControllerTest {
 
     @Autowired

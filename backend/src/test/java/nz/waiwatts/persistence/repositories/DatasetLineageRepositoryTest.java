@@ -3,8 +3,10 @@ package nz.waiwatts.persistence.repositories;
 import nz.waiwatts.domain.datasets.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class DatasetLineageRepositoryTest {
 
     @Autowired
@@ -49,9 +53,7 @@ class DatasetLineageRepositoryTest {
         dup.setContentHash("hash-123"); // same hash with same source -> violates unique constraint
         dup.setStatus(ReleaseStatus.PENDING);
 
-        assertThatThrownBy(() -> {
-            releaseRepo.saveAndFlush(dup);
-        }).isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> releaseRepo.saveAndFlush(dup)).isInstanceOf(DataIntegrityViolationException.class);
 
         assertThat(sourceRepo.findBySourceUrl("https://lawa.org.nz/datasets/river-quality")).isPresent();
     }
