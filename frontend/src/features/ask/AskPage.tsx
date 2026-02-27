@@ -34,7 +34,7 @@ const buildPromptFromTemplate = (
     endYear: String(currentYear - 1),
   }
 
-  return template.replace(/\{(\w+)\}/g, (_, token: string) => {
+  return template.replace(/{(\w+)}/g, (_, token: string) => {
     if (replacements[token]) {
       return replacements[token]
     }
