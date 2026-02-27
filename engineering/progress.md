@@ -941,9 +941,11 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Add `archive/tools/python/requirements.txt`
     - [x] Add `archive/tools/python/README.md`
 - [ ] Code cleanup
-  - [ ] Unused imports
-  - [ ] Uncalled method
-  - [ ] TODOs
+  - [ ] Static analysis
+    - [x] Uncalled methods
+      - [ ] Prefer records to classes for POJOs where possible 
+      - [x] Unused imports
+  - [x] TODOs
 
 ### Non-goals (explicit)
 - [ ] No new datasets or explanation types in this phase.
