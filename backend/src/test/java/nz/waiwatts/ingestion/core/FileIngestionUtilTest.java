@@ -110,10 +110,11 @@ class FileIngestionUtilTest {
     @Test
     void validateFilePath_whenValidPath_passes() {
         // Arrange
-        String validPath = "/path/to/file.csv";
+        Path validPath = tempDir.resolve("valid.csv");
+        assertDoesNotThrow(() -> Files.writeString(validPath, "ok"));
 
         // Act & Assert - should not throw
-        assertDoesNotThrow(() -> FileIngestionUtil.validateFilePath(validPath));
+        assertDoesNotThrow(() -> FileIngestionUtil.validateFilePath(validPath.toString()));
     }
 
     @Test
@@ -139,26 +140,47 @@ class FileIngestionUtilTest {
     @Test
     void validateFilePath_whenContainsParentReference_throwsException() {
         // Arrange
-        String unsafePath = "/path/../file.csv";
+        String unsafePath = tempDir.resolve("../file.csv").toString();
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> FileIngestionUtil.validateFilePath(unsafePath)
         );
-        assertTrue(exception.getMessage().contains("potentially unsafe characters"));
+        assertTrue(exception.getMessage().contains("does not exist"));
     }
 
     @Test
     void validateFilePath_whenContainsHomeReference_throwsException() {
         // Arrange
-        String unsafePath = "/path/~/file.csv";
+        String unsafePath = tempDir.resolve("~").toString();
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> FileIngestionUtil.validateFilePath(unsafePath)
         );
-        assertTrue(exception.getMessage().contains("potentially unsafe characters"));
+        assertTrue(exception.getMessage().contains("does not exist"));
+    }
+
+    @Test
+    void resolveWritableCsvOutputPath_whenCsvPathIsValid_passes() {
+        Path output = tempDir.resolve("out.csv");
+
+        Path result = FileIngestionUtil.resolveWritableCsvOutputPath(output.toString());
+
+        assertEquals(output.toAbsolutePath().normalize(), result);
+    }
+
+    @Test
+    void resolveWritableCsvOutputPath_whenNotCsv_throwsException() {
+        Path output = tempDir.resolve("out.txt");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> FileIngestionUtil.resolveWritableCsvOutputPath(output.toString())
+        );
+
+        assertTrue(exception.getMessage().contains("must end with .csv"));
     }
 }

@@ -1,6 +1,7 @@
 package nz.waiwatts.cli;
 
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.ingestion.core.FileIngestionUtil;
 import nz.waiwatts.ingestion.transform.lawa.LawaStateMultiYearXlsxTransformer;
 import nz.waiwatts.ingestion.transform.lawa.LawaTrendMultiYearXlsxTransformer;
 import nz.waiwatts.ingestion.transform.mbie.MbieAnnualXlsxTransformer;
@@ -9,14 +10,12 @@ import nz.waiwatts.ingestion.transform.mbie.MbieQuarterlyXlsxTransformer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class ManualTransformCommand {
 
     private static final int EXIT_USAGE = 1;
     private static final int EXIT_VALIDATION = 2;
     private static final int EXIT_FAILURE = 3;
-    private static final String OUTPUT_EXTENSION = ".csv";
     private static final java.util.Set<String> ALLOWED_DATASETS = java.util.Set.of(
             DatasetSource.MBIE_GENERATION_ANNUAL.wireValue(),
             DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue(),
@@ -40,13 +39,13 @@ public class ManualTransformCommand {
         }
 
         String datasetSourceCode = args[0];
-        String inputPath = args[1];
-        String outputPath = args[2];
+        Path inputPath;
+        Path outputPath;
 
         try {
-            validateInputFile(inputPath);
-            validateOutputPath(outputPath);
             validateDatasetSource(datasetSourceCode);
+            inputPath = FileIngestionUtil.resolveReadableRegularFile(args[1]);
+            outputPath = FileIngestionUtil.resolveWritableCsvOutputPath(args[2]);
         } catch (IllegalArgumentException e) {
             System.err.println("ERROR: " + e.getMessage());
             return EXIT_VALIDATION;
@@ -54,7 +53,7 @@ public class ManualTransformCommand {
 
         try {
             byte[] csvBytes;
-            try (var in = Files.newInputStream(Paths.get(inputPath))) {
+            try (var in = Files.newInputStream(inputPath)) {
                 DatasetSource datasetSource = DatasetSource.fromWireValue(datasetSourceCode)
                     .orElseThrow(() -> new IllegalArgumentException(buildUnsupportedDatasetMessage(datasetSourceCode)));
                 csvBytes = switch (datasetSource) {
@@ -65,13 +64,9 @@ public class ManualTransformCommand {
                 };
             }
 
-            Path out = Paths.get(outputPath);
-            if (out.getParent() != null) {
-                Files.createDirectories(out.getParent());
-            }
-            Files.write(out, csvBytes);
+            Files.write(outputPath, csvBytes);
             System.out.println("SUCCESS");
-            System.out.println("Output: " + out.toAbsolutePath());
+            System.out.println("Output: " + outputPath);
             return 0;
         } catch (IllegalArgumentException e) {
             System.err.println("ERROR: " + e.getMessage());
@@ -86,52 +81,6 @@ public class ManualTransformCommand {
         System.out.println("Usage: ManualTransformCommand <dataset_source_code> <input_xlsx_path> <output_csv_path>");
         System.out.println("Example: ManualTransformCommand mbie.generation.annual workbook.xlsx /tmp/mbie_annual.csv");
         System.out.println("Supported datasets: " + String.join(", ", ALLOWED_DATASETS));
-    }
-
-    private static void validateInputFile(String inputPath) {
-        if (inputPath == null || inputPath.trim().isEmpty()) {
-            throw new IllegalArgumentException("Input path cannot be null or empty");
-        }
-        Path path = Paths.get(inputPath);
-        if (!Files.exists(path)) {
-            throw new IllegalArgumentException("Input file does not exist: " + inputPath);
-        }
-        if (!Files.isReadable(path)) {
-            throw new IllegalArgumentException("Input file is not readable: " + inputPath);
-        }
-        if (!Files.isRegularFile(path)) {
-            throw new IllegalArgumentException("Input path is not a regular file: " + inputPath);
-        }
-        try {
-            if (Files.size(path) == 0) {
-                throw new IllegalArgumentException("Input file is empty: " + inputPath);
-            }
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Unable to read input file size: " + inputPath);
-        }
-    }
-
-    private static void validateOutputPath(String outputPath) {
-        if (outputPath == null || outputPath.trim().isEmpty()) {
-            throw new IllegalArgumentException("Output path cannot be null or empty");
-        }
-        if (!outputPath.endsWith(OUTPUT_EXTENSION)) {
-            throw new IllegalArgumentException("Output path must end with " + OUTPUT_EXTENSION + ": " + outputPath);
-        }
-        Path path = Paths.get(outputPath);
-        if (Files.exists(path) && !Files.isRegularFile(path)) {
-            throw new IllegalArgumentException("Output path must be a file: " + outputPath);
-        }
-        Path parent = path.getParent();
-        if (parent != null && !Files.exists(parent)) {
-            try {
-                Files.createDirectories(parent);
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Unable to create output directory: " + parent);
-            }
-        } else if (parent != null && !Files.isWritable(parent)) {
-            throw new IllegalArgumentException("Output directory is not writable: " + parent);
-        }
     }
 
     private static void validateDatasetSource(String datasetSourceCode) {
