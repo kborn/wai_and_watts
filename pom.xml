@@ -21,7 +21,7 @@
         <spring-boot.version>4.0.3</spring-boot.version>
         <testcontainers.version>1.20.6</testcontainers.version>
         <!-- Security override: pin logback while staying on the current Boot line -->
-        <logback.version>1.5.25</logback.version>
+        <logback.version>1.5.32</logback.version>
         <!-- Security overrides for IDE-reported CVEs -->
         <snakeyaml.version>2.5</snakeyaml.version>
 
