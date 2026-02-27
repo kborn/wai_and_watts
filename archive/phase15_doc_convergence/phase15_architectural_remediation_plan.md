@@ -84,7 +84,7 @@ Completion Criteria:
 Description: Keep frontend presentational while improving clarity and UX consistency.
 
 5.1 Confirm no domain logic in frontend.
-5.2 Simplify awkward Ask -> Result flow.
+5.2 Simplify awkward Ask → Result flow.
 5.3 Improve refusal UX clarity.
 5.4 Improve explanation of citations.
 5.5 Add UI signal when no LLM provider is configured.
