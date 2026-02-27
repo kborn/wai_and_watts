@@ -61,7 +61,7 @@ class ApiClient {
       response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
-          'X-Request-Id': requestId,
+          'Request-Id': requestId,
           ...options.headers,
         },
         ...options,

@@ -49,7 +49,7 @@ describe('API Client', () => {
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'X-Request-Id': expect.any(String),
+            'Request-Id': expect.any(String),
           }),
           body: JSON.stringify(request),
         })

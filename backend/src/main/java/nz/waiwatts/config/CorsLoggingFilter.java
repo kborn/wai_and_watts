@@ -37,8 +37,8 @@ public class CorsLoggingFilter implements Filter {
         if (method.equals("OPTIONS")) {
             httpResponse.setHeader("Access-Control-Allow-Origin", origin);
             httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            httpResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Request-Id, Authorization");
-            httpResponse.setHeader("Access-Control-Expose-Headers", "X-Request-Id");
+            httpResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, Request-Id, Authorization");
+            httpResponse.setHeader("Access-Control-Expose-Headers", "Request-Id");
             httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
             httpResponse.setHeader("Access-Control-Max-Age", "3600");
             httpResponse.setStatus(HttpServletResponse.SC_OK);
@@ -51,7 +51,7 @@ public class CorsLoggingFilter implements Filter {
             // Add CORS headers to all responses
             if (origin != null) {
                 httpResponse.setHeader("Access-Control-Allow-Origin", origin);
-                httpResponse.setHeader("Access-Control-Expose-Headers", "X-Request-Id");
+                httpResponse.setHeader("Access-Control-Expose-Headers", "Request-Id");
             }
         }
     }
