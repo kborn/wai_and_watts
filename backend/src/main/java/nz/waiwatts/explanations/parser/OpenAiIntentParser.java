@@ -96,7 +96,7 @@ public class OpenAiIntentParser implements IntentParser {
         }
 
         Map<String, Object> filters = new HashMap<>();
-        filtersNode.fields().forEachRemaining(entry -> {
+        filtersNode.properties().forEach(entry -> {
             String key = entry.getKey();
             if (!capabilityRegistry.getAllowedFilterKeys().contains(key)) {
                 return;

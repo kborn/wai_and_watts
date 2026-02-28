@@ -255,7 +255,7 @@ class ExplanationControllerRefusalIntegrationTest {
             "trend"
         ));
 
-        suggested.fields().forEachRemaining(entry -> {
+        suggested.properties().forEach(entry -> {
             JsonNode values = entry.getValue();
             assertTrue(values.isArray(), "suggestedValuesByToken." + entry.getKey() + " must be an array");
             assertFalse(values.isEmpty(), "suggestedValuesByToken." + entry.getKey() + " must not be empty");
