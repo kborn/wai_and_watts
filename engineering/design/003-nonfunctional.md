@@ -37,6 +37,9 @@ Audience: Engineers and AI builders
 
 ## 5) Observability and Failure Handling
 - Request/exception logging is enabled through application filters and global handlers.
+- Request correlation id continuity is enforced via request filter, response headers, and MDC-backed log formatting.
+- `/ask` and explanation execution emit stage-level counters/timers for operator diagnosis.
+- Ask refusal outcomes are tracked with tagged refusal-code counters.
 - `/ask` has refusal-envelope behavior for runtime failures (no raw 500 leakage to ask clients).
 - Non-ask API failures use HTTP error responses with request correlation metadata.
 

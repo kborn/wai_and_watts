@@ -116,9 +116,7 @@ public class ExplanationServiceImpl implements ExplanationService {
             long providerStart = System.nanoTime();
             explanation = explanationProvider.generateExplanation(request.getQuestionType(), factPack);
             long providerDurationMs = (System.nanoTime() - providerStart) / 1_000_000;
-            Metrics.globalRegistry
-                .timer("waiwatts.explanation.stage.duration", "stage", "provider")
-                .record(Math.max(providerDurationMs, 0L), TimeUnit.MILLISECONDS);
+            recordExplanationStageMetrics("provider", providerDurationMs);
         } catch (RuntimeException e) {
             log.error("Explanation provider failed for questionType={} datasetSource={}: {}",
                     request.getQuestionType(), request.getDatasetSource(), e.getMessage(), e);
@@ -135,9 +133,7 @@ public class ExplanationServiceImpl implements ExplanationService {
             long citationValidationStart = System.nanoTime();
             boolean serviceCitationsOk = validateCitations(explanation, factPack);
             long citationValidationDurationMs = (System.nanoTime() - citationValidationStart) / 1_000_000;
-            Metrics.globalRegistry
-                .timer("waiwatts.explanation.stage.duration", "stage", "citation_validation")
-                .record(Math.max(citationValidationDurationMs, 0L), TimeUnit.MILLISECONDS);
+            recordExplanationStageMetrics("citation_validation", citationValidationDurationMs);
             if (!serviceCitationsOk) {
                 // Internal debug payload to assist development without leaking to clients
                 logCitationFailureDebug(request, explanation, factPack);
@@ -165,6 +161,15 @@ public class ExplanationServiceImpl implements ExplanationService {
             noFacts = tsEmpty && metsEmpty && compsEmpty && classesEmpty;
         }
         return noFacts;
+    }
+
+    private void recordExplanationStageMetrics(String stage, long durationMs) {
+        Metrics.globalRegistry
+            .counter("waiwatts.explanation.stage.count", "stage", stage)
+            .increment();
+        Metrics.globalRegistry
+            .timer("waiwatts.explanation.stage.duration", "stage", stage)
+            .record(Math.max(durationMs, 0L), TimeUnit.MILLISECONDS);
     }
 
     @Override

@@ -902,7 +902,7 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
 - [x] Existing API wire contracts remain backward compatible.
 - [x] Fitness suite v1 is implemented as a bounded rule set (8-12 rules), fails fast with clear messages, runs in the unit-test phase, and includes dependency graph, controller-boundary, and DTO-boundary rules.
 - [x] API contract strategy pins `/api/v1` stability with snapshot coverage for `/api/v1/capabilities`, one successful `/ask` response shape, one refusal `/ask` response shape, deprecation-header parity for aliases vs canonical endpoints, and schema-drift failures.
-- [ ] Observability work emits stage counters/timers plus refusal-code counters, carries correlation id end-to-end in logs, and is documented in a runbook that maps refusal categories to likely causes and relevant metrics.
+- [x] Observability work emits stage counters/timers plus refusal-code counters, carries correlation id end-to-end in logs, and is documented in a runbook that maps refusal categories to likely causes and relevant metrics.
 
 ### Work items
 - [x] Normalize `metricType=unknown` to absent in parsed requests before validation.
@@ -952,11 +952,11 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
   - [x] Add snapshot tests for one successful and one refusal `/api/v1/explanations/ask` response shape.
   - [x] Assert alias endpoints return deprecation headers and canonical endpoints do not.
   - [x] Fail tests on response schema drift for pinned contracts.
-- [ ] Observability + runbook hardening
-  - [ ] Emit counters/timers for parse, selection, validation, explanation, and citation-validation stages.
-  - [ ] Track refusal codes as tagged counters.
-  - [ ] Ensure correlation id is carried end-to-end in logs for ask/explanation flows.
-  - [ ] Add operator-facing runbook mapping refusal categories to likely causes and relevant metrics/signals.
+- [x] Observability + runbook hardening
+  - [x] Emit counters/timers for parse, selection, validation, explanation, and citation-validation stages.
+  - [x] Track refusal codes as tagged counters.
+  - [x] Ensure correlation id is carried end-to-end in logs for ask/explanation flows.
+  - [x] Add operator-facing runbook mapping refusal categories to likely causes and relevant metrics/signals.
 - [x] LAWA browse filter UX fix
   - [x] Preserve indicator selection across State/Trend view switches in the same way region selection is currently sticky.
 - [x] Code cleanup

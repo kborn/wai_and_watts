@@ -127,7 +127,7 @@ public class ExplanationController {
             // Parse natural language to structured request
             parseResponse = intentParserService.parseQuestion(question);
             parseDurationMs = (System.nanoTime() - parseStart) / 1_000_000;
-            recordAskStageLatency("parse", parseDurationMs);
+            recordAskStageMetrics("parse", parseDurationMs);
         
             if (!parseResponse.isOk()) {
                 logger.info("Intent parse result: refusal - category: {}, message: {}", 
@@ -162,7 +162,7 @@ public class ExplanationController {
             long selectionStart = System.nanoTime();
             selectionResult = datasetSelectionService.selectDataset(question, parsedRequest);
             long selectionDurationMs = (System.nanoTime() - selectionStart) / 1_000_000;
-            recordAskStageLatency("selection", selectionDurationMs);
+            recordAskStageMetrics("selection", selectionDurationMs);
 
             if (!selectionResult.isSelected()) {
                 logger.info("Dataset selection refusal: category={}, message={}",
@@ -191,7 +191,7 @@ public class ExplanationController {
             long validationStart = System.nanoTime();
             RequestValidationService.ValidationResult validationResult = validationService.validateRequest(parsedRequest);
             long validationDurationMs = (System.nanoTime() - validationStart) / 1_000_000;
-            recordAskStageLatency("validation", validationDurationMs);
+            recordAskStageMetrics("validation", validationDurationMs);
             
             if (!validationResult.isValid()) {
                 logger.info("Validation result: refusal - category: {}, message: {}", 
@@ -221,7 +221,7 @@ public class ExplanationController {
             long explanationStart = System.nanoTime();
             Explanation explanation = explanationService.generateExplanation(parsedRequest);
             long explanationDurationMs = (System.nanoTime() - explanationStart) / 1_000_000;
-            recordAskStageLatency("explanation", explanationDurationMs);
+            recordAskStageMetrics("explanation", explanationDurationMs);
             
             if (explanation.isRefusal()) {
                 String code = mapExplanationRefusalCode(explanation.getRefusalReason());
@@ -295,7 +295,10 @@ public class ExplanationController {
         }
     }
 
-    private void recordAskStageLatency(String stage, Long durationMs) {
+    private void recordAskStageMetrics(String stage, Long durationMs) {
+        Metrics.globalRegistry
+            .counter("waiwatts.ask.stage.count", "stage", stage)
+            .increment();
         if (durationMs == null) {
             return;
         }

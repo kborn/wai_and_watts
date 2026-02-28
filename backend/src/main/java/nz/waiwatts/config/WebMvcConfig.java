@@ -17,8 +17,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins("http://localhost:5173", "http://127.0.0.1:5173")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("Content-Type", "Request-Id", "Authorization")
-                .exposedHeaders("Request-Id")
+                .allowedHeaders("Content-Type", "Request-Id", "X-Request-Id", "Authorization")
+                .exposedHeaders("Request-Id", "X-Request-Id")
                 .allowCredentials(true);
         logger.info("CORS configuration applied successfully");
     }
