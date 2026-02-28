@@ -1,28 +1,23 @@
 package nz.waiwatts.ingestion.lawa;
 
 import nz.waiwatts.domain.datasets.DatasetRelease;
-import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
-import nz.waiwatts.ingestion.core.DatasetIngestionRequest;
+import nz.waiwatts.ingestion.core.DatasetReleaseRegistrationUtil;
 import nz.waiwatts.ingestion.core.DatasetIngestionService;
 import nz.waiwatts.ingestion.core.FileIngestionUtil;
+import nz.waiwatts.ingestion.core.ReleaseRegistrationResult;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,60 +46,13 @@ public class LawaTrendMultiYearIngestion {
                               String classpathFixture,
                               LocalDate publishedDate,
                               String releaseLabel) {
-        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
-                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
-
-        byte[] bytes = readAllBytes(classpathFixture);
-        String sha256 = sha256Hex(bytes);
-
-        // If release already exists for (source, hash), return it without duplicating rows
-        Optional<DatasetRelease> existing = datasetReleaseRepository
-                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
-        if (existing.isPresent()) {
-            // Duplicate content hash detected for this source; short-circuit without persisting rows
-            // (idempotent no-op)
-            return existing.get().getId();
-        }
-
-        // Create/import release via lifecycle service
-        DatasetIngestionRequest req = new DatasetIngestionRequest();
-        req.setDatasetSourceCode(datasetSourceCode);
-        req.setReleaseLabel(releaseLabel);
-        req.setPublishedDate(publishedDate);
-        req.setSourceUri(null);
-        req.setContentHash(sha256);
-        UUID releaseId = datasetIngestionService.ingest(req);
-
-        // Parse and persist rows linked to the new release
-        List<LawaTrendMultiYearParsedRecord> rows = parse(bytes);
-        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
-                .orElseThrow();
-        java.util.ArrayList<LawaTrendMultiYearRecord> batch = new java.util.ArrayList<>(rows.size());
-        for (LawaTrendMultiYearParsedRecord r : rows) {
-            LawaTrendMultiYearRecord e = new LawaTrendMultiYearRecord();
-            e.setDatasetRelease(release);
-            e.setLawaSiteId(r.lawaSiteId());
-            e.setSiteName(r.siteName());
-            e.setRegion(normalizeRegion(r.region()));
-            e.setCatchment(normalizeCatchment(r.catchment()));
-            e.setLatitude(r.latitude());
-            e.setLongitude(r.longitude());
-            e.setIndicatorRaw(r.indicatorRaw());
-            e.setIndicatorNorm(r.indicatorNorm());
-            e.setTrendRaw(r.trendRaw());
-            e.setTrendNorm(r.trendNorm());
-            e.setTrendScore(r.trendScore());
-            e.setTrendPeriodYears(r.trendPeriodYears());
-            e.setTrendDataFrequency(r.trendDataFrequency());
-            e.setPeriodType(r.periodType());
-            e.setPeriodStartYear(r.periodStartYear());
-            e.setPeriodEndYear(r.periodEndYear());
-            batch.add(e);
-        }
-        if (!batch.isEmpty()) {
-            recordRepository.saveAll(batch);
-        }
-        return releaseId;
+        return ingestBytes(
+            datasetSourceCode,
+            FileIngestionUtil.readClasspathBytes(classpathFixture),
+            publishedDate,
+            releaseLabel,
+            null
+        );
     }
 
     /**
@@ -124,30 +72,39 @@ public class LawaTrendMultiYearIngestion {
                             LocalDate publishedDate,
                             String releaseLabel) {
         Path resolvedFilePath = FileIngestionUtil.resolveReadableRegularFile(filePath);
-        
-        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
-                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
+        return ingestBytes(
+            datasetSourceCode,
+            FileIngestionUtil.readFileBytes(resolvedFilePath),
+            publishedDate,
+            releaseLabel,
+            FileIngestionUtil.fileUri(resolvedFilePath)
+        );
+    }
 
-        byte[] bytes = FileIngestionUtil.readFileBytes(resolvedFilePath);
+    private UUID ingestBytes(
+        String datasetSourceCode,
+        byte[] bytes,
+        LocalDate publishedDate,
+        String releaseLabel,
+        String sourceUri
+    ) {
         String sha256 = FileIngestionUtil.sha256Hex(bytes);
-
-        Optional<DatasetRelease> existing = datasetReleaseRepository
-                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
-        if (existing.isPresent()) {
-            return existing.get().getId();
+        ReleaseRegistrationResult registration = DatasetReleaseRegistrationUtil.registerRelease(
+            datasetSourceRepository,
+            datasetReleaseRepository,
+            datasetIngestionService,
+            datasetSourceCode,
+            sha256,
+            publishedDate,
+            releaseLabel,
+            sourceUri
+        );
+        if (!registration.created()) {
+            return registration.releaseId();
         }
 
-        DatasetIngestionRequest req = new DatasetIngestionRequest();
-        req.setDatasetSourceCode(datasetSourceCode);
-        req.setReleaseLabel(releaseLabel);
-        req.setPublishedDate(publishedDate);
-        req.setSourceUri(FileIngestionUtil.fileUri(resolvedFilePath));
-        req.setContentHash(sha256);
-        UUID releaseId = datasetIngestionService.ingest(req);
-
         List<LawaTrendMultiYearParsedRecord> rows = parse(bytes);
-        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
-                .orElseThrow();
+        DatasetRelease release = datasetReleaseRepository.findById(registration.releaseId()).orElseThrow();
         java.util.ArrayList<LawaTrendMultiYearRecord> batch = new java.util.ArrayList<>(rows.size());
         for (LawaTrendMultiYearParsedRecord r : rows) {
             LawaTrendMultiYearRecord e = new LawaTrendMultiYearRecord();
@@ -173,7 +130,7 @@ public class LawaTrendMultiYearIngestion {
         if (!batch.isEmpty()) {
             recordRepository.saveAll(batch);
         }
-        return releaseId;
+        return registration.releaseId();
     }
 
     private List<LawaTrendMultiYearParsedRecord> parse(byte[] bytes) {
@@ -181,27 +138,6 @@ public class LawaTrendMultiYearIngestion {
             return parser.parse(is);
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse LAWA trend multi-year CSV", e);
-        }
-    }
-
-    private byte[] readAllBytes(String classpath) {
-        try {
-            ClassPathResource res = new ClassPathResource(classpath);
-            try (InputStream is = res.getInputStream()) {
-                return is.readAllBytes();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load fixture from classpath: " + classpath, e);
-        }
-    }
-
-    private String sha256Hex(byte[] bytes) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(bytes);
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
         }
     }
 
