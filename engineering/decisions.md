@@ -1606,3 +1606,68 @@ Implications:
 - Python tooling remains optional and is not required for backend/frontend runtime.
 - Bootstrap entrypoints and docs live under `archive/tools/python/` (`README.md`, `Makefile`, `setup-python.sh`, `requirements.txt`).
 - Root runtime paths (Docker ingestion, backend/frontend startup) remain Java/Node only and do not depend on Python.
+
+---
+
+### Phase 17 — Fitness Suite v1 Is a Bounded Governance Layer
+Date: 2026-02-28
+
+Decision:
+Implement Fitness Suite v1 as a small, explicit architectural policy layer with a bounded rule set rather than a broad static-analysis program.
+
+Rationale:
+- The goal is to make architectural intent executable without creating a second compliance project.
+- Fast, clear feedback in the unit-test phase is more valuable than exhaustive but noisy rule coverage.
+- A bounded initial rule set is easier to review, evolve, and keep authoritative.
+
+Implications:
+- Fitness Suite v1 targets 8-12 rules total.
+- It must fail fast with clear violation messages.
+- It runs in the unit-test phase.
+- It must include at least:
+  - dependency graph rule(s)
+  - controller boundary rule(s)
+  - DTO/API boundary rule(s)
+- Additional rules beyond v1 require explicit justification; this suite must not sprawl into generic linting.
+
+---
+
+### Phase 17 — API v1 Contract Stability Is Enforced by Snapshot Tests
+Date: 2026-02-28
+
+Decision:
+Pin selected `/api/v1` response shapes and deprecation behavior with contract-focused snapshot tests.
+
+Rationale:
+- `/api/v1` is the project’s stability namespace and should be enforced as an interface contract, not just documented as one.
+- Capabilities and ask responses are frontend-critical and reviewer-visible; silent schema drift would weaken trust.
+- Snapshot-style contract tests provide fast detection of accidental wire changes while keeping scope narrow.
+
+Implications:
+- Add snapshot test coverage for:
+  - `/api/v1/capabilities`
+  - one successful `/api/v1/explanations/ask` response shape
+  - one refusal `/api/v1/explanations/ask` response shape
+- Alias endpoints must return deprecation headers; canonical endpoints must not.
+- Contract tests must fail on schema drift.
+- This phase validates stability for selected high-value contracts, not every endpoint in the system.
+
+---
+
+### Phase 17 — Observability Scope Is Metrics Plus Runbook Mapping
+Date: 2026-02-28
+
+Decision:
+Phase 17 observability work is limited to stage-level metrics, correlation-id continuity, and operator runbook mapping; it does not include dashboard delivery.
+
+Rationale:
+- The project should demonstrate operator mindset without expanding into a full observability platform build.
+- Metrics and runbook linkage show whether the system is diagnosable in practice.
+- Keeping scope bounded preserves Phase 17’s governance focus.
+
+Implications:
+- Instrument counters/timers for parse, selection, validation, explanation, and citation-validation stages.
+- Track refusal codes as tagged counters.
+- Carry correlation id end-to-end in logs for ask/explanation flows.
+- Add a runbook document that maps refusal categories to likely causes and relevant metrics/signals.
+- Dashboarding/alerting may be added later but is out of scope for this decision.
