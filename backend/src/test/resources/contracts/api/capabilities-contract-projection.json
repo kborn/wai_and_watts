@@ -1,0 +1,108 @@
+{
+  "rootFields": [
+    "capabilities",
+    "datasets",
+    "examples",
+    "filterStructure",
+    "metricTypes",
+    "requiredFilters",
+    "suggestedValuesByToken",
+    "supportedDatasetSources",
+    "supportedQuestionTypes",
+    "unsupportedQuestionTypes"
+  ],
+  "supportedQuestionTypesKeys": [
+    "fuel_generation_trend",
+    "fuel_type_comparison",
+    "generation_mix_overview",
+    "improving_sites_trend",
+    "regional_trend_comparison",
+    "regional_water_quality",
+    "renewable_generation_trend",
+    "water_quality_overview",
+    "water_quality_state_sites_trend",
+    "water_quality_trends"
+  ],
+  "unsupportedQuestionTypesKeys": [
+    "causation",
+    "forecasting",
+    "hypothetical",
+    "policy_recommendation",
+    "site_specific_advice"
+  ],
+  "supportedDatasetSourcesKeys": [
+    "lawa.water_quality.state.multi_year",
+    "lawa.water_quality.trend.multi_year",
+    "mbie.generation.annual",
+    "mbie.generation.quarterly"
+  ],
+  "requiredFiltersKeys": [
+    "datasetSource"
+  ],
+  "filterStructureKeys": [
+    "datasetSource",
+    "endYear",
+    "fuelType",
+    "fuelTypeB",
+    "indicator",
+    "metricType",
+    "region",
+    "startYear",
+    "stateCategory",
+    "trend"
+  ],
+  "suggestedValuesByTokenKeys": [
+    "fuelType",
+    "fuelTypeB",
+    "indicator",
+    "region",
+    "stateCategory",
+    "trend"
+  ],
+  "metricTypesKeys": [
+    "fuel_generation_trend",
+    "fuel_type_comparison",
+    "generation_mix_overview",
+    "improving_sites_trend",
+    "regional_trend_comparison",
+    "regional_water_quality",
+    "renewable_generation_trend",
+    "water_quality_overview",
+    "water_quality_state_sites_trend",
+    "water_quality_trends"
+  ],
+  "examplesKeys": [
+    "fuel_generation_trend",
+    "fuel_type_comparison",
+    "generation_mix_overview",
+    "improving_sites_trend",
+    "regional_trend_comparison",
+    "regional_water_quality",
+    "renewable_generation_trend",
+    "water_quality_overview",
+    "water_quality_state_sites_trend",
+    "water_quality_trends"
+  ],
+  "capabilityRowFields": [
+    "datasetSources",
+    "defaultMetricType",
+    "description",
+    "displayName",
+    "exampleTemplates",
+    "examples",
+    "intentId",
+    "metricTypes",
+    "optionalFilters",
+    "questionType",
+    "requiredFilters",
+    "supportedDatasets",
+    "supportedFilters"
+  ],
+  "datasetRowFields": [
+    "datasetSource",
+    "description",
+    "displayName",
+    "supportedFilters",
+    "supportedQuestionTypes"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "rootFields": [
+    "citations",
+    "dataSummary",
+    "datasetSelection",
+    "debug",
+    "explanation",
+    "isRefusal",
+    "parsedRequest",
+    "refusal",
+    "selectedDatasetSource"
+  ],
+  "refusalFields": [
+    "code",
+    "details",
+    "message"
+  ],
+  "refusalDetailKeys": [
+    "category",
+    "datasetSource",
+    "defaultMetricType",
+    "examples",
+    "supportedMetricTypes",
+    "supportedQuestionTypes"
+  ],
+  "parsedRequestFields": [
+    "datasetSource",
+    "filters",
+    "questionType"
+  ],
+  "parsedRequestFilterKeys": [
+    "endYear",
+    "startYear"
+  ],
+  "datasetSelectionFields": [
+    "reason",
+    "strategy"
+  ],
+  "debugFields": [
+    "parseDurationMs",
+    "parserUsed",
+    "refusalTrigger",
+    "selectionCandidates"
+  ],
+  "citationFields": [],
+  "citationPeriodFields": []
+}
