@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  * OpenAI-backed intent parser.
- *
+ * <p>
  * Produces a structured ExplanationRequest or null if parsing is ambiguous.
  */
 public class OpenAiIntentParser implements IntentParser {
@@ -96,7 +96,7 @@ public class OpenAiIntentParser implements IntentParser {
         }
 
         Map<String, Object> filters = new HashMap<>();
-        filtersNode.fields().forEachRemaining(entry -> {
+        filtersNode.properties().forEach(entry -> {
             String key = entry.getKey();
             if (!capabilityRegistry.getAllowedFilterKeys().contains(key)) {
                 return;

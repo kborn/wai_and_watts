@@ -156,9 +156,9 @@ class StubExplanationProviderComprehensiveTest {
         // Should not be a refusal
         assertFalse(explanation.isRefusal());
         
-        // Should identify the fuel type with highest generation
+        // Should identify the fuel type with the highest generation
         assertTrue(explanation.getExplanationText().contains("highest electricity generation"));
-        assertTrue(explanation.getExplanationText().contains("HYDRO")); // HYDRO has highest value
+        assertTrue(explanation.getExplanationText().contains("HYDRO")); // HYDRO has the highest value
         
         // Should have citations for all fuel types
         assertEquals(3, explanation.getCitations().size());

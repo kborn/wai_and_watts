@@ -28,20 +28,20 @@ class MbieGenerationQuarterlyCsvParserTest {
 
         Set<String> allowed = Set.of("HYDRO", "GEOTHERMAL", "WIND", "SOLAR", "GAS", "COAL", "OTHER");
         for (MbieGenerationQuarterlyParsedRecord r : records) {
-            assertThat(r.getFuelTypeRaw()).isNotNull();
-            assertThat(r.getFuelTypeNorm()).isNotNull();
-            assertThat(allowed).contains(r.getFuelTypeNorm());
-            assertThat(r.getPeriodYear()).isBetween(2022, 2025);
-            assertThat(r.getPeriodQuarter()).isBetween(1, 4);
-            assertThat(r.getGenerationGwh()).isNotNull();
+            assertThat(r.fuelTypeRaw()).isNotNull();
+            assertThat(r.fuelTypeNorm()).isNotNull();
+            assertThat(allowed).contains(r.fuelTypeNorm());
+            assertThat(r.periodYear()).isBetween(2022, 2025);
+            assertThat(r.periodQuarter()).isBetween(1, 4);
+            assertThat(r.generationGwh()).isNotNull();
         }
 
         // Spot check: first Hydro row 2022-Q4 should be present (7176.9)
         boolean found = records.stream().anyMatch(r ->
-                r.getPeriodYear() == 2022 && r.getPeriodQuarter() == 4 &&
-                "HYDRO".equals(r.getFuelTypeNorm()) &&
-                "Hydro".equals(r.getFuelTypeRaw()) &&
-                r.getGenerationGwh().compareTo(new BigDecimal("7176.9")) == 0
+                r.periodYear() == 2022 && r.periodQuarter() == 4 &&
+                "HYDRO".equals(r.fuelTypeNorm()) &&
+                "Hydro".equals(r.fuelTypeRaw()) &&
+                r.generationGwh().compareTo(new BigDecimal("7176.9")) == 0
         );
         assertThat(found).isTrue();
     }
@@ -68,7 +68,7 @@ class MbieGenerationQuarterlyCsvParserTest {
         MbieGenerationQuarterlyParser parser = new MbieGenerationQuarterlyCsvParser();
         List<MbieGenerationQuarterlyParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getPeriodQuarter()).isEqualTo(4);
+        assertThat(records.getFirst().periodQuarter()).isEqualTo(4);
     }
 
     @Test
@@ -80,7 +80,7 @@ class MbieGenerationQuarterlyCsvParserTest {
         MbieGenerationQuarterlyParser parser = new MbieGenerationQuarterlyCsvParser();
         List<MbieGenerationQuarterlyParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getPeriodYear()).isEqualTo(2022);
+        assertThat(records.getFirst().periodYear()).isEqualTo(2022);
     }
 
     @Test

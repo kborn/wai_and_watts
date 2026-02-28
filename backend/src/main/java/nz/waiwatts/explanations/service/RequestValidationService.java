@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * Service for validating ExplanationRequest against capability contracts.
- * 
+ * <p>
  * Enforces:
  * - Supported question types
  * - Supported dataset sources  

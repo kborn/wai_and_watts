@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Explanation response from LLM provider.
- * 
+ * <p>
  * Includes stable citations to Fact Pack facts and refusal handling.
  */
 public class Explanation {

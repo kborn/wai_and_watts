@@ -1,7 +1,7 @@
 package nz.waiwatts.service.mbie;
 
 import nz.waiwatts.api.mbie.dto.MbieGenerationQuarterlyRecordDto;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 

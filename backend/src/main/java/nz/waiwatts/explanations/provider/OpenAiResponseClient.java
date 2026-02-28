@@ -30,42 +30,9 @@ public class OpenAiResponseClient {
     }
 
     public String createResponse(String model, String instructions, String input) {
-        try {
-            ObjectNode payload = basePayload(model, instructions, input);
-            ObjectNode text = payload.putObject("text");
-            ObjectNode format = text.putObject("format");
-            format.put("type", "json_object");
-            String body = objectMapper.writeValueAsString(payload);
-
-            String baseUrl = normalizeBaseUrl(properties.getBaseUrl());
-            if (baseUrl == null) {
-                log.warn("OpenAI base URL not configured");
-                return null;
-            }
-
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/responses"))
-                .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
-                .header("Authorization", "Bearer " + properties.getApiKey())
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
-                .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                log.warn("OpenAI response error: status={} body={}", response.statusCode(), response.body());
-                return null;
-            }
-
-            return extractOutputText(response.body());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("OpenAI response call interrupted: {}", e.getMessage());
-            return null;
-        } catch (IOException e) {
-            log.warn("OpenAI response call failed: {}", e.getMessage());
-            return null;
-        }
+        ObjectNode payload = basePayload(model, instructions, input);
+        applyJsonObjectFormat(payload);
+        return send(payload);
     }
 
     public String createResponseWithSchema(
@@ -75,46 +42,9 @@ public class OpenAiResponseClient {
         JsonNode schema,
         String schemaName
     ) {
-        try {
-            ObjectNode payload = basePayload(model, instructions, input);
-            ObjectNode text = payload.putObject("text");
-            ObjectNode format = text.putObject("format");
-            format.put("type", "json_schema");
-            format.put("name", schemaName);
-            format.put("strict", true);
-            format.set("schema", schema);
-
-            String body = objectMapper.writeValueAsString(payload);
-
-            String baseUrl = normalizeBaseUrl(properties.getBaseUrl());
-            if (baseUrl == null) {
-                log.warn("OpenAI base URL not configured");
-                return null;
-            }
-
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/responses"))
-                .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
-                .header("Authorization", "Bearer " + properties.getApiKey())
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
-                .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                log.warn("OpenAI response error: status={} body={}", response.statusCode(), response.body());
-                return null;
-            }
-
-            return extractOutputText(response.body());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.warn("OpenAI response call interrupted: {}", e.getMessage());
-            return null;
-        } catch (IOException e) {
-            log.warn("OpenAI response call failed: {}", e.getMessage());
-            return null;
-        }
+        ObjectNode payload = basePayload(model, instructions, input);
+        applyJsonSchemaFormat(payload, schema, schemaName);
+        return send(payload);
     }
 
     private String extractOutputText(String responseBody) throws IOException {
@@ -154,6 +84,56 @@ public class OpenAiResponseClient {
         payload.put("temperature", properties.getTemperature());
         payload.put("max_output_tokens", properties.getMaxOutputTokens());
         return payload;
+    }
+
+    private void applyJsonObjectFormat(ObjectNode payload) {
+        ObjectNode text = payload.putObject("text");
+        ObjectNode format = text.putObject("format");
+        format.put("type", "json_object");
+    }
+
+    private void applyJsonSchemaFormat(ObjectNode payload, JsonNode schema, String schemaName) {
+        ObjectNode text = payload.putObject("text");
+        ObjectNode format = text.putObject("format");
+        format.put("type", "json_schema");
+        format.put("name", schemaName);
+        format.put("strict", true);
+        format.set("schema", schema);
+    }
+
+    private String send(ObjectNode payload) {
+        try {
+            String body = objectMapper.writeValueAsString(payload);
+
+            String baseUrl = normalizeBaseUrl(properties.getBaseUrl());
+            if (baseUrl == null) {
+                log.warn("OpenAI base URL not configured");
+                return null;
+            }
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/responses"))
+                .timeout(Duration.ofSeconds(properties.getTimeoutSeconds()))
+                .header("Authorization", "Bearer " + properties.getApiKey())
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                log.warn("OpenAI response error: status={} body={}", response.statusCode(), response.body());
+                return null;
+            }
+
+            return extractOutputText(response.body());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("OpenAI response call interrupted: {}", e.getMessage());
+            return null;
+        } catch (IOException e) {
+            log.warn("OpenAI response call failed: {}", e.getMessage());
+            return null;
+        }
     }
 
     private String normalizeBaseUrl(String baseUrl) {

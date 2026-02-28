@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Response from Intent Parser containing either a parsed ExplanationRequest or a refusal.
- * 
+ * <p>
  * Follows Phase 12 NL intent contract with deterministic success/failure handling.
  */
 public class IntentParseResponse {

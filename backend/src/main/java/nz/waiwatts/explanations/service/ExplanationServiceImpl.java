@@ -105,21 +105,7 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         // Treat null lists as empty to avoid NPEs
-        boolean noFacts;
-        if (factPack.getFacts() == null) {
-            noFacts = true;
-        } else {
-            var facts = factPack.getFacts();
-            var ts = facts.getTimeSeries();
-            var mets = facts.getMetrics();
-            var comps = facts.getComparisons();
-            var classes = facts.getClassifications();
-            boolean tsEmpty = (ts == null || ts.isEmpty());
-            boolean metsEmpty = (mets == null || mets.isEmpty());
-            boolean compsEmpty = (comps == null || comps.isEmpty());
-            boolean classesEmpty = (classes == null || classes.isEmpty());
-            noFacts = tsEmpty && metsEmpty && compsEmpty && classesEmpty;
-        }
+        boolean noFacts = isNoFacts(factPack);
         if (noFacts) {
             return Explanation.refusal("No facts available to answer the question");
         }
@@ -160,6 +146,25 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         return explanation;
+    }
+
+    private static boolean isNoFacts(FactPack factPack) {
+        boolean noFacts;
+        if (factPack.getFacts() == null) {
+            noFacts = true;
+        } else {
+            var facts = factPack.getFacts();
+            var ts = facts.getTimeSeries();
+            var mets = facts.getMetrics();
+            var comps = facts.getComparisons();
+            var classes = facts.getClassifications();
+            boolean tsEmpty = (ts == null || ts.isEmpty());
+            boolean metsEmpty = (mets == null || mets.isEmpty());
+            boolean compsEmpty = (comps == null || comps.isEmpty());
+            boolean classesEmpty = (classes == null || classes.isEmpty());
+            noFacts = tsEmpty && metsEmpty && compsEmpty && classesEmpty;
+        }
+        return noFacts;
     }
 
     @Override
@@ -318,20 +323,13 @@ public class ExplanationServiceImpl implements ExplanationService {
 
                 if (start > end) {
                     log.info("Auto-swapping time range: startYear ({}) > endYear ({}), swapping", start, end);
-                    int temp = start;
-                    start = end;
-                    end = temp;
+                    end = start;
                 }
 
                 // Validate reasonable bounds (e.g., no future data, reasonable historical range)
                 int currentYear = java.time.Year.now().getValue();
                 if (end > currentYear) {
                     return String.format("Invalid time range: endYear (%d) cannot be in the future", end);
-                }
-
-                // TODO(Phase 12/metadata): Replace hardcoded lower bound with dataset-derived metadata
-                if (end < 1990 || start < 1990) {
-                    return "Invalid time range: years before 1990 are not supported";
                 }
 
             } catch (NumberFormatException e) {

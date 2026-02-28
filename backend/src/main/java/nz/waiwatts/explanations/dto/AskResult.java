@@ -22,6 +22,51 @@ public class AskResult {
 
     public AskResult() {}
 
+        public static Builder builder() {
+        return new Builder();
+    }
+
+    public static AskResult success(
+        ExplanationRequest parsedRequest,
+        String selectedDatasetSource,
+        DatasetSelection datasetSelection,
+        String explanation,
+        List<Citation> citations,
+        Debug debug
+    ) {
+        return builder()
+            .refusal(false)
+            .refusal(new Refusal(null, null, null))
+            .parsedRequest(parsedRequest)
+            .selectedDatasetSource(selectedDatasetSource)
+            .datasetSelection(datasetSelection)
+            .explanation(explanation != null ? explanation : "")
+            .citations(citations != null ? citations : List.of())
+            .debug(debug)
+            .build();
+    }
+
+    public static AskResult refusal(
+        String code,
+        String message,
+        Map<String, Object> details,
+        ExplanationRequest parsedRequest,
+        String selectedDatasetSource,
+        DatasetSelection datasetSelection,
+        Debug debug
+    ) {
+        return builder()
+            .refusal(true)
+            .refusal(new Refusal(code, message, details))
+            .parsedRequest(parsedRequest)
+            .selectedDatasetSource(selectedDatasetSource)
+            .datasetSelection(datasetSelection)
+            .explanation("")
+            .citations(List.of())
+            .debug(debug)
+            .build();
+    }
+
     public boolean isRefusal() {
         return isRefusal;
     }
@@ -205,6 +250,79 @@ public class AskResult {
 
         public void setRefusalTrigger(String refusalTrigger) {
             this.refusalTrigger = refusalTrigger;
+        }
+    }
+
+    public static final class Builder {
+        private boolean isRefusal;
+        private Refusal refusal;
+        private ExplanationRequest parsedRequest;
+        private String selectedDatasetSource;
+        private DatasetSelection datasetSelection;
+        private String explanation;
+        private List<Citation> citations;
+        private Map<String, Object> dataSummary;
+        private Debug debug;
+
+        private Builder() {}
+
+        public Builder refusal(boolean refusal) {
+            this.isRefusal = refusal;
+            return this;
+        }
+
+        public Builder refusal(Refusal refusal) {
+            this.refusal = refusal;
+            return this;
+        }
+
+        public Builder parsedRequest(ExplanationRequest parsedRequest) {
+            this.parsedRequest = parsedRequest;
+            return this;
+        }
+
+        public Builder selectedDatasetSource(String selectedDatasetSource) {
+            this.selectedDatasetSource = selectedDatasetSource;
+            return this;
+        }
+
+        public Builder datasetSelection(DatasetSelection datasetSelection) {
+            this.datasetSelection = datasetSelection;
+            return this;
+        }
+
+        public Builder explanation(String explanation) {
+            this.explanation = explanation;
+            return this;
+        }
+
+        public Builder citations(List<Citation> citations) {
+            this.citations = citations;
+            return this;
+        }
+
+        public Builder dataSummary(Map<String, Object> dataSummary) {
+            this.dataSummary = dataSummary;
+            return this;
+        }
+
+        public Builder debug(Debug debug) {
+            this.debug = debug;
+            return this;
+        }
+
+        public AskResult build() {
+            AskResult result = new AskResult();
+            result.setRefusal(isRefusal);
+            result.setRefusal(refusal);
+            result.setParsedRequest(parsedRequest);
+            result.setSelectedDatasetSource(selectedDatasetSource);
+            result.setDatasetSelection(datasetSelection);
+            result.setExplanation(explanation);
+            result.setCitations(citations);
+            result.setDataSummary(dataSummary);
+            result.setDebug(debug);
+            return result;
         }
     }
 }

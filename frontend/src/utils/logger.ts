@@ -6,7 +6,7 @@ interface Logger {
 }
 
 class ConsoleLogger implements Logger {
-  private isDev: boolean
+  private readonly isDev: boolean
 
   constructor() {
     this.isDev = import.meta.env.MODE === 'development'

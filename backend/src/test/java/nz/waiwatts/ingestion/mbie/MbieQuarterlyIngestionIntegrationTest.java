@@ -201,7 +201,7 @@ class MbieQuarterlyIngestionIntegrationTest {
     @Test
     void ingestFile_whenFileDoesNotExist_throwsException() {
         // Arrange
-        String nonExistentPath = "/path/to/nonexistent/file.csv";
+        String nonExistentPath = tempDir.resolve("missing-" + UUID.randomUUID() + ".csv").toString();
         LocalDate publishedDate = LocalDate.of(2025, 1, 15);
         String releaseLabel = "Test Non-existent Quarterly File";
 

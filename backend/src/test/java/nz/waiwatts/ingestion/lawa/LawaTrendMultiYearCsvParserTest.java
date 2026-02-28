@@ -28,20 +28,20 @@ class LawaTrendMultiYearCsvParserTest {
         Set<String> allowedTrends = Set.of("IMPROVING", "DEGRADING", "NO_CHANGE", "INSUFFICIENT_DATA");
 
         for (LawaTrendMultiYearParsedRecord r : records) {
-            assertThat(r.getLawaSiteId()).isNotNull();
-            assertThat(r.getSiteName()).isNotNull();
-            assertThat(r.getRegion()).isNotNull();
-            assertThat(r.getIndicatorRaw()).isNotNull();
-            assertThat(r.getIndicatorNorm()).isNotNull();
-            assertThat(allowedIndicators).contains(r.getIndicatorNorm());
-            assertThat(r.getTrendRaw()).isNotNull();
-            assertThat(r.getTrendNorm()).isNotNull();
-            assertThat(allowedTrends).contains(r.getTrendNorm());
-            assertThat(r.getTrendScore()).isNotNull();
-            assertThat(r.getTrendPeriodYears()).isNotNull();
-            assertThat(r.getPeriodType()).isEqualTo("HYDRO_NYR_WINDOW");
-            assertThat(r.getPeriodEndYear()).isEqualTo(2024);
-            assertThat(r.getPeriodStartYear()).isLessThanOrEqualTo(r.getPeriodEndYear());
+            assertThat(r.lawaSiteId()).isNotNull();
+            assertThat(r.siteName()).isNotNull();
+            assertThat(r.region()).isNotNull();
+            assertThat(r.indicatorRaw()).isNotNull();
+            assertThat(r.indicatorNorm()).isNotNull();
+            assertThat(allowedIndicators).contains(r.indicatorNorm());
+            assertThat(r.trendRaw()).isNotNull();
+            assertThat(r.trendNorm()).isNotNull();
+            assertThat(allowedTrends).contains(r.trendNorm());
+            assertThat(r.trendScore()).isNotNull();
+            assertThat(r.trendPeriodYears()).isNotNull();
+            assertThat(r.periodType()).isEqualTo("HYDRO_NYR_WINDOW");
+            assertThat(r.periodEndYear()).isEqualTo(2024);
+            assertThat(r.periodStartYear()).isLessThanOrEqualTo(r.periodEndYear());
         }
     }
 
@@ -67,7 +67,7 @@ class LawaTrendMultiYearCsvParserTest {
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getTrendNorm()).isEqualTo("IMPROVING");
+        assertThat(records.getFirst().trendNorm()).isEqualTo("IMPROVING");
     }
 
     @Test
@@ -79,7 +79,7 @@ class LawaTrendMultiYearCsvParserTest {
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getRegion()).isEqualTo("region");
+        assertThat(records.getFirst().region()).isEqualTo("region");
     }
 
     @Test
@@ -115,7 +115,7 @@ class LawaTrendMultiYearCsvParserTest {
         LawaTrendMultiYearCsvParser parser = new LawaTrendMultiYearCsvParser();
         List<LawaTrendMultiYearParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getIndicatorNorm()).isEqualTo("ECOLI");
+        assertThat(records.getFirst().indicatorNorm()).isEqualTo("ECOLI");
     }
 
     private InputStream toStream(String csv) {

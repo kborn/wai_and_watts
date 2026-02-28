@@ -2,6 +2,7 @@ package nz.waiwatts.cli;
 
 import nz.waiwatts.WaiWattsApplication;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
+import nz.waiwatts.ingestion.core.FileIngestionUtil;
 import nz.waiwatts.ingestion.lawa.LawaStateMultiYearIngestion;
 import nz.waiwatts.ingestion.lawa.LawaTrendMultiYearIngestion;
 import nz.waiwatts.ingestion.mbie.MbieAnnualIngestion;
@@ -16,9 +17,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Set;
@@ -48,9 +47,9 @@ public class ManualIngestionCommand {
         }
 
         String datasetSourceCode = args[0];
-        String filePath = args[1];
+        Path filePath;
         String publishedDateArg = args.length >= 3 ? args[2] : null;
-        String releaseLabel = args.length >= 4 ? args[3] : null;
+        String releaseLabel = args.length == 4 ? args[3] : null;
 
         LocalDate publishedDate;
         try {
@@ -61,7 +60,7 @@ public class ManualIngestionCommand {
         }
 
         try {
-            validateFile(filePath);
+            filePath = FileIngestionUtil.resolveReadableRegularFile(args[1]);
         } catch (IllegalArgumentException e) {
             System.err.println("ERROR: " + e.getMessage());
             return EXIT_VALIDATION;
@@ -116,34 +115,8 @@ public class ManualIngestionCommand {
         }
     }
 
-    private static void validateFile(String filePath) {
-        if (filePath == null || filePath.trim().isEmpty()) {
-            throw new IllegalArgumentException("File path cannot be null or empty");
-        }
-        if (filePath.contains("..") || filePath.contains("~")) {
-            throw new IllegalArgumentException("File path contains potentially unsafe characters: " + filePath);
-        }
-        Path path = Paths.get(filePath);
-        if (!Files.exists(path)) {
-            throw new IllegalArgumentException("File does not exist: " + filePath);
-        }
-        if (!Files.isReadable(path)) {
-            throw new IllegalArgumentException("File is not readable: " + filePath);
-        }
-        if (!Files.isRegularFile(path)) {
-            throw new IllegalArgumentException("Path is not a regular file: " + filePath);
-        }
-        try {
-            if (Files.size(path) == 0) {
-                throw new IllegalArgumentException("File is empty: " + filePath);
-            }
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Unable to read file size: " + filePath);
-        }
-    }
-
     private static void printStartMessage(String datasetSourceCode,
-                                          String filePath,
+                                          Path filePath,
                                           LocalDate publishedDate,
                                           String releaseLabel) {
         System.out.println("Starting ingestion...");
@@ -155,7 +128,7 @@ public class ManualIngestionCommand {
 
     private static IngestionResult ingest(ConfigurableApplicationContext context,
                                           String datasetSourceCode,
-                                          String filePath,
+                                          Path filePath,
                                           LocalDate publishedDate,
                                           String releaseLabel) {
         DatasetSource datasetSource = DatasetSource.fromWireValue(datasetSourceCode)
@@ -163,25 +136,25 @@ public class ManualIngestionCommand {
         return switch (datasetSource) {
             case MBIE_GENERATION_ANNUAL -> {
                 MbieAnnualIngestion ingestion = context.getBean(MbieAnnualIngestion.class);
-                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
+                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath.toString(), publishedDate, releaseLabel);
                 MbieGenerationAnnualRecordRepository repo = context.getBean(MbieGenerationAnnualRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
             case MBIE_GENERATION_QUARTERLY -> {
                 MbieQuarterlyIngestion ingestion = context.getBean(MbieQuarterlyIngestion.class);
-                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
+                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath.toString(), publishedDate, releaseLabel);
                 MbieGenerationQuarterlyRecordRepository repo = context.getBean(MbieGenerationQuarterlyRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
             case LAWA_WATER_QUALITY_STATE_MULTI_YEAR -> {
                 LawaStateMultiYearIngestion ingestion = context.getBean(LawaStateMultiYearIngestion.class);
-                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
+                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath.toString(), publishedDate, releaseLabel);
                 LawaStateMultiYearRecordRepository repo = context.getBean(LawaStateMultiYearRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }
             case LAWA_WATER_QUALITY_TREND_MULTI_YEAR -> {
                 LawaTrendMultiYearIngestion ingestion = context.getBean(LawaTrendMultiYearIngestion.class);
-                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath, publishedDate, releaseLabel);
+                UUID releaseId = ingestion.ingestFile(datasetSourceCode, filePath.toString(), publishedDate, releaseLabel);
                 LawaTrendMultiYearRecordRepository repo = context.getBean(LawaTrendMultiYearRecordRepository.class);
                 yield new IngestionResult(releaseId, repo.findByDatasetReleaseId(releaseId).size());
             }

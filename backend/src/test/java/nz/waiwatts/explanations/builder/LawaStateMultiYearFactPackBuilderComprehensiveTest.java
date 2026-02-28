@@ -5,6 +5,7 @@ import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -353,38 +354,11 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         // Setup test data spanning multiple years
         DatasetRelease release = createDatasetRelease();
 
-        LawaStateMultiYearRecord record_included1 = new LawaStateMultiYearRecord();
-        record_included1.setLawaSiteId("SITE001");
-        record_included1.setSiteName("Site SITE001");
-        record_included1.setRegion("Canterbury");
-        record_included1.setAttributeBand("A");
-        record_included1.setStateNorm("EXCELLENT");
-        record_included1.setPeriodType("HYDRO_NYR_WINDOW");
-        record_included1.setPeriodStartYear(2020);
-        record_included1.setPeriodEndYear(2024);
-        record_included1.setDatasetRelease(release);
+        LawaStateMultiYearRecord record_included1 = getLawaStateMultiYearRecord(release);
 
-        LawaStateMultiYearRecord record_included2 = new LawaStateMultiYearRecord();
-        record_included2.setLawaSiteId("SITE002");
-        record_included2.setSiteName("Site SITE002");
-        record_included2.setRegion("Waikato");
-        record_included2.setAttributeBand("A");
-        record_included2.setStateNorm("EXCELLENT");
-        record_included2.setPeriodType("HYDRO_NYR_WINDOW");
-        record_included2.setPeriodStartYear(2021);
-        record_included2.setPeriodEndYear(2023);
-        record_included2.setDatasetRelease(release);
+        LawaStateMultiYearRecord record_included2 = getLawaStateMultiYearRecord2(release);
 
-        LawaStateMultiYearRecord record_included3 = new LawaStateMultiYearRecord();
-        record_included3.setLawaSiteId("SITE003");
-        record_included3.setSiteName("Site SITE003");
-        record_included3.setRegion("Otago");
-        record_included3.setAttributeBand("A");
-        record_included3.setStateNorm("EXCELLENT");
-        record_included3.setPeriodType("HYDRO_NYR_WINDOW");
-        record_included3.setPeriodStartYear(2022);
-        record_included3.setPeriodEndYear(2024);
-        record_included3.setDatasetRelease(release);
+        LawaStateMultiYearRecord record_included3 = getLawaStateMultiYearRecord3(release);
 
         when(repository.findForReadApi(2020, 2024, null, null))
             .thenReturn(List.of(record_included1, record_included2, record_included3));
@@ -413,6 +387,48 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         var provenance = factPack.getProvenance().getDatasetSources().getFirst();
         assertTrue(provenance.getPeriodCoverage().contains("2020"));
         assertTrue(provenance.getPeriodCoverage().contains("2024"));
+    }
+
+    private static @NotNull LawaStateMultiYearRecord getLawaStateMultiYearRecord3(DatasetRelease release) {
+        LawaStateMultiYearRecord record_included3 = new LawaStateMultiYearRecord();
+        record_included3.setLawaSiteId("SITE003");
+        record_included3.setSiteName("Site SITE003");
+        record_included3.setRegion("Otago");
+        record_included3.setAttributeBand("A");
+        record_included3.setStateNorm("EXCELLENT");
+        record_included3.setPeriodType("HYDRO_NYR_WINDOW");
+        record_included3.setPeriodStartYear(2022);
+        record_included3.setPeriodEndYear(2024);
+        record_included3.setDatasetRelease(release);
+        return record_included3;
+    }
+
+    private static @NotNull LawaStateMultiYearRecord getLawaStateMultiYearRecord2(DatasetRelease release) {
+        LawaStateMultiYearRecord record_included2 = new LawaStateMultiYearRecord();
+        record_included2.setLawaSiteId("SITE002");
+        record_included2.setSiteName("Site SITE002");
+        record_included2.setRegion("Waikato");
+        record_included2.setAttributeBand("A");
+        record_included2.setStateNorm("EXCELLENT");
+        record_included2.setPeriodType("HYDRO_NYR_WINDOW");
+        record_included2.setPeriodStartYear(2021);
+        record_included2.setPeriodEndYear(2023);
+        record_included2.setDatasetRelease(release);
+        return record_included2;
+    }
+
+    private static @NotNull LawaStateMultiYearRecord getLawaStateMultiYearRecord(DatasetRelease release) {
+        LawaStateMultiYearRecord record_included1 = new LawaStateMultiYearRecord();
+        record_included1.setLawaSiteId("SITE001");
+        record_included1.setSiteName("Site SITE001");
+        record_included1.setRegion("Canterbury");
+        record_included1.setAttributeBand("A");
+        record_included1.setStateNorm("EXCELLENT");
+        record_included1.setPeriodType("HYDRO_NYR_WINDOW");
+        record_included1.setPeriodStartYear(2020);
+        record_included1.setPeriodEndYear(2024);
+        record_included1.setDatasetRelease(release);
+        return record_included1;
     }
 
     @Test
@@ -513,16 +529,7 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
     void testDeterministicRequiredCitationsUnderInputShuffle() {
         DatasetRelease release = createDatasetRelease();
 
-        LawaStateMultiYearRecord canterburyExcellent = new LawaStateMultiYearRecord();
-        canterburyExcellent.setLawaSiteId("SITE001");
-        canterburyExcellent.setSiteName("Site SITE001");
-        canterburyExcellent.setRegion("Canterbury");
-        canterburyExcellent.setAttributeBand("A");
-        canterburyExcellent.setStateNorm("EXCELLENT");
-        canterburyExcellent.setPeriodType("HYDRO_NYR_WINDOW");
-        canterburyExcellent.setPeriodStartYear(2019);
-        canterburyExcellent.setPeriodEndYear(2023);
-        canterburyExcellent.setDatasetRelease(release);
+        LawaStateMultiYearRecord canterburyExcellent = getStateMultiYearRecord(release);
 
         LawaStateMultiYearRecord waikatoPoor = new LawaStateMultiYearRecord();
         waikatoPoor.setLawaSiteId("SITE002");
@@ -560,6 +567,20 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
             first.getGuardrails().getRequiredCitations(),
             second.getGuardrails().getRequiredCitations()
         );
+    }
+
+    private static @NotNull LawaStateMultiYearRecord getStateMultiYearRecord(DatasetRelease release) {
+        LawaStateMultiYearRecord canterburyExcellent = new LawaStateMultiYearRecord();
+        canterburyExcellent.setLawaSiteId("SITE001");
+        canterburyExcellent.setSiteName("Site SITE001");
+        canterburyExcellent.setRegion("Canterbury");
+        canterburyExcellent.setAttributeBand("A");
+        canterburyExcellent.setStateNorm("EXCELLENT");
+        canterburyExcellent.setPeriodType("HYDRO_NYR_WINDOW");
+        canterburyExcellent.setPeriodStartYear(2019);
+        canterburyExcellent.setPeriodEndYear(2023);
+        canterburyExcellent.setDatasetRelease(release);
+        return canterburyExcellent;
     }
 
     @Test

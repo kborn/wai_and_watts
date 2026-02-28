@@ -6,10 +6,10 @@ import java.util.Map;
 
 /**
  * Fact Pack - the only allowed data interface between Wai & Watts domain data and any LLM.
- * 
+ * <p>
  * A Fact Pack is a deterministic, structured, provenance-safe bundle of facts derived 
  * from the database that the LLM may use to generate natural-language explanations.
- * 
+ * <p>
  * Implements deterministic ordering and stable IDs for citation requirements.
  */
 public class FactPack {

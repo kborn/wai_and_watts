@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Stubbed/deterministic Explanation Provider for Phase 11 testing.
- * 
+ * <p>
  * This provider returns deterministic responses based on the question type and Fact Pack content
  * without calling a real LLM. This allows testing the architecture, grounding, citations, 
  * and refusal behavior in Phase 11. Citation validation uses the shared validation layer
@@ -204,7 +204,7 @@ public class StubExplanationProvider implements ExplanationProvider {
         if (!factPack.getFacts().getMetrics().isEmpty()) {
             var metrics = factPack.getFacts().getMetrics();
             
-            // Find the fuel type with highest generation
+            // Find the fuel type with the highest generation
             var maxMetric = metrics.stream()
                 .max(Comparator.comparing(MetricFact::getValue));
 

@@ -28,7 +28,7 @@ public final class CitationValidationUtil {
         if (allowedIds.isEmpty()) {
             return false;
         }
-        return actualCitations.stream().allMatch(allowedIds::contains);
+        return allowedIds.containsAll(actualCitations);
     }
 
     public static List<String> normalizeCitations(List<String> ids) {

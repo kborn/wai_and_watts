@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
 
+// noinspection JSUnusedGlobalSymbols
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,

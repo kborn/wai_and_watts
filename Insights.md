@@ -30,7 +30,7 @@ Snapshot evidence source:
 
 ---
 
-## 2) MBIE quarterly solar output more than doubled (2023 Q1 -> 2025 Q3)
+## 2) MBIE quarterly solar output more than doubled (2023 Q1 → 2025 Q3)
 
 Finding:
 - Solar generation increased from **95.5 GWh (2023 Q1)** to **211.4 GWh (2025 Q3)**.

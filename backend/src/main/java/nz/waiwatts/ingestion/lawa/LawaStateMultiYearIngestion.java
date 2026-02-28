@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -47,7 +47,7 @@ public class LawaStateMultiYearIngestion {
     }
 
     /**
-     * Ingests the LAWA state multi year fixture from classpath. Implements idempotency via (source, content_hash).
+     * Ingests the LAWA state multi-year fixture from classpath. Implements idempotency via (source, content_hash).
      * Only persists domain rows when a new release is created.
      *
      * @param datasetSourceCode stable code of the DatasetSource (e.g., "lawa.water_quality.state.multi_year")
@@ -93,24 +93,24 @@ public class LawaStateMultiYearIngestion {
         for (LawaStateMultiYearParsedRecord r : rows) {
             LawaStateMultiYearRecord e = new LawaStateMultiYearRecord();
             e.setDatasetRelease(release);
-            e.setLawaSiteId(r.getLawaSiteId());
-            e.setSiteName(r.getSiteName());
-            e.setRegion(normalizeRegion(r.getRegion()));
-            e.setCatchment(normalizeCatchment(r.getCatchment()));
-            e.setLatitude(r.getLatitude());
-            e.setLongitude(r.getLongitude());
-            e.setIndicatorRaw(r.getIndicatorRaw());
-            e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setUnits(r.getUnits());
-            e.setAttributeBand(r.getAttributeBand());
-            e.setStateNorm(r.getStateNorm());
-            e.setMedian(r.getMedian());
-            e.setP95(r.getP95());
-            e.setRecHealthExceed260Pct(r.getRecHealthExceed260Pct());
-            e.setRecHealthExceed540Pct(r.getRecHealthExceed540Pct());
-            e.setPeriodType(r.getPeriodType());
-            e.setPeriodStartYear(r.getPeriodStartYear());
-            e.setPeriodEndYear(r.getPeriodEndYear());
+            e.setLawaSiteId(r.lawaSiteId());
+            e.setSiteName(r.siteName());
+            e.setRegion(normalizeRegion(r.region()));
+            e.setCatchment(normalizeCatchment(r.catchment()));
+            e.setLatitude(r.latitude());
+            e.setLongitude(r.longitude());
+            e.setIndicatorRaw(r.indicatorRaw());
+            e.setIndicatorNorm(r.indicatorNorm());
+            e.setUnits(r.units());
+            e.setAttributeBand(r.attributeBand());
+            e.setStateNorm(r.stateNorm());
+            e.setMedian(r.median());
+            e.setP95(r.p95());
+            e.setRecHealthExceed260Pct(r.recHealthExceed260Pct());
+            e.setRecHealthExceed540Pct(r.recHealthExceed540Pct());
+            e.setPeriodType(r.periodType());
+            e.setPeriodStartYear(r.periodStartYear());
+            e.setPeriodEndYear(r.periodEndYear());
             batch.add(e);
         }
         if (!batch.isEmpty()) {
@@ -135,13 +135,12 @@ public class LawaStateMultiYearIngestion {
                             String filePath,
                             LocalDate publishedDate,
                             String releaseLabel) {
-        // Validate file path first
-        FileIngestionUtil.validateFilePath(filePath);
+        Path resolvedFilePath = FileIngestionUtil.resolveReadableRegularFile(filePath);
         
         DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
                 .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
 
-        byte[] bytes = FileIngestionUtil.readFileBytes(filePath);
+        byte[] bytes = FileIngestionUtil.readFileBytes(resolvedFilePath);
         String sha256 = FileIngestionUtil.sha256Hex(bytes);
 
         Optional<DatasetRelease> existing = datasetReleaseRepository
@@ -154,7 +153,7 @@ public class LawaStateMultiYearIngestion {
         req.setDatasetSourceCode(datasetSourceCode);
         req.setReleaseLabel(releaseLabel);
         req.setPublishedDate(publishedDate);
-        req.setSourceUri(Paths.get(filePath).toUri().toString());
+        req.setSourceUri(FileIngestionUtil.fileUri(resolvedFilePath));
         req.setContentHash(sha256);
         UUID releaseId = datasetIngestionService.ingest(req);
 
@@ -165,24 +164,24 @@ public class LawaStateMultiYearIngestion {
         for (LawaStateMultiYearParsedRecord r : rows) {
             LawaStateMultiYearRecord e = new LawaStateMultiYearRecord();
             e.setDatasetRelease(release);
-            e.setLawaSiteId(r.getLawaSiteId());
-            e.setSiteName(r.getSiteName());
-            e.setRegion(normalizeRegion(r.getRegion()));
-            e.setCatchment(normalizeCatchment(r.getCatchment()));
-            e.setLatitude(r.getLatitude());
-            e.setLongitude(r.getLongitude());
-            e.setIndicatorRaw(r.getIndicatorRaw());
-            e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setUnits(r.getUnits());
-            e.setAttributeBand(r.getAttributeBand());
-            e.setStateNorm(r.getStateNorm());
-            e.setMedian(r.getMedian());
-            e.setP95(r.getP95());
-            e.setRecHealthExceed260Pct(r.getRecHealthExceed260Pct());
-            e.setRecHealthExceed540Pct(r.getRecHealthExceed540Pct());
-            e.setPeriodType(r.getPeriodType());
-            e.setPeriodStartYear(r.getPeriodStartYear());
-            e.setPeriodEndYear(r.getPeriodEndYear());
+            e.setLawaSiteId(r.lawaSiteId());
+            e.setSiteName(r.siteName());
+            e.setRegion(normalizeRegion(r.region()));
+            e.setCatchment(normalizeCatchment(r.catchment()));
+            e.setLatitude(r.latitude());
+            e.setLongitude(r.longitude());
+            e.setIndicatorRaw(r.indicatorRaw());
+            e.setIndicatorNorm(r.indicatorNorm());
+            e.setUnits(r.units());
+            e.setAttributeBand(r.attributeBand());
+            e.setStateNorm(r.stateNorm());
+            e.setMedian(r.median());
+            e.setP95(r.p95());
+            e.setRecHealthExceed260Pct(r.recHealthExceed260Pct());
+            e.setRecHealthExceed540Pct(r.recHealthExceed540Pct());
+            e.setPeriodType(r.periodType());
+            e.setPeriodStartYear(r.periodStartYear());
+            e.setPeriodEndYear(r.periodEndYear());
             batch.add(e);
         }
         if (!batch.isEmpty()) {

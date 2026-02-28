@@ -2,6 +2,7 @@ package nz.waiwatts.persistence.repositories;
 
 import nz.waiwatts.domain.datasets.*;
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
@@ -50,6 +51,20 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rel.setStatus(ReleaseStatus.PENDING);
         rel = releaseRepo.saveAndFlush(rel);
 
+        LawaTrendMultiYearRecord rec = getLawaTrendMultiYearRecord(rel);
+        lawaTrendMultiYearRepo.save(rec);
+
+        assertThat(lawaTrendMultiYearRepo.count()).isEqualTo(1);
+        LawaTrendMultiYearRecord saved = lawaTrendMultiYearRepo.findAll().getFirst();
+        assertThat(saved.getDatasetRelease().getId()).isEqualTo(rel.getId());
+        assertThat(saved.getPeriodEndYear()).isEqualTo(2024);
+        assertThat(saved.getIndicatorNorm()).isEqualTo("E_COLI");
+        assertThat(saved.getTrendNorm()).isEqualTo("IMPROVING");
+        assertThat(saved.getTrendScore()).isEqualTo(3);
+
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getLawaTrendMultiYearRecord(DatasetRelease rel) {
         LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
         rec.setDatasetRelease(rel);
         rec.setLawaSiteId("arc-00036");
@@ -65,16 +80,7 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rec.setPeriodType("HYDRO_5YR_ROLLING");
         rec.setPeriodEndYear(2024);
         rec.setPeriodStartYear(2019);
-        lawaTrendMultiYearRepo.save(rec);
-
-        assertThat(lawaTrendMultiYearRepo.count()).isEqualTo(1);
-        LawaTrendMultiYearRecord saved = lawaTrendMultiYearRepo.findAll().getFirst();
-        assertThat(saved.getDatasetRelease().getId()).isEqualTo(rel.getId());
-        assertThat(saved.getPeriodEndYear()).isEqualTo(2024);
-        assertThat(saved.getIndicatorNorm()).isEqualTo("E_COLI");
-        assertThat(saved.getTrendNorm()).isEqualTo("IMPROVING");
-        assertThat(saved.getTrendScore()).isEqualTo(3);
-
+        return rec;
     }
 
     @Test
@@ -97,6 +103,17 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rel.setStatus(ReleaseStatus.PENDING);
         rel = releaseRepo.saveAndFlush(rel);
 
+        LawaTrendMultiYearRecord rec = getTrendMultiYearRecord(rel);
+        lawaTrendMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForReadApi(
+                null, null, null, "auckland");
+
+        assertThat(out).hasSize(1);
+        assertThat(out.getFirst().getRegion()).isEqualTo("Auckland");
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getTrendMultiYearRecord(DatasetRelease rel) {
         LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
         rec.setDatasetRelease(rel);
         rec.setLawaSiteId("arc-00037");
@@ -112,13 +129,7 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rec.setPeriodType("HYDRO_5YR_ROLLING");
         rec.setPeriodEndYear(2024);
         rec.setPeriodStartYear(2019);
-        lawaTrendMultiYearRepo.saveAndFlush(rec);
-
-        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForReadApi(
-                null, null, null, "auckland");
-
-        assertThat(out).hasSize(1);
-        assertThat(out.getFirst().getRegion()).isEqualTo("Auckland");
+        return rec;
     }
 
     @Test
@@ -141,22 +152,19 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rel.setStatus(ReleaseStatus.PENDING);
         rel = releaseRepo.saveAndFlush(rel);
 
-        LawaTrendMultiYearRecord rec1 = new LawaTrendMultiYearRecord();
-        rec1.setDatasetRelease(rel);
-        rec1.setLawaSiteId("arc-00038");
-        rec1.setSiteName("Region A");
-        rec1.setRegion("Auckland");
-        rec1.setIndicatorRaw("E. coli");
-        rec1.setIndicatorNorm("e_coli");
-        rec1.setTrendRaw("Improving");
-        rec1.setTrendNorm("improving");
-        rec1.setTrendScore(3);
-        rec1.setTrendPeriodYears(5);
-        rec1.setTrendDataFrequency("Monthly");
-        rec1.setPeriodType("HYDRO_5YR_ROLLING");
-        rec1.setPeriodEndYear(2024);
-        rec1.setPeriodStartYear(2019);
+        LawaTrendMultiYearRecord rec1 = getMultiYearRecord(rel);
 
+        LawaTrendMultiYearRecord rec2 = getMultiYearRecord2(rel);
+
+        lawaTrendMultiYearRepo.saveAndFlush(rec1);
+        lawaTrendMultiYearRepo.saveAndFlush(rec2);
+
+        List<String> regions = lawaTrendMultiYearRepo.findDistinctRegionOrderByRegion();
+        assertThat(regions).contains("auckland");
+        assertThat(regions).doesNotContain("Auckland");
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getMultiYearRecord2(DatasetRelease rel) {
         LawaTrendMultiYearRecord rec2 = new LawaTrendMultiYearRecord();
         rec2.setDatasetRelease(rel);
         rec2.setLawaSiteId("arc-00039");
@@ -172,13 +180,26 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rec2.setPeriodType("HYDRO_5YR_ROLLING");
         rec2.setPeriodEndYear(2024);
         rec2.setPeriodStartYear(2019);
+        return rec2;
+    }
 
-        lawaTrendMultiYearRepo.saveAndFlush(rec1);
-        lawaTrendMultiYearRepo.saveAndFlush(rec2);
-
-        List<String> regions = lawaTrendMultiYearRepo.findDistinctRegionOrderByRegion();
-        assertThat(regions).contains("auckland");
-        assertThat(regions).doesNotContain("Auckland");
+    private static @NotNull LawaTrendMultiYearRecord getMultiYearRecord(DatasetRelease rel) {
+        LawaTrendMultiYearRecord rec1 = new LawaTrendMultiYearRecord();
+        rec1.setDatasetRelease(rel);
+        rec1.setLawaSiteId("arc-00038");
+        rec1.setSiteName("Region A");
+        rec1.setRegion("Auckland");
+        rec1.setIndicatorRaw("E. coli");
+        rec1.setIndicatorNorm("e_coli");
+        rec1.setTrendRaw("Improving");
+        rec1.setTrendNorm("improving");
+        rec1.setTrendScore(3);
+        rec1.setTrendPeriodYears(5);
+        rec1.setTrendDataFrequency("Monthly");
+        rec1.setPeriodType("HYDRO_5YR_ROLLING");
+        rec1.setPeriodEndYear(2024);
+        rec1.setPeriodStartYear(2019);
+        return rec1;
     }
 
     @Test
@@ -201,10 +222,22 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rel.setStatus(ReleaseStatus.PENDING);
         rel = releaseRepo.saveAndFlush(rel);
 
+        LawaTrendMultiYearRecord rec = getYearRecord(rel, "arc-ask-null", "Ask Null Site");
+        lawaTrendMultiYearRepo.saveAndFlush(rec);
+
+        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForAsk(
+                null, null, null, null, null
+        );
+
+        assertThat(out).isNotEmpty();
+        assertThat(out).anyMatch(r -> "arc-ask-null".equals(r.getLawaSiteId()));
+    }
+
+    private static @NotNull LawaTrendMultiYearRecord getYearRecord(DatasetRelease rel, String lawaSiteId, String Ask_Null_Site) {
         LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
         rec.setDatasetRelease(rel);
-        rec.setLawaSiteId("arc-ask-null");
-        rec.setSiteName("Ask Null Site");
+        rec.setLawaSiteId(lawaSiteId);
+        rec.setSiteName(Ask_Null_Site);
         rec.setRegion("Auckland");
         rec.setIndicatorRaw("E. coli");
         rec.setIndicatorNorm("ECOLI");
@@ -216,14 +249,7 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rec.setPeriodType("HYDRO_5YR_ROLLING");
         rec.setPeriodStartYear(2019);
         rec.setPeriodEndYear(2024);
-        lawaTrendMultiYearRepo.saveAndFlush(rec);
-
-        List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForAsk(
-                null, null, null, null, null
-        );
-
-        assertThat(out).isNotEmpty();
-        assertThat(out).anyMatch(r -> "arc-ask-null".equals(r.getLawaSiteId()));
+        return rec;
     }
 
     @Test
@@ -246,21 +272,7 @@ public class LawaTrendMultiYearRecordRepositoryTest {
         rel.setStatus(ReleaseStatus.PENDING);
         rel = releaseRepo.saveAndFlush(rel);
 
-        LawaTrendMultiYearRecord rec = new LawaTrendMultiYearRecord();
-        rec.setDatasetRelease(rel);
-        rec.setLawaSiteId("arc-ask-case");
-        rec.setSiteName("Ask Case Site");
-        rec.setRegion("Auckland");
-        rec.setIndicatorRaw("E. coli");
-        rec.setIndicatorNorm("ECOLI");
-        rec.setTrendRaw("Likely improving");
-        rec.setTrendNorm("IMPROVING");
-        rec.setTrendScore(1);
-        rec.setTrendPeriodYears(5);
-        rec.setTrendDataFrequency("Monthly");
-        rec.setPeriodType("HYDRO_5YR_ROLLING");
-        rec.setPeriodStartYear(2019);
-        rec.setPeriodEndYear(2024);
+        LawaTrendMultiYearRecord rec = getYearRecord(rel, "arc-ask-case", "Ask Case Site");
         lawaTrendMultiYearRepo.saveAndFlush(rec);
 
         List<LawaTrendMultiYearRecord> out = lawaTrendMultiYearRepo.findForAsk(

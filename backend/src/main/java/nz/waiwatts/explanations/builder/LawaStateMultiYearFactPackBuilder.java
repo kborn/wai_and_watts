@@ -11,7 +11,6 @@ import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Locale;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -463,19 +462,8 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                 Long excellentSites = excellentSitesByRegion.getOrDefault(region, 0L);
                 
                 if (totalSites > 0) {
-                    BigDecimal excellentPercent = new BigDecimal(excellentSites)
-                        .multiply(new BigDecimal("100"))
-                        .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+                    MetricFact metric = getMetricFact(excellentSites, totalSites, region);
 
-                    MetricFact metric = new MetricFact(
-                        "metric:lawa:excellent_sites_percentage:" + region,
-                        "excellent_sites_percentage",
-                        excellentPercent,
-                        "%",
-                        "current_period",
-                        Map.of("region", region, "quality_band", "excellent")
-                    );
-                    
                     factPack.getFacts().getMetrics().add(metric);
                 }
             });
@@ -485,6 +473,21 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             factPack.getFacts().getClassifications().stream()
                 .filter(c -> selectedRegions.contains((String) c.getDimensions().get("region")))
                 .toList()
+        );
+    }
+
+    private static MetricFact getMetricFact(Long excellentSites, Long totalSites, String region) {
+        BigDecimal excellentPercent = new BigDecimal(excellentSites)
+            .multiply(new BigDecimal("100"))
+            .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+
+        return new MetricFact(
+            "metric:lawa:excellent_sites_percentage:" + region,
+            "excellent_sites_percentage",
+            excellentPercent,
+            "%",
+            "current_period",
+            Map.of("region", region, "quality_band", "excellent")
         );
     }
 

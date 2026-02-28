@@ -5,12 +5,12 @@ import nz.waiwatts.explanations.dto.FactPack;
 
 /**
  * Interface for LLM providers that generate explanations from Fact Packs.
- * 
+ * <p>
  * LLM Provider Adapters are responsible for:
  * - Serializing Fact Pack + instructions to provider format
  * - Calling the provider
  * - Returning structured response
- * 
+ * <p>
  * Must not query DB or modify facts.
  * Citation validation must follow the shared citation-validation layer rules
  * so stub and live providers cannot diverge.
@@ -19,7 +19,7 @@ public interface ExplanationProvider {
     
     /**
      * Generates an explanation from a Fact Pack.
-     *
+     * <p>
      * Routing must be based on structured context (e.g., questionType/promptKey), not freeform text.
      *
      * @param questionType the structured question type (derived from request.questionType)

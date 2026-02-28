@@ -15,7 +15,8 @@ import java.util.UUID;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RequestCorrelationFilter implements Filter {
 
-    private static final String REQUEST_ID_HEADER = "X-Request-Id";
+    private static final String REQUEST_ID_HEADER = "Request-Id";
+    private static final String LEGACY_REQUEST_ID_HEADER = "X-Request-Id";
     private static final String MDC_REQUEST_ID_KEY = "requestId";
 
     @Override
@@ -27,11 +28,16 @@ public class RequestCorrelationFilter implements Filter {
         
         String requestId = httpRequest.getHeader(REQUEST_ID_HEADER);
         if (requestId == null || requestId.trim().isEmpty()) {
+            requestId = httpRequest.getHeader(LEGACY_REQUEST_ID_HEADER);
+        }
+        if (requestId == null || requestId.trim().isEmpty()) {
             requestId = UUID.randomUUID().toString().substring(0, 8);
         }
         
         MDC.put(MDC_REQUEST_ID_KEY, requestId);
         httpResponse.setHeader(REQUEST_ID_HEADER, requestId);
+        // Backward compatibility for existing clients still expecting X-Request-Id.
+        httpResponse.setHeader(LEGACY_REQUEST_ID_HEADER, requestId);
         
         try {
             chain.doFilter(request, response);

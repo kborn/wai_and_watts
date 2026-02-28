@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -77,11 +77,11 @@ public class MbieQuarterlyIngestion {
         for (MbieGenerationQuarterlyParsedRecord r : rows) {
             MbieGenerationQuarterlyRecord e = new MbieGenerationQuarterlyRecord();
             e.setDatasetRelease(release);
-            e.setPeriodYear(r.getPeriodYear());
-            e.setPeriodQuarter(r.getPeriodQuarter());
-            e.setFuelTypeRaw(r.getFuelTypeRaw());
-            e.setFuelTypeNorm(r.getFuelTypeNorm());
-            BigDecimal gwh = r.getGenerationGwh();
+            e.setPeriodYear(r.periodYear());
+            e.setPeriodQuarter(r.periodQuarter());
+            e.setFuelTypeRaw(r.fuelTypeRaw());
+            e.setFuelTypeNorm(r.fuelTypeNorm());
+            BigDecimal gwh = r.generationGwh();
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }
@@ -104,13 +104,12 @@ public class MbieQuarterlyIngestion {
                             String filePath,
                             LocalDate publishedDate,
                             String releaseLabel) {
-        // Validate file path first
-        FileIngestionUtil.validateFilePath(filePath);
+        Path resolvedFilePath = FileIngestionUtil.resolveReadableRegularFile(filePath);
         
         DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
                 .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
 
-        byte[] bytes = FileIngestionUtil.readFileBytes(filePath);
+        byte[] bytes = FileIngestionUtil.readFileBytes(resolvedFilePath);
         String sha256 = FileIngestionUtil.sha256Hex(bytes);
 
         Optional<DatasetRelease> existing = datasetReleaseRepository
@@ -123,7 +122,7 @@ public class MbieQuarterlyIngestion {
         req.setDatasetSourceCode(datasetSourceCode);
         req.setReleaseLabel(releaseLabel);
         req.setPublishedDate(publishedDate);
-        req.setSourceUri(Paths.get(filePath).toUri().toString());
+        req.setSourceUri(FileIngestionUtil.fileUri(resolvedFilePath));
         req.setContentHash(sha256);
         UUID releaseId = datasetIngestionService.ingest(req);
 
@@ -133,11 +132,11 @@ public class MbieQuarterlyIngestion {
         for (MbieGenerationQuarterlyParsedRecord r : rows) {
             MbieGenerationQuarterlyRecord e = new MbieGenerationQuarterlyRecord();
             e.setDatasetRelease(release);
-            e.setPeriodYear(r.getPeriodYear());
-            e.setPeriodQuarter(r.getPeriodQuarter());
-            e.setFuelTypeRaw(r.getFuelTypeRaw());
-            e.setFuelTypeNorm(r.getFuelTypeNorm());
-            BigDecimal gwh = r.getGenerationGwh();
+            e.setPeriodYear(r.periodYear());
+            e.setPeriodQuarter(r.periodQuarter());
+            e.setFuelTypeRaw(r.fuelTypeRaw());
+            e.setFuelTypeNorm(r.fuelTypeNorm());
+            BigDecimal gwh = r.generationGwh();
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }

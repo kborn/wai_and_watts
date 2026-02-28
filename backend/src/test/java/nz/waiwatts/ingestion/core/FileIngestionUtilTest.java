@@ -2,6 +2,7 @@ package nz.waiwatts.ingestion.core;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Assumptions;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,17 +47,20 @@ class FileIngestionUtilTest {
         // Arrange
         Path file = tempDir.resolve("test.txt");
         Files.writeString(file, "content");
-        file.toFile().setReadable(false);
+        boolean readabilityChanged = file.toFile().setReadable(false);
+        Assumptions.assumeTrue(readabilityChanged, "Unable to set file unreadable on this filesystem");
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> FileIngestionUtil.readFileBytes(file.toString())
-        );
-        assertTrue(exception.getMessage().contains("File is not readable"));
-        
-        // Cleanup: restore readability for cleanup
-        file.toFile().setReadable(true);
+        try {
+            // Act & Assert
+            IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> FileIngestionUtil.readFileBytes(file.toString())
+            );
+            assertTrue(exception.getMessage().contains("File is not readable"));
+        } finally {
+            // Cleanup: restore readability for cleanup
+            assertTrue(file.toFile().setReadable(true), "Failed to restore test file readability");
+        }
     }
 
     @Test
@@ -106,10 +110,11 @@ class FileIngestionUtilTest {
     @Test
     void validateFilePath_whenValidPath_passes() {
         // Arrange
-        String validPath = "/path/to/file.csv";
+        Path validPath = tempDir.resolve("valid.csv");
+        assertDoesNotThrow(() -> Files.writeString(validPath, "ok"));
 
         // Act & Assert - should not throw
-        assertDoesNotThrow(() -> FileIngestionUtil.validateFilePath(validPath));
+        assertDoesNotThrow(() -> FileIngestionUtil.validateFilePath(validPath.toString()));
     }
 
     @Test
@@ -135,26 +140,62 @@ class FileIngestionUtilTest {
     @Test
     void validateFilePath_whenContainsParentReference_throwsException() {
         // Arrange
-        String unsafePath = "/path/../file.csv";
+        String unsafePath = tempDir.resolve("../file.csv").toString();
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> FileIngestionUtil.validateFilePath(unsafePath)
         );
-        assertTrue(exception.getMessage().contains("potentially unsafe characters"));
+        assertTrue(exception.getMessage().contains("traversal-sensitive tokens"));
     }
 
     @Test
     void validateFilePath_whenContainsHomeReference_throwsException() {
         // Arrange
-        String unsafePath = "/path/~/file.csv";
+        String unsafePath = tempDir.resolve("~").toString();
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> FileIngestionUtil.validateFilePath(unsafePath)
         );
-        assertTrue(exception.getMessage().contains("potentially unsafe characters"));
+        assertTrue(exception.getMessage().contains("traversal-sensitive tokens"));
+    }
+
+    @Test
+    void validateFilePath_whenOutsideTrustedRoots_throwsException() {
+        Path repoRoot = Path.of("").toAbsolutePath().normalize();
+        Path tempRoot = tempDir.toAbsolutePath().normalize();
+        Path candidate = repoRoot.getRoot().resolve("waiwatts-untrusted-test.csv").normalize();
+        Assumptions.assumeFalse(candidate.startsWith(repoRoot), "Candidate path unexpectedly falls under repo root");
+        Assumptions.assumeFalse(candidate.startsWith(tempRoot), "Candidate path unexpectedly falls under temp root");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> FileIngestionUtil.validateFilePath(candidate.toString())
+        );
+        assertTrue(exception.getMessage().contains("must be under trusted roots"));
+    }
+
+    @Test
+    void resolveWritableCsvOutputPath_whenCsvPathIsValid_passes() {
+        Path output = tempDir.resolve("out.csv");
+
+        Path result = FileIngestionUtil.resolveWritableCsvOutputPath(output.toString());
+
+        assertEquals(output.toAbsolutePath().normalize(), result);
+    }
+
+    @Test
+    void resolveWritableCsvOutputPath_whenNotCsv_throwsException() {
+        Path output = tempDir.resolve("out.txt");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> FileIngestionUtil.resolveWritableCsvOutputPath(output.toString())
+        );
+
+        assertTrue(exception.getMessage().contains("must end with .csv"));
     }
 }

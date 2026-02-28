@@ -29,23 +29,23 @@ class MbieGenerationAnnualCsvParserTest {
         // basic field checks
         Set<String> allowed = Set.of("HYDRO", "GEOTHERMAL", "WIND", "SOLAR", "GAS", "COAL", "OTHER");
         for (MbieGenerationAnnualParsedRecord r : records) {
-            assertThat(r.getFuelTypeRaw()).isNotNull();
-            assertThat(r.getFuelTypeNorm()).isNotNull();
-            assertThat(allowed).contains(r.getFuelTypeNorm());
-            assertThat(r.getPeriodYear()).isBetween(2003, 2024);
-            assertThat(r.getGenerationGwh()).isNotNull();
+            assertThat(r.fuelTypeRaw()).isNotNull();
+            assertThat(r.fuelTypeNorm()).isNotNull();
+            assertThat(allowed).contains(r.fuelTypeNorm());
+            assertThat(r.periodYear()).isBetween(2003, 2024);
+            assertThat(r.generationGwh()).isNotNull();
         }
 
         // spot checks: a couple of known lines
         assertThat(records).anySatisfy(r -> {
-            if (r.getPeriodYear() == 2003 && r.getFuelTypeNorm().equals("HYDRO")) {
-                assertThat(r.getGenerationGwh()).isEqualByComparingTo(new BigDecimal("23388.8"));
+            if (r.periodYear() == 2003 && r.fuelTypeNorm().equals("HYDRO")) {
+                assertThat(r.generationGwh()).isEqualByComparingTo(new BigDecimal("23388.8"));
             }
         });
 
         assertThat(records).anySatisfy(r -> {
-            if (r.getPeriodYear() == 2024 && r.getFuelTypeNorm().equals("WIND")) {
-                assertThat(r.getGenerationGwh()).isEqualByComparingTo(new BigDecimal("3918.6"));
+            if (r.periodYear() == 2024 && r.fuelTypeNorm().equals("WIND")) {
+                assertThat(r.generationGwh()).isEqualByComparingTo(new BigDecimal("3918.6"));
             }
         });
     }
@@ -72,7 +72,7 @@ class MbieGenerationAnnualCsvParserTest {
         MbieGenerationAnnualParser parser = new MbieGenerationAnnualCsvParser();
         List<MbieGenerationAnnualParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getFuelTypeNorm()).isEqualTo("HYDRO");
+        assertThat(records.getFirst().fuelTypeNorm()).isEqualTo("HYDRO");
     }
 
     @Test
@@ -84,7 +84,7 @@ class MbieGenerationAnnualCsvParserTest {
         MbieGenerationAnnualParser parser = new MbieGenerationAnnualCsvParser();
         List<MbieGenerationAnnualParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getPeriodYear()).isEqualTo(2022);
+        assertThat(records.getFirst().periodYear()).isEqualTo(2022);
     }
 
     @Test

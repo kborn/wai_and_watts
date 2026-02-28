@@ -940,6 +940,16 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Add `archive/tools/python/setup-python.sh` venv bootstrap
     - [x] Add `archive/tools/python/requirements.txt`
     - [x] Add `archive/tools/python/README.md`
+- [ ] Code cleanup
+  - [ ] Static analysis
+    - [x] Uncalled methods
+      - [x] Prefer records to classes for POJOs where possible 
+    - [x] Unused imports
+    - [x] library version updates
+    - [x] dead code cleanup
+    - [X] security improvements
+    - [x] remove deprecates references
+  - [x] TODOs
 
 ### Non-goals (explicit)
 - [ ] No new datasets or explanation types in this phase.

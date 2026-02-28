@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * LLM configuration properties.
- *
+ * <p>
  * When model + apiKey are provided, the LLM provider is enabled.
  * Otherwise, the system falls back to stub implementations.
  */

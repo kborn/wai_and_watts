@@ -62,7 +62,7 @@ public class CitationMapper {
                 if (parts.length >= 4 && parts[3] != null && !parts[3].contains("_to_") && !parts[3].contains("_")) {
                     fuelType = parts[3];
                 }
-                String coverage = parts.length >= 5 ? parts[4] : (parts.length >= 4 ? parts[3] : null);
+                String coverage = parts.length >= 5 ? parts[4] : (parts.length == 4 ? parts[3] : null);
                 period = parseCoverage(coverage);
             }
             case "metric" -> {
@@ -100,15 +100,15 @@ public class CitationMapper {
             }
         }
 
-        Citation citation = new Citation();
-        citation.setId(id);
-        citation.setType(type);
-        citation.setDatasetSource(datasetSource);
-        citation.setField(field);
-        citation.setFuelType(fuelType);
-        citation.setPeriodYear(periodYear);
-        citation.setPeriod(period);
-        return citation;
+        return Citation.builder()
+            .id(id)
+            .type(type)
+            .datasetSource(datasetSource)
+            .field(field)
+            .fuelType(fuelType)
+            .periodYear(periodYear)
+            .period(period)
+            .build();
     }
 
     private Optional<Integer> parseYear(String value) {

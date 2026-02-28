@@ -30,43 +30,43 @@ class LawaStateMultiYearCsvParserTest {
         Set<String> allowedStates = Set.of("EXCELLENT", "GOOD", "FAIR", "POOR", "VERY_POOR");
 
         for (LawaStateMultiYearParsedRecord r : records) {
-            assertThat(r.getLawaSiteId()).isNotNull();
-            assertThat(r.getSiteName()).isNotNull();
-            assertThat(r.getRegion()).isNotNull();
-            assertThat(r.getIndicatorRaw()).isNotNull();
-            assertThat(r.getIndicatorNorm()).isNotNull();
-            assertThat(allowedIndicators).contains(r.getIndicatorNorm());
-            assertThat(r.getAttributeBand()).isNotNull();
-            assertThat(r.getStateNorm()).isNotNull();
-            assertThat(allowedStates).contains(r.getStateNorm());
-            assertThat(r.getPeriodType()).isEqualTo("HYDRO_5YR_ROLLING");
-            assertThat(r.getPeriodStartYear()).isBetween(1950,2050);
-            assertThat(r.getPeriodEndYear()).isBetween(1950,2050);
+            assertThat(r.lawaSiteId()).isNotNull();
+            assertThat(r.siteName()).isNotNull();
+            assertThat(r.region()).isNotNull();
+            assertThat(r.indicatorRaw()).isNotNull();
+            assertThat(r.indicatorNorm()).isNotNull();
+            assertThat(allowedIndicators).contains(r.indicatorNorm());
+            assertThat(r.attributeBand()).isNotNull();
+            assertThat(r.stateNorm()).isNotNull();
+            assertThat(allowedStates).contains(r.stateNorm());
+            assertThat(r.periodType()).isEqualTo("HYDRO_5YR_ROLLING");
+            assertThat(r.periodStartYear()).isBetween(1950,2050);
+            assertThat(r.periodEndYear()).isBetween(1950,2050);
         }
 
         // Spot check: verify all fields for first data row in fixture (line 2)
         LawaStateMultiYearParsedRecord first = records.stream()
-                .filter(r -> r.getLawaSiteId().equals("arc-00001") && r.getIndicatorNorm().equals("AMMONIA_TOXICITY"))
+                .filter(r -> r.lawaSiteId().equals("arc-00001") && r.indicatorNorm().equals("AMMONIA_TOXICITY"))
                 .findFirst()
                 .orElse(null);
         assertThat(first).as("first fixture row should be present").isNotNull();
-        assertThat(first.getLawaSiteId()).isEqualTo("arc-00001");
-        assertThat(first.getSiteName()).isEqualTo("Cascades LTB");
-        assertThat(first.getRegion()).isEqualTo("auckland");
-        assertThat(first.getLatitude()).isEqualByComparingTo(new BigDecimal("-36.88888973"));
-        assertThat(first.getLongitude()).isEqualByComparingTo(new BigDecimal("174.52211474"));
-        assertThat(first.getIndicatorRaw()).isEqualTo("Ammonical nitrogen / Ammonia (toxicity)");
-        assertThat(first.getIndicatorNorm()).isEqualTo("AMMONIA_TOXICITY");
-        assertThat(first.getUnits()).isEqualTo("mg/L");
-        assertThat(first.getAttributeBand()).isEqualTo("A");
-        assertThat(first.getStateNorm()).isEqualTo("EXCELLENT");
-        assertThat(first.getMedian()).isEqualByComparingTo(new BigDecimal("0.0015"));
-        assertThat(first.getP95()).isEqualByComparingTo(new BigDecimal("0.005"));
-        assertThat(first.getRecHealthExceed260Pct()).isNull();
-        assertThat(first.getRecHealthExceed540Pct()).isNull();
-        assertThat(first.getPeriodType()).isEqualTo("HYDRO_5YR_ROLLING");
-        assertThat(first.getPeriodStartYear()).isEqualTo(2019);
-        assertThat(first.getPeriodEndYear()).isEqualTo(2024);
+        assertThat(first.lawaSiteId()).isEqualTo("arc-00001");
+        assertThat(first.siteName()).isEqualTo("Cascades LTB");
+        assertThat(first.region()).isEqualTo("auckland");
+        assertThat(first.latitude()).isEqualByComparingTo(new BigDecimal("-36.88888973"));
+        assertThat(first.longitude()).isEqualByComparingTo(new BigDecimal("174.52211474"));
+        assertThat(first.indicatorRaw()).isEqualTo("Ammonical nitrogen / Ammonia (toxicity)");
+        assertThat(first.indicatorNorm()).isEqualTo("AMMONIA_TOXICITY");
+        assertThat(first.units()).isEqualTo("mg/L");
+        assertThat(first.attributeBand()).isEqualTo("A");
+        assertThat(first.stateNorm()).isEqualTo("EXCELLENT");
+        assertThat(first.median()).isEqualByComparingTo(new BigDecimal("0.0015"));
+        assertThat(first.p95()).isEqualByComparingTo(new BigDecimal("0.005"));
+        assertThat(first.recHealthExceed260Pct()).isNull();
+        assertThat(first.recHealthExceed540Pct()).isNull();
+        assertThat(first.periodType()).isEqualTo("HYDRO_5YR_ROLLING");
+        assertThat(first.periodStartYear()).isEqualTo(2019);
+        assertThat(first.periodEndYear()).isEqualTo(2024);
     }
 
     @Test
@@ -91,7 +91,7 @@ class LawaStateMultiYearCsvParserTest {
         LawaStateMultiYearCsvParser parser = new LawaStateMultiYearCsvParser();
         List<LawaStateMultiYearParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getLawaSiteId()).isEqualTo("arc-1");
+        assertThat(records.getFirst().lawaSiteId()).isEqualTo("arc-1");
     }
 
     @Test
@@ -103,7 +103,7 @@ class LawaStateMultiYearCsvParserTest {
         LawaStateMultiYearCsvParser parser = new LawaStateMultiYearCsvParser();
         List<LawaStateMultiYearParsedRecord> records = parser.parse(toStream(csv));
         assertThat(records).hasSize(1);
-        assertThat(records.getFirst().getRegion()).isEqualTo("region");
+        assertThat(records.getFirst().region()).isEqualTo("region");
     }
 
     @Test

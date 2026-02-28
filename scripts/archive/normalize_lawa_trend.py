@@ -4,6 +4,7 @@
 *Note!  Historical doc. Used to create early fixtures but now not the current ingestion path. Replaced by scripts/transform.sh
 ------------------------------------------------------------------------------------------------------------------------------
 """
+from __future__ import annotations
 
 """Normalize LAWA 'Trend' sheet into a deterministic Phase 9 fixture CSV.
 
@@ -24,8 +25,6 @@ Usage:
       --regions auckland canterbury \
       --sites-per-region 3
 """
-
-from __future__ import annotations
 
 import argparse
 from pathlib import Path

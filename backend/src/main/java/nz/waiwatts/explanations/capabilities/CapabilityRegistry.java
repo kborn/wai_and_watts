@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * Registry of supported NL explanation capabilities.
- *
+ * <p>
  * This is the single source of truth for:
  * - question types
  * - dataset compatibility
@@ -185,17 +185,7 @@ public class CapabilityRegistry {
             "Must specify a dataset source compatible with the selected question type."
         ));
 
-        LinkedHashMap<String, String> filterStructure = new LinkedHashMap<>();
-        filterStructure.put(DATASET_SOURCE_FILTER.wireValue(), "string (required)");
-        filterStructure.put(FilterKey.FUEL_TYPE.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.FUEL_TYPE_B.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.INDICATOR.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.STATE_CATEGORY.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.REGION.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.TREND.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.START_YEAR.wireValue(), "integer (optional)");
-        filterStructure.put(FilterKey.END_YEAR.wireValue(), "integer (optional)");
-        filterStructure.put(METRIC_TYPE_FILTER.wireValue(), "string (optional)");
+        LinkedHashMap<String, String> filterStructure = getStringStringLinkedHashMap();
         response.put("filterStructure", filterStructure);
         response.put("suggestedValuesByToken", suggestedValuesByToken());
 
@@ -255,6 +245,21 @@ public class CapabilityRegistry {
         response.put("datasets", datasets);
 
         return response;
+    }
+
+    private static LinkedHashMap<String, String> getStringStringLinkedHashMap() {
+        LinkedHashMap<String, String> filterStructure = new LinkedHashMap<>();
+        filterStructure.put(DATASET_SOURCE_FILTER.wireValue(), "string (required)");
+        filterStructure.put(FilterKey.FUEL_TYPE.wireValue(), "string (optional)");
+        filterStructure.put(FilterKey.FUEL_TYPE_B.wireValue(), "string (optional)");
+        filterStructure.put(FilterKey.INDICATOR.wireValue(), "string (optional)");
+        filterStructure.put(FilterKey.STATE_CATEGORY.wireValue(), "string (optional)");
+        filterStructure.put(FilterKey.REGION.wireValue(), "string (optional)");
+        filterStructure.put(FilterKey.TREND.wireValue(), "string (optional)");
+        filterStructure.put(FilterKey.START_YEAR.wireValue(), "integer (optional)");
+        filterStructure.put(FilterKey.END_YEAR.wireValue(), "integer (optional)");
+        filterStructure.put(METRIC_TYPE_FILTER.wireValue(), "string (optional)");
+        return filterStructure;
     }
 
     private Map<String, List<String>> suggestedValuesByToken() {

@@ -10,8 +10,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GlobalExceptionHandlerTest {
 
@@ -30,7 +29,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         AskResult body = assertInstanceOf(AskResult.class, response.getBody());
-        assertEquals(true, body.isRefusal());
+        assertTrue(body.isRefusal());
         assertEquals("INTERNAL_ERROR", body.getRefusal().getCode());
         assertEquals("EXCEPTION", body.getDebug().getRefusalTrigger());
     }
@@ -49,6 +48,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         @SuppressWarnings("unchecked")
         Map<String, String> body = (Map<String, String>) response.getBody();
+        assertNotNull(body);
         assertEquals("Internal server error", body.get("error"));
     }
 }

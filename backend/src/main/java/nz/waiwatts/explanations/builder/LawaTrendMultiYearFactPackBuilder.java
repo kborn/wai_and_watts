@@ -10,7 +10,6 @@ import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Locale;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -463,19 +462,8 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
                 Long improvingSites = improvingSitesByRegion.getOrDefault(region, 0L);
                 
                 if (totalSites > 0) {
-                    BigDecimal improvingPercent = new BigDecimal(improvingSites)
-                        .multiply(new BigDecimal("100"))
-                        .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+                    MetricFact metric = getMetricFact(improvingSites, totalSites, region);
 
-                    MetricFact metric = new MetricFact(
-                        "metric:lawa:improving_sites_percentage:" + region,
-                        "improving_sites_percentage",
-                        improvingPercent,
-                        "%",
-                        "current_period",
-                        Map.of("region", region, "trend_direction", "improving")
-                    );
-                    
                     factPack.getFacts().getMetrics().add(metric);
                 }
             });
@@ -485,6 +473,21 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
             factPack.getFacts().getClassifications().stream()
                 .filter(c -> selectedRegions.contains((String) c.getDimensions().get("region")))
                 .toList()
+        );
+    }
+
+    private static MetricFact getMetricFact(Long improvingSites, Long totalSites, String region) {
+        BigDecimal improvingPercent = new BigDecimal(improvingSites)
+            .multiply(new BigDecimal("100"))
+            .divide(new BigDecimal(totalSites), 2, RoundingMode.HALF_UP);
+
+        return new MetricFact(
+            "metric:lawa:improving_sites_percentage:" + region,
+            "improving_sites_percentage",
+            improvingPercent,
+            "%",
+            "current_period",
+            Map.of("region", region, "trend_direction", "improving")
         );
     }
 

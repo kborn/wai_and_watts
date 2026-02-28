@@ -4,7 +4,7 @@ import nz.waiwatts.explanations.dto.ExplanationRequest;
 
 /**
  * Interface for different intent parsing strategies.
- * 
+ * <p>
  * Allows swapping between rule-based parsing (current) and LLM-based parsing (future).
  * All implementations must return the same structured ExplanationRequest format.
  */

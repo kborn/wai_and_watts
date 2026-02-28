@@ -42,10 +42,10 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Northland", null, null);
 
-        assertThat(result.getRegionId()).isEqualTo("Northland");
-        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(0);
-        assertThat(result.getWater().getState().getUnitCount()).isEqualTo(0);
-        assertThat(result.getEnergy().getLatestYear()).isEqualTo(0);
+        assertThat(result.regionId()).isEqualTo("Northland");
+        assertThat(result.water().trend().unitCount()).isEqualTo(0);
+        assertThat(result.water().state().unitCount()).isEqualTo(0);
+        assertThat(result.energy().latestYear()).isEqualTo(0);
     }
 
     @Test
@@ -64,11 +64,11 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Auckland", null, null);
 
-        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(4);
-        assertThat(result.getWater().getTrend().getImprovingPct()).isEqualTo(33.3);
-        assertThat(result.getWater().getTrend().getDegradingPct()).isEqualTo(33.3);
-        assertThat(result.getWater().getTrend().getIndeterminatePct()).isEqualTo(33.3);
-        assertThat(result.getWater().getTrend().getInsufficientPct()).isEqualTo(25.0);
+        assertThat(result.water().trend().unitCount()).isEqualTo(4);
+        assertThat(result.water().trend().improvingPct()).isEqualTo(33.3);
+        assertThat(result.water().trend().degradingPct()).isEqualTo(33.3);
+        assertThat(result.water().trend().indeterminatePct()).isEqualTo(33.3);
+        assertThat(result.water().trend().insufficientPct()).isEqualTo(25.0);
     }
 
     @Test
@@ -88,11 +88,29 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Auckland", null, null);
 
-        assertThat(result.getWater().getState().getUnitCount()).isEqualTo(5);
-        assertThat(result.getWater().getState().getBandDistribution().get("A")).isEqualTo(1);
-        assertThat(result.getWater().getState().getBandDistribution().get("B")).isEqualTo(2);
-        assertThat(result.getWater().getState().getBandDistribution().get("C")).isEqualTo(1);
-        assertThat(result.getWater().getState().getBandDistribution().get("INSUFFICIENT")).isEqualTo(1);
+        assertThat(result.water().state().unitCount()).isEqualTo(5);
+        assertThat(result.water().state().bandDistribution().get("A")).isEqualTo(1);
+        assertThat(result.water().state().bandDistribution().get("B")).isEqualTo(2);
+        assertThat(result.water().state().bandDistribution().get("C")).isEqualTo(1);
+        assertThat(result.water().state().bandDistribution().get("INSUFFICIENT")).isEqualTo(1);
+    }
+
+    @Test
+    void getRegionContext_stateData_withoutIndicatorFilter_excludesNullUnitKeysFromUnitCount() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaStateMultiYearRecord valid = createStateRecord(release, "Auckland", "ECOLI", "A", "site1");
+        LawaStateMultiYearRecord nullSite = createStateRecord(release, "Auckland", "ECOLI", "B", null);
+        LawaStateMultiYearRecord nullIndicator = createStateRecord(release, "Auckland", null, "C", "site2");
+
+        when(stateRepository.findAll()).thenReturn(List.of(valid, nullSite, nullIndicator));
+        when(trendRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", null, null);
+
+        assertThat(result.water().state().unitCount()).isEqualTo(1);
     }
 
     @Test
@@ -114,10 +132,10 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Auckland", null, null);
 
-        assertThat(result.getEnergy().getLatestYear()).isEqualTo(2022);
-        assertThat(result.getEnergy().getLatestRenewablePct()).isEqualTo(80.0);
-        assertThat(result.getEnergy().getFossilLatestPct()).isEqualTo(20.0);
-        assertThat(result.getEnergy().getRenewable5YrDeltaPct()).isEqualTo(20.0);
+        assertThat(result.energy().latestYear()).isEqualTo(2022);
+        assertThat(result.energy().latestRenewablePct()).isEqualTo(80.0);
+        assertThat(result.energy().fossilLatestPct()).isEqualTo(20.0);
+        assertThat(result.energy().renewable5YrDeltaPct()).isEqualTo(20.0);
     }
 
     @Test
@@ -134,8 +152,8 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", null);
 
-        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(2);
-        assertThat(result.getWater().getTrend().getImprovingPct()).isEqualTo(50.0);
+        assertThat(result.water().trend().unitCount()).isEqualTo(2);
+        assertThat(result.water().trend().improvingPct()).isEqualTo(50.0);
     }
 
     @Test
@@ -152,8 +170,46 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", null);
 
-        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(1);
-        assertThat(result.getWater().getTrend().getImprovingPct()).isEqualTo(100.0);
+        assertThat(result.water().trend().unitCount()).isEqualTo(1);
+        assertThat(result.water().trend().improvingPct()).isEqualTo(100.0);
+    }
+
+    @Test
+    void getRegionContext_trendCanonicalFallback_prefersCanonicalOverHigherNonCanonicalPeriod() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord period25 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", -1, 25);
+        LawaTrendMultiYearRecord period20 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", 2, 20);
+
+        when(trendRepository.findAll()).thenReturn(List.of(period25, period20));
+        when(stateRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", null);
+
+        assertThat(result.water().trend().unitCount()).isEqualTo(1);
+        assertThat(result.water().trend().improvingPct()).isEqualTo(100.0);
+        assertThat(result.water().trend().degradingPct()).isEqualTo(0.0);
+    }
+
+    @Test
+    void getRegionContext_trendCanonicalFallback_prefersHigherCanonicalPriorityOrder() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord period15 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", -1, 15);
+        LawaTrendMultiYearRecord period20 = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", 2, 20);
+
+        when(trendRepository.findAll()).thenReturn(List.of(period15, period20));
+        when(stateRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", null);
+
+        assertThat(result.water().trend().unitCount()).isEqualTo(1);
+        assertThat(result.water().trend().improvingPct()).isEqualTo(100.0);
+        assertThat(result.water().trend().degradingPct()).isEqualTo(0.0);
     }
 
     @Test
@@ -170,8 +226,27 @@ class RegionContextAggregationServiceImplTest {
 
         RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", 10);
 
-        assertThat(result.getWater().getTrend().getUnitCount()).isEqualTo(1);
-        assertThat(result.getWater().getTrend().getDegradingPct()).isEqualTo(100.0);
+        assertThat(result.water().trend().unitCount()).isEqualTo(1);
+        assertThat(result.water().trend().degradingPct()).isEqualTo(100.0);
+    }
+
+    @Test
+    void getRegionContext_trendWithPreferredPeriod_doesNotReplaceExistingPreferredRecord() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord preferredExisting = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", -1, 10);
+        LawaTrendMultiYearRecord preferredLater = createTrendRecordWithPeriod(release, "Auckland", "ECOLI", 2, 10);
+
+        when(trendRepository.findAll()).thenReturn(List.of(preferredExisting, preferredLater));
+        when(stateRepository.findAll()).thenReturn(List.of());
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "ECOLI", 10);
+
+        assertThat(result.water().trend().unitCount()).isEqualTo(1);
+        assertThat(result.water().trend().degradingPct()).isEqualTo(100.0);
+        assertThat(result.water().trend().improvingPct()).isEqualTo(0.0);
     }
 
     private LawaTrendMultiYearRecord createTrendRecord(DatasetRelease release, String region, String indicator, Integer score) {

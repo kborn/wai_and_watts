@@ -4,7 +4,7 @@ import nz.waiwatts.api.lawa.dto.LawaStateMultiYearRecordDto;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface LawaStateMultiYearReadService {
     /**

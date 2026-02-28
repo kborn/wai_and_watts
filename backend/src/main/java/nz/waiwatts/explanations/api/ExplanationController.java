@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * REST API controller for generating explanations from environmental data.
- * 
+ * <p>
  * Versioned public API controller under /api/v1.
- *
+ * <p>
  * Enforces structured question typing and prevents freeform chat prompts.
  * Only accepts question_type from supported classes and structured filters.
  */
@@ -90,7 +90,7 @@ public class ExplanationController {
 
     /**
      * Process a natural language question and generate an explanation.
-     * 
+     * <p>
      * Phase 12 endpoint: Parses natural language → validates → generates explanation.
      * Fact pack builders pin data to one canonical dataset_release per request.
      * Follows same refusal behavior as structured endpoint.
@@ -256,23 +256,22 @@ public class ExplanationController {
                 selectionResult.getDatasetSource()
             );
 
-            AskResult result = new AskResult();
-            result.setRefusal(false);
-            result.setRefusal(new AskResult.Refusal(null, null, null));
-            result.setParsedRequest(parsedRequest);
-            result.setSelectedDatasetSource(selectionResult.getDatasetSource());
-            result.setDatasetSelection(new AskResult.DatasetSelection(
-                selectionResult.getStrategy().name(),
-                selectionResult.getReason()
-            ));
-            result.setExplanation(explanation.getExplanationText());
-            result.setCitations(citations != null ? citations : List.of());
-            result.setDebug(new AskResult.Debug(
-                parseResponse.getParserUsed(),
-                parseDurationMs,
-                selectionResult.getCandidates(),
-                null
-            ));
+            AskResult result = AskResult.success(
+                parsedRequest,
+                selectionResult.getDatasetSource(),
+                new AskResult.DatasetSelection(
+                    selectionResult.getStrategy().name(),
+                    selectionResult.getReason()
+                ),
+                explanation.getExplanationText(),
+                citations,
+                new AskResult.Debug(
+                    parseResponse.getParserUsed(),
+                    parseDurationMs,
+                    selectionResult.getCandidates(),
+                    null
+                )
+            );
             Metrics.globalRegistry.counter("waiwatts.ask.success.count").increment();
             
             return ResponseEntity.ok(result);
@@ -319,34 +318,33 @@ public class ExplanationController {
         DatasetSelectionService.DatasetSelectionResult selectionResult,
         AskResult.Debug debug
     ) {
-        AskResult result = new AskResult();
-        result.setRefusal(true);
-        result.setRefusal(new AskResult.Refusal(
-            code,
-            message,
-            refusalDetails(code, parsedRequest, selectionResult)
-        ));
-        result.setParsedRequest(parsedRequest);
-        result.setSelectedDatasetSource(resolveSelectedDatasetSource(parsedRequest, selectionResult));
+        String selectedDatasetSource = resolveSelectedDatasetSource(parsedRequest, selectionResult);
+        AskResult.DatasetSelection datasetSelection;
         if (selectionResult != null) {
             String reason = selectionResult.getReason();
             if (reason == null || reason.isBlank()) {
                 reason = selectionResult.getRefusalMessage();
             }
-            result.setDatasetSelection(new AskResult.DatasetSelection(
+            datasetSelection = new AskResult.DatasetSelection(
                 selectionResult.getStrategy().name(),
                 reason
-            ));
+            );
         } else {
-            result.setDatasetSelection(new AskResult.DatasetSelection(
+            datasetSelection = new AskResult.DatasetSelection(
                 DatasetSelectionService.DatasetSelectionStrategy.NONE.name(),
                 "No dataset selection performed."
-            ));
+            );
         }
-        result.setExplanation("");
-        result.setCitations(List.of());
-        result.setDebug(debug);
-        return result;
+
+        return AskResult.refusal(
+            code,
+            message,
+            refusalDetails(code, parsedRequest, selectionResult),
+            parsedRequest,
+            selectedDatasetSource,
+            datasetSelection,
+            debug
+        );
     }
 
     private Map<String, Object> refusalDetails(
@@ -418,8 +416,7 @@ public class ExplanationController {
             return "VALIDATION_FAILED";
         }
         return switch (refusalCategory) {
-            case "UNSUPPORTED_QUESTION_TYPE" -> "UNSUPPORTED_CAPABILITY";
-            case "UNSUPPORTED_CAPABILITY" -> "UNSUPPORTED_CAPABILITY";
+            case "UNSUPPORTED_QUESTION_TYPE", "UNSUPPORTED_CAPABILITY" -> "UNSUPPORTED_CAPABILITY";
             case "MISSING_REQUIRED_FILTERS" -> "MISSING_REQUIRED_FILTERS";
             case "DATASET_MISMATCH" -> "DATASET_MISMATCH";
             default -> "VALIDATION_FAILED";

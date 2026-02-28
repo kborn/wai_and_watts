@@ -2,14 +2,15 @@ package nz.waiwatts.explanations.dto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 /**
  * TimeSeriesFact represents a series of data points over time.
- * 
+ * <p>
  * Stable ID format: ts:{dataset}:{metric}:{start_year}_{end_year}:{dimensions_hash}
- * 
+ * <p>
  * Data points are sorted deterministically by period for stable serialization.
  */
 public class TimeSeriesFact {
@@ -68,7 +69,7 @@ public class TimeSeriesFact {
     public void setPoints(List<DataPoint> points) {
         this.points = new ArrayList<>(points);
         // Ensure deterministic ordering for stable serialization
-        this.points.sort((a, b) -> a.getPeriod().compareTo(b.getPeriod()));
+        this.points.sort(Comparator.comparing(DataPoint::getPeriod));
     }
 
     /**

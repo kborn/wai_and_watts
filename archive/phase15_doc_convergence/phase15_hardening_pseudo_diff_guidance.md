@@ -108,7 +108,7 @@ If there is “pick N” logic, replace non-deterministic picks:
 
 ### Tests
 - Unit: builder produces identical required list across repeated calls
-- Unit: shuffle input facts ordering => required list unchanged
+- Unit: shuffle input facts ordering ⇒ required list unchanged
 
 ---
 
@@ -147,9 +147,9 @@ Pseudo:
 ```
 
 ### Tests
-- “When did wind generation grow the fastest over any 3-year period?” => refusal UNSUPPORTED_CAPABILITY
-- “Which fuel has grown the most since 2005?” => refusal UNSUPPORTED_CAPABILITY
-- “When did renewables first exceed 80% of total generation?” => refusal UNSUPPORTED_CAPABILITY
+- “When did wind generation grow the fastest over any 3-year period?” ⇒ refusal UNSUPPORTED_CAPABILITY
+- “Which fuel has grown the most since 2005?” ⇒ refusal UNSUPPORTED_CAPABILITY
+- “When did renewables first exceed 80% of total generation?” ⇒ refusal UNSUPPORTED_CAPABILITY
 
 ---
 

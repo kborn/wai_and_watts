@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
-import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -35,22 +34,7 @@ public class GlobalExceptionHandler {
         }
         
         if (isAskEndpointRequest(request)) {
-            AskResult result = new AskResult();
-            result.setRefusal(true);
-            result.setRefusal(new AskResult.Refusal(
-                "INTERNAL_ERROR",
-                "An internal error occurred while processing your request. Please try again.",
-                null
-            ));
-            result.setParsedRequest(null);
-            result.setSelectedDatasetSource(null);
-            result.setDatasetSelection(new AskResult.DatasetSelection(
-                DatasetSelectionService.DatasetSelectionStrategy.NONE.name(),
-                "No dataset selection performed."
-            ));
-            result.setExplanation("");
-            result.setCitations(List.of());
-            result.setDebug(new AskResult.Debug(null, null, null, "EXCEPTION"));
+            AskResult result = getAskResult();
             return ResponseEntity.ok(result);
         }
 
@@ -63,6 +47,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(errorResponse);
+    }
+
+    private static AskResult getAskResult() {
+        return AskResult.refusal(
+            "INTERNAL_ERROR",
+            "An internal error occurred while processing your request. Please try again.",
+            null,
+            null,
+            null,
+            new AskResult.DatasetSelection(
+                DatasetSelectionService.DatasetSelectionStrategy.NONE.name(),
+                "No dataset selection performed."
+            ),
+            new AskResult.Debug(null, null, null, "EXCEPTION")
+        );
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

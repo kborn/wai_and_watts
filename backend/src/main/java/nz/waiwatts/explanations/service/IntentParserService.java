@@ -4,7 +4,7 @@ import nz.waiwatts.explanations.dto.IntentParseResponse;
 
 /**
  * Service for parsing natural language questions into structured ExplanationRequests.
- * 
+ * <p>
  * Follows Phase 12 contract:
  * - Converts NL → validated ExplanationRequest
  * - Returns deterministic refusals for ambiguous/unsupported inputs

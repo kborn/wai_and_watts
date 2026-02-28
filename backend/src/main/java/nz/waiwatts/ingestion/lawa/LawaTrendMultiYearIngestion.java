@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -83,22 +83,22 @@ public class LawaTrendMultiYearIngestion {
         for (LawaTrendMultiYearParsedRecord r : rows) {
             LawaTrendMultiYearRecord e = new LawaTrendMultiYearRecord();
             e.setDatasetRelease(release);
-            e.setLawaSiteId(r.getLawaSiteId());
-            e.setSiteName(r.getSiteName());
-            e.setRegion(normalizeRegion(r.getRegion()));
-            e.setCatchment(normalizeCatchment(r.getCatchment()));
-            e.setLatitude(r.getLatitude());
-            e.setLongitude(r.getLongitude());
-            e.setIndicatorRaw(r.getIndicatorRaw());
-            e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setTrendRaw(r.getTrendRaw());
-            e.setTrendNorm(r.getTrendNorm());
-            e.setTrendScore(r.getTrendScore());
-            e.setTrendPeriodYears(r.getTrendPeriodYears());
-            e.setTrendDataFrequency(r.getTrendDataFrequency());
-            e.setPeriodType(r.getPeriodType());
-            e.setPeriodStartYear(r.getPeriodStartYear());
-            e.setPeriodEndYear(r.getPeriodEndYear());
+            e.setLawaSiteId(r.lawaSiteId());
+            e.setSiteName(r.siteName());
+            e.setRegion(normalizeRegion(r.region()));
+            e.setCatchment(normalizeCatchment(r.catchment()));
+            e.setLatitude(r.latitude());
+            e.setLongitude(r.longitude());
+            e.setIndicatorRaw(r.indicatorRaw());
+            e.setIndicatorNorm(r.indicatorNorm());
+            e.setTrendRaw(r.trendRaw());
+            e.setTrendNorm(r.trendNorm());
+            e.setTrendScore(r.trendScore());
+            e.setTrendPeriodYears(r.trendPeriodYears());
+            e.setTrendDataFrequency(r.trendDataFrequency());
+            e.setPeriodType(r.periodType());
+            e.setPeriodStartYear(r.periodStartYear());
+            e.setPeriodEndYear(r.periodEndYear());
             batch.add(e);
         }
         if (!batch.isEmpty()) {
@@ -123,13 +123,12 @@ public class LawaTrendMultiYearIngestion {
                             String filePath,
                             LocalDate publishedDate,
                             String releaseLabel) {
-        // Validate file path first
-        FileIngestionUtil.validateFilePath(filePath);
+        Path resolvedFilePath = FileIngestionUtil.resolveReadableRegularFile(filePath);
         
         DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
                 .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
 
-        byte[] bytes = FileIngestionUtil.readFileBytes(filePath);
+        byte[] bytes = FileIngestionUtil.readFileBytes(resolvedFilePath);
         String sha256 = FileIngestionUtil.sha256Hex(bytes);
 
         Optional<DatasetRelease> existing = datasetReleaseRepository
@@ -142,7 +141,7 @@ public class LawaTrendMultiYearIngestion {
         req.setDatasetSourceCode(datasetSourceCode);
         req.setReleaseLabel(releaseLabel);
         req.setPublishedDate(publishedDate);
-        req.setSourceUri(Paths.get(filePath).toUri().toString());
+        req.setSourceUri(FileIngestionUtil.fileUri(resolvedFilePath));
         req.setContentHash(sha256);
         UUID releaseId = datasetIngestionService.ingest(req);
 
@@ -153,22 +152,22 @@ public class LawaTrendMultiYearIngestion {
         for (LawaTrendMultiYearParsedRecord r : rows) {
             LawaTrendMultiYearRecord e = new LawaTrendMultiYearRecord();
             e.setDatasetRelease(release);
-            e.setLawaSiteId(r.getLawaSiteId());
-            e.setSiteName(r.getSiteName());
-            e.setRegion(normalizeRegion(r.getRegion()));
-            e.setCatchment(normalizeCatchment(r.getCatchment()));
-            e.setLatitude(r.getLatitude());
-            e.setLongitude(r.getLongitude());
-            e.setIndicatorRaw(r.getIndicatorRaw());
-            e.setIndicatorNorm(r.getIndicatorNorm());
-            e.setTrendRaw(r.getTrendRaw());
-            e.setTrendNorm(r.getTrendNorm());
-            e.setTrendScore(r.getTrendScore());
-            e.setTrendPeriodYears(r.getTrendPeriodYears());
-            e.setTrendDataFrequency(r.getTrendDataFrequency());
-            e.setPeriodType(r.getPeriodType());
-            e.setPeriodStartYear(r.getPeriodStartYear());
-            e.setPeriodEndYear(r.getPeriodEndYear());
+            e.setLawaSiteId(r.lawaSiteId());
+            e.setSiteName(r.siteName());
+            e.setRegion(normalizeRegion(r.region()));
+            e.setCatchment(normalizeCatchment(r.catchment()));
+            e.setLatitude(r.latitude());
+            e.setLongitude(r.longitude());
+            e.setIndicatorRaw(r.indicatorRaw());
+            e.setIndicatorNorm(r.indicatorNorm());
+            e.setTrendRaw(r.trendRaw());
+            e.setTrendNorm(r.trendNorm());
+            e.setTrendScore(r.trendScore());
+            e.setTrendPeriodYears(r.trendPeriodYears());
+            e.setTrendDataFrequency(r.trendDataFrequency());
+            e.setPeriodType(r.periodType());
+            e.setPeriodStartYear(r.periodStartYear());
+            e.setPeriodEndYear(r.periodEndYear());
             batch.add(e);
         }
         if (!batch.isEmpty()) {

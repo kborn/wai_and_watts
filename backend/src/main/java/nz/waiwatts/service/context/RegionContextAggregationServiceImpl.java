@@ -20,6 +20,7 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
 
     private static final Logger logger = LoggerFactory.getLogger(RegionContextAggregationServiceImpl.class);
     private static final int[] CANONICAL_TREND_PERIODS = {20, 15, 10, 5};
+    private static final Map<Integer, Integer> CANONICAL_PERIOD_RANK = buildCanonicalPeriodRank();
 
     private final LawaTrendMultiYearRecordRepository trendRepository;
     private final LawaStateMultiYearRecordRepository stateRepository;
@@ -115,13 +116,11 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                 int newPeriod = r.getTrendPeriodYears() != null ? r.getTrendPeriodYears() : 0;
 
                 if (preferredPeriod != null) {
-                    if (newPeriod == preferredPeriod) {
-                        result.put(key, r);
-                    } else if (existingPeriod != preferredPeriod && newPeriod == preferredPeriod) {
+                    if (existingPeriod != preferredPeriod && newPeriod == preferredPeriod) {
                         result.put(key, r);
                     }
                 } else {
-                    if (newPeriod > existingPeriod) {
+                    if (shouldReplaceByCanonicalFallback(existingPeriod, newPeriod)) {
                         result.put(key, r);
                     }
                 }
@@ -129,6 +128,30 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
         }
 
         return result;
+    }
+
+    private static Map<Integer, Integer> buildCanonicalPeriodRank() {
+        Map<Integer, Integer> rank = new HashMap<>();
+        for (int i = 0; i < CANONICAL_TREND_PERIODS.length; i++) {
+            rank.put(CANONICAL_TREND_PERIODS[i], i);
+        }
+        return rank;
+    }
+
+    private boolean shouldReplaceByCanonicalFallback(int existingPeriod, int newPeriod) {
+        Integer existingRank = CANONICAL_PERIOD_RANK.get(existingPeriod);
+        Integer newRank = CANONICAL_PERIOD_RANK.get(newPeriod);
+
+        if (existingRank != null && newRank != null) {
+            return newRank < existingRank;
+        }
+        if (existingRank == null && newRank != null) {
+            return true;
+        }
+        if (existingRank != null) {
+            return false;
+        }
+        return newPeriod > existingPeriod;
     }
 
     private WaterStateSummaryDto computeStateSummary(String region, String indicator) {
@@ -139,7 +162,7 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                         (r.getRegion() != null && r.getRegion().equalsIgnoreCase(region)))
                 .filter(r -> indicator == null || indicator.isEmpty() || 
                         (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(indicator)))
-                .collect(Collectors.toList());
+                .toList();
 
         boolean hasIndicatorFilter = indicator != null && !indicator.isEmpty();
 
@@ -151,8 +174,8 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
                     .collect(Collectors.toSet());
         } else {
             uniqueUnits = records.stream()
+                    .filter(r -> r.getLawaSiteId() != null && r.getIndicatorNorm() != null)
                     .map(r -> r.getLawaSiteId() + "|" + r.getIndicatorNorm())
-                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
         }
 
