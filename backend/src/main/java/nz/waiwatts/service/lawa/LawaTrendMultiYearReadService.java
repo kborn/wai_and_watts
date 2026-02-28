@@ -1,7 +1,7 @@
 package nz.waiwatts.service.lawa;
 
 import nz.waiwatts.api.lawa.dto.LawaTrendMultiYearRecordDto;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 

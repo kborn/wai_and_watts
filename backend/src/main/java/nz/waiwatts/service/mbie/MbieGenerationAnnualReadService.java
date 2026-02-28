@@ -3,7 +3,7 @@ package nz.waiwatts.service.mbie;
 import nz.waiwatts.api.mbie.dto.MbieGenerationAnnualRecordDto;
 
 import java.util.List;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface MbieGenerationAnnualReadService {
     /**

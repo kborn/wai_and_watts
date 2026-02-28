@@ -1,7 +1,7 @@
 package nz.waiwatts.service.context;
 
 import nz.waiwatts.api.context.dto.RegionContextFactPackDto;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface RegionContextAggregationService {
     RegionContextFactPackDto getRegionContext(
