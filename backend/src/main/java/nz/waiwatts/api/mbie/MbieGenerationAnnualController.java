@@ -37,9 +37,9 @@ public class MbieGenerationAnnualController {
     // Canonical variant-specific endpoint
     @GetMapping("/generation/annual")
     public ResponseEntity<?> getGenerationAnnual(
-            @RequestParam(value = "fromYear", required = false) Integer fromYear,
-            @RequestParam(value = "toYear", required = false) Integer toYear,
-            @RequestParam(value = "fuelType", required = false) String fuelType
+            @RequestParam(required = false) Integer fromYear,
+            @RequestParam(required = false) Integer toYear,
+            @RequestParam(required = false) String fuelType
     ) {
         long startTime = System.currentTimeMillis();
         

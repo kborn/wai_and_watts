@@ -26,9 +26,9 @@ public class RegionContextController {
 
     @GetMapping("/region-context")
     public ResponseEntity<RegionContextFactPackDto> getRegionContext(
-            @RequestParam(value = "region", required = false) String region,
-            @RequestParam(value = "indicator", required = false) String indicator,
-            @RequestParam(value = "trendWindow", required = false) Integer trendWindow) {
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String indicator,
+            @RequestParam(required = false) Integer trendWindow) {
 
         logger.info("Region context requested: region={}, indicator={}, trendWindow={}", 
                 region, indicator, trendWindow);
