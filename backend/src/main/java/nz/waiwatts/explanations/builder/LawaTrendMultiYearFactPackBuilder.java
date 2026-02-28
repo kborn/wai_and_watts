@@ -435,9 +435,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
             case WATER_QUALITY_TRENDS:
             case IMPROVING_SITES_TREND:
                 // If there are no facts, keep allowed claims empty to trigger refusal as per tests
-                boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
-                        && factPack.getFacts().getMetrics().isEmpty()
-                        && factPack.getFacts().getTimeSeries().isEmpty());
+                boolean hasAnyFacts = FactPackBuilderSupport.hasAnyFacts(factPack);
                 if (hasAnyFacts) {
                     factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_distribution", "improvement_rate", "regional_comparison", "trend_summary"));
                 } else {
@@ -445,21 +443,19 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 if (!factPack.getFacts().getClassifications().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getClassifications().stream().map(ClassificationFact::getId).toList(),
                         3
                     ));
                 } else if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
                         1
                     ));
                 }
                 break;
             case REGIONAL_TREND_COMPARISON:
-                boolean hasRegionalFacts = !(factPack.getFacts().getClassifications().isEmpty()
-                        && factPack.getFacts().getMetrics().isEmpty()
-                        && factPack.getFacts().getTimeSeries().isEmpty());
+                boolean hasRegionalFacts = FactPackBuilderSupport.hasAnyFacts(factPack);
                 if (hasRegionalFacts) {
                     factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_distribution", "improvement_rate", "regional_comparison", "trend_summary"));
                     factPack.getGuardrails().setRequiredCitations(
@@ -480,62 +476,23 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         }
     }
 
-    private List<String> stableRequiredCitations(List<String> ids, int limit) {
-        if (ids == null || ids.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return ids.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .distinct()
-            .sorted()
-            .limit(limit)
-            .collect(Collectors.toCollection(ArrayList::new));
-    }
-
     private Set<String> selectDeterministicRegionalSample(
         Map<String, Long> totalSitesByRegion,
         Map<String, Long> improvingSitesByRegion
     ) {
-        List<Map.Entry<String, BigDecimal>> ranked = totalSitesByRegion.entrySet().stream()
-            .filter(e -> e.getValue() != null && e.getValue() > 0)
-            .map(e -> {
-                String region = e.getKey();
-                long total = e.getValue();
-                long improving = improvingSitesByRegion.getOrDefault(region, 0L);
-                BigDecimal percent = new BigDecimal(improving)
-                    .multiply(new BigDecimal("100"))
-                    .divide(new BigDecimal(total), 2, RoundingMode.HALF_UP);
-                return Map.entry(region, percent);
-            })
-            .toList();
-
-        Comparator<Map.Entry<String, BigDecimal>> highToLow = Comparator
-            .comparing(Map.Entry<String, BigDecimal>::getValue, Comparator.reverseOrder())
-            .thenComparing(Map.Entry::getKey);
-        Comparator<Map.Entry<String, BigDecimal>> lowToHigh = Comparator
-            .comparing(Map.Entry<String, BigDecimal>::getValue)
-            .thenComparing(Map.Entry::getKey);
-
-        LinkedHashSet<String> selected = new LinkedHashSet<>();
-        ranked.stream().sorted(highToLow).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
-        ranked.stream().sorted(lowToHigh).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
-        return selected;
+        return FactPackBuilderSupport.selectDeterministicRegionalSample(
+            totalSitesByRegion,
+            improvingSitesByRegion,
+            REGIONAL_SAMPLE_K,
+            REGIONAL_SAMPLE_K
+        );
     }
 
     private List<String> buildRegionalTrendRequiredCitations(FactPack factPack) {
-        List<String> classFamilies = factPack.getFacts().getClassifications().stream()
-            .map(ClassificationFact::getId)
-            .map(id -> id.replaceFirst(":[^:]+$", ":*"))
-            .toList();
-        List<String> metricFamilies = factPack.getFacts().getMetrics().stream()
-            .map(MetricFact::getId)
-            .filter(id -> id.startsWith("metric:lawa:improving_sites_percentage:"))
-            .map(id -> "metric:lawa:improving_sites_percentage:*")
-            .toList();
-        List<String> families = new ArrayList<>();
-        families.addAll(classFamilies);
-        families.addAll(metricFamilies);
-        return stableRequiredCitations(families, Integer.MAX_VALUE);
+        return FactPackBuilderSupport.buildRegionalRequiredCitations(
+            factPack,
+            "metric:lawa:improving_sites_percentage:"
+        );
     }
 
     private String getPeriodCoverage(List<LawaTrendMultiYearRecord> records) {

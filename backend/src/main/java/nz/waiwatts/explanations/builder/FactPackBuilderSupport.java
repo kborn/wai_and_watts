@@ -2,16 +2,23 @@ package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.dto.ClassificationFact;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.dto.MetricFact;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 final class FactPackBuilderSupport {
 
@@ -134,6 +141,94 @@ final class FactPackBuilderSupport {
             return "hash:" + release.getContentHash();
         }
         return "unknown";
+    }
+
+    static boolean hasAnyFacts(FactPack factPack) {
+        return !(factPack.getFacts().getClassifications().isEmpty()
+            && factPack.getFacts().getMetrics().isEmpty()
+            && factPack.getFacts().getTimeSeries().isEmpty());
+    }
+
+    static List<String> stableRequiredCitations(List<String> ids, int limit) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return ids.stream()
+            .filter(id -> id != null && !id.isBlank())
+            .distinct()
+            .sorted()
+            .limit(limit)
+            .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    static String resolveMetricType(ExplanationRequest request, String fallback) {
+        if (request == null || request.getFilters() == null) {
+            return fallback;
+        }
+        Object metricType = request.getFilters().get(FilterKey.METRIC_TYPE.wireValue());
+        if (metricType instanceof String s && !s.isBlank()) {
+            return s.trim();
+        }
+        return fallback;
+    }
+
+    static String resolveUppercaseFilter(ExplanationRequest request, FilterKey filterKey) {
+        if (request == null || request.getFilters() == null) {
+            return null;
+        }
+        Object filterValue = request.getFilters().get(filterKey.wireValue());
+        if (filterValue instanceof String s && !s.isBlank()) {
+            return s.trim().toUpperCase();
+        }
+        return null;
+    }
+
+    static Set<String> selectDeterministicRegionalSample(
+        Map<String, Long> totalSitesByRegion,
+        Map<String, Long> selectedSitesByRegion,
+        int topK,
+        int bottomK
+    ) {
+        List<Map.Entry<String, BigDecimal>> ranked = totalSitesByRegion.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue() > 0)
+            .map(entry -> {
+                String region = entry.getKey();
+                long total = entry.getValue();
+                long selected = selectedSitesByRegion.getOrDefault(region, 0L);
+                BigDecimal percent = new BigDecimal(selected)
+                    .multiply(new BigDecimal("100"))
+                    .divide(new BigDecimal(total), 2, RoundingMode.HALF_UP);
+                return Map.entry(region, percent);
+            })
+            .toList();
+
+        Comparator<Map.Entry<String, BigDecimal>> highToLow = Comparator
+            .comparing(Map.Entry<String, BigDecimal>::getValue, Comparator.reverseOrder())
+            .thenComparing(Map.Entry::getKey);
+        Comparator<Map.Entry<String, BigDecimal>> lowToHigh = Comparator
+            .comparing(Map.Entry<String, BigDecimal>::getValue)
+            .thenComparing(Map.Entry::getKey);
+
+        LinkedHashSet<String> selected = new LinkedHashSet<>();
+        ranked.stream().sorted(highToLow).limit(topK).forEach(entry -> selected.add(entry.getKey()));
+        ranked.stream().sorted(lowToHigh).limit(bottomK).forEach(entry -> selected.add(entry.getKey()));
+        return selected;
+    }
+
+    static List<String> buildRegionalRequiredCitations(FactPack factPack, String metricFamilyPrefix) {
+        List<String> classFamilies = factPack.getFacts().getClassifications().stream()
+            .map(ClassificationFact::getId)
+            .map(id -> id.replaceFirst(":[^:]+$", ":*"))
+            .toList();
+        List<String> metricFamilies = factPack.getFacts().getMetrics().stream()
+            .map(MetricFact::getId)
+            .filter(id -> id.startsWith(metricFamilyPrefix))
+            .map(id -> metricFamilyPrefix + "*")
+            .toList();
+        List<String> families = new ArrayList<>();
+        families.addAll(classFamilies);
+        families.addAll(metricFamilies);
+        return stableRequiredCitations(families, Integer.MAX_VALUE);
     }
 
     private static boolean isSameRelease(DatasetRelease left, DatasetRelease right) {
