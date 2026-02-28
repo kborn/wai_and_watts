@@ -1,15 +1,14 @@
 package nz.waiwatts.ingestion.mbie;
 
 import nz.waiwatts.domain.datasets.DatasetRelease;
-import nz.waiwatts.domain.datasets.DatasetSource;
-import nz.waiwatts.ingestion.core.DatasetIngestionRequest;
+import nz.waiwatts.ingestion.core.DatasetReleaseRegistrationUtil;
 import nz.waiwatts.ingestion.core.DatasetIngestionService;
 import nz.waiwatts.ingestion.core.FileIngestionUtil;
+import nz.waiwatts.ingestion.core.ReleaseRegistrationResult;
 import nz.waiwatts.persistence.repositories.DatasetReleaseRepository;
 import nz.waiwatts.persistence.repositories.DatasetSourceRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
 import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,12 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.HexFormat;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -61,43 +56,13 @@ public class MbieAnnualIngestion {
                               String classpathFixture,
                               LocalDate publishedDate,
                               String releaseLabel) {
-        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
-                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
-
-        byte[] bytes = readAllBytes(classpathFixture);
-        String sha256 = sha256Hex(bytes);
-
-        // If release already exists for (source, hash), return it without duplicating rows
-        Optional<DatasetRelease> existing = datasetReleaseRepository
-                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
-        if (existing.isPresent()) {
-            return existing.get().getId();
-        }
-
-        // Create/import the release via lifecycle service
-        DatasetIngestionRequest req = new DatasetIngestionRequest();
-        req.setDatasetSourceCode(datasetSourceCode);
-        req.setReleaseLabel(releaseLabel);
-        req.setPublishedDate(publishedDate);
-        req.setSourceUri(null);
-        req.setContentHash(sha256);
-        UUID releaseId = datasetIngestionService.ingest(req);
-
-        // Parse and persist rows linked to the new release
-        List<MbieGenerationAnnualParsedRecord> rows = parse(bytes);
-        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
-                .orElseThrow();
-        for (MbieGenerationAnnualParsedRecord r : rows) {
-            MbieGenerationAnnualRecord e = new MbieGenerationAnnualRecord();
-            e.setDatasetRelease(release);
-            e.setPeriodYear(r.periodYear());
-            e.setFuelTypeRaw(r.fuelTypeRaw());
-            e.setFuelTypeNorm(r.fuelTypeNorm());
-            BigDecimal gwh = r.generationGwh();
-            e.setGenerationGwh(gwh);
-            recordRepository.save(e);
-        }
-        return releaseId;
+        return ingestBytes(
+            datasetSourceCode,
+            FileIngestionUtil.readClasspathBytes(classpathFixture),
+            publishedDate,
+            releaseLabel,
+            null
+        );
     }
 
     /**
@@ -117,33 +82,39 @@ public class MbieAnnualIngestion {
                             LocalDate publishedDate,
                             String releaseLabel) {
         Path resolvedFilePath = FileIngestionUtil.resolveReadableRegularFile(filePath);
-        
-        DatasetSource source = datasetSourceRepository.findByCode(datasetSourceCode)
-                .orElseThrow(() -> new IllegalArgumentException("DatasetSource not found for code: " + datasetSourceCode));
+        return ingestBytes(
+            datasetSourceCode,
+            FileIngestionUtil.readFileBytes(resolvedFilePath),
+            publishedDate,
+            releaseLabel,
+            FileIngestionUtil.fileUri(resolvedFilePath)
+        );
+    }
 
-        byte[] bytes = FileIngestionUtil.readFileBytes(resolvedFilePath);
+    private UUID ingestBytes(
+        String datasetSourceCode,
+        byte[] bytes,
+        LocalDate publishedDate,
+        String releaseLabel,
+        String sourceUri
+    ) {
         String sha256 = FileIngestionUtil.sha256Hex(bytes);
-
-        // If release already exists for (source, hash), return it without duplicating rows
-        Optional<DatasetRelease> existing = datasetReleaseRepository
-                .findFirstByDatasetSourceIdAndContentHash(source.getId(), sha256);
-        if (existing.isPresent()) {
-            return existing.get().getId();
+        ReleaseRegistrationResult registration = DatasetReleaseRegistrationUtil.registerRelease(
+            datasetSourceRepository,
+            datasetReleaseRepository,
+            datasetIngestionService,
+            datasetSourceCode,
+            sha256,
+            publishedDate,
+            releaseLabel,
+            sourceUri
+        );
+        if (!registration.created()) {
+            return registration.releaseId();
         }
 
-        // Create/import the release via lifecycle service
-        DatasetIngestionRequest req = new DatasetIngestionRequest();
-        req.setDatasetSourceCode(datasetSourceCode);
-        req.setReleaseLabel(releaseLabel);
-        req.setPublishedDate(publishedDate);
-        req.setSourceUri(FileIngestionUtil.fileUri(resolvedFilePath));
-        req.setContentHash(sha256);
-        UUID releaseId = datasetIngestionService.ingest(req);
-
-        // Parse and persist rows linked to the new release
         List<MbieGenerationAnnualParsedRecord> rows = parse(bytes);
-        DatasetRelease release = datasetReleaseRepository.findById(releaseId)
-                .orElseThrow();
+        DatasetRelease release = datasetReleaseRepository.findById(registration.releaseId()).orElseThrow();
         for (MbieGenerationAnnualParsedRecord r : rows) {
             MbieGenerationAnnualRecord e = new MbieGenerationAnnualRecord();
             e.setDatasetRelease(release);
@@ -154,7 +125,7 @@ public class MbieAnnualIngestion {
             e.setGenerationGwh(gwh);
             recordRepository.save(e);
         }
-        return releaseId;
+        return registration.releaseId();
     }
 
     private List<MbieGenerationAnnualParsedRecord> parse(byte[] bytes) {
@@ -165,24 +136,4 @@ public class MbieAnnualIngestion {
         }
     }
 
-    private byte[] readAllBytes(String classpath) {
-        try {
-            ClassPathResource res = new ClassPathResource(classpath);
-            try (InputStream is = res.getInputStream()) {
-                return is.readAllBytes();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load fixture from classpath: " + classpath, e);
-        }
-    }
-
-    private String sha256Hex(byte[] bytes) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(bytes);
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
-        }
-    }
 }

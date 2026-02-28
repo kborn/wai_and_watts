@@ -1,5 +1,7 @@
 package nz.waiwatts.ingestion.core;
 
+import org.springframework.core.io.ClassPathResource;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -50,6 +52,17 @@ public class FileIngestionUtil {
             return Files.readAllBytes(filePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read file: " + filePath.toAbsolutePath(), e);
+        }
+    }
+
+    public static byte[] readClasspathBytes(String classpath) {
+        try {
+            ClassPathResource resource = new ClassPathResource(classpath);
+            try (var inputStream = resource.getInputStream()) {
+                return inputStream.readAllBytes();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load fixture from classpath: " + classpath, e);
         }
     }
 

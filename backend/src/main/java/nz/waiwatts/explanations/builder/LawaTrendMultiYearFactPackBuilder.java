@@ -1,7 +1,6 @@
 package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
-import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.capabilities.types.QuestionType;
@@ -32,56 +31,21 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
 
     @Override
     public FactPack buildFactPack(ExplanationRequest request) {
-        FactPack factPack = new FactPack();
-        
-        // Set request context
-        FactPack.RequestContext requestContext = new FactPack.RequestContext();
-        requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(List.of(LAWA_TREND_DATASET));
-        requestContext.setFiltersApplied(request.getFilters());
-        factPack.setRequestContext(requestContext);
-
-        // Build provenance
-        FactPack.Provenance provenance = new FactPack.Provenance();
-        List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
+        FactPack factPack = FactPackBuilderSupport.initializeFactPack(request, LAWA_TREND_DATASET);
 
         // Get records for facts and derive provenance from them (Phase 11 acceptable)
-        List<LawaTrendMultiYearRecord> records = pinToCanonicalRelease(getRecordsForRequest(request));
-        if (!records.isEmpty()) {
-            // Group by dataset release to ensure correct contentHash and per-release coverage
-            // Use a stable string key: prefer UUID string, else contentHash, else "unknown"
-            Map<String, List<LawaTrendMultiYearRecord>> byReleaseKey = records.stream()
-                .filter(r -> r.getDatasetRelease() != null)
-                .collect(Collectors.groupingBy(r -> {
-                    var rel = r.getDatasetRelease();
-                    if (rel.getId() != null) return rel.getId().toString();
-                    if (rel.getContentHash() != null && !rel.getContentHash().isBlank()) return "hash:" + rel.getContentHash();
-                    return "unknown";
-                }));
-
-            byReleaseKey.entrySet().stream()
-                // Deterministic ordering by key for stability
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> {
-                    String releaseKey = entry.getKey();
-                    List<LawaTrendMultiYearRecord> group = entry.getValue();
-                    FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                    source.setDatasetSourceCode(LAWA_TREND_DATASET);
-                    source.setDatasetReleaseId(releaseKey);
-                    // contentHash from this release specifically if present
-                    if (!group.isEmpty()
-                        && group.getFirst().getDatasetRelease() != null
-                        && group.getFirst().getDatasetRelease().getContentHash() != null) {
-                        source.setContentHash(group.getFirst().getDatasetRelease().getContentHash());
-                    }
-                    // periodCoverage computed for this release's records only
-                    source.setPeriodCoverage(getPeriodCoverage(group));
-                    sources.add(source);
-                });
-        }
-        // Always set a (possibly empty) list to avoid nulls upstream
-        provenance.setDatasetSources(sources);
-        factPack.setProvenance(provenance);
+        List<LawaTrendMultiYearRecord> records = FactPackBuilderSupport.pinToCanonicalRelease(
+            getRecordsForRequest(request),
+            LawaTrendMultiYearRecord::getDatasetRelease
+        );
+        factPack.getProvenance().setDatasetSources(
+            FactPackBuilderSupport.buildGroupedProvenance(
+                records,
+                LAWA_TREND_DATASET,
+                LawaTrendMultiYearRecord::getDatasetRelease,
+                this::getPeriodCoverage
+            )
+        );
 
         // Build facts based on question type
         buildFacts(factPack, request, records);
@@ -94,20 +58,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
 
     @Override
     public boolean canHandle(ExplanationRequest request) {
-        // Check top-level datasetSource field (Phase 12+)
-        String ds = request.getDatasetSource();
-        if (ds != null) {
-            return LAWA_TREND_DATASET.equals(ds);
-        }
-        
-        // Backward compatibility: check filters
-        Map<String, Object> filters = request.getFilters();
-        if (filters != null) {
-            Object dsFilter = filters.get(FilterKey.DATASET_SOURCE.wireValue());
-            return LAWA_TREND_DATASET.equals(String.valueOf(dsFilter));
-        }
-        
-        return false;
+        return FactPackBuilderSupport.supportsDatasetSource(request, LAWA_TREND_DATASET);
     }
 
     @Override
@@ -155,58 +106,6 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         }
 
         return repository.findForAsk(startYear, endYear, indicatorFilter, regionFilter, trendFilter);
-    }
-
-    private List<LawaTrendMultiYearRecord> pinToCanonicalRelease(List<LawaTrendMultiYearRecord> records) {
-        if (records == null || records.isEmpty()) {
-            return records == null ? List.of() : records;
-        }
-
-        // Deterministic release pinning for ask: choose one canonical release.
-        Optional<DatasetRelease> canonicalRelease = records.stream()
-            .map(LawaTrendMultiYearRecord::getDatasetRelease)
-            .filter(Objects::nonNull)
-            .max(
-                Comparator.comparing(
-                        DatasetRelease::getImportedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getRetrievedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getContentHash,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        release -> release.getId() != null ? release.getId().toString() : "",
-                        Comparator.naturalOrder()
-                    )
-            );
-
-        if (canonicalRelease.isEmpty()) {
-            return records;
-        }
-
-        DatasetRelease target = canonicalRelease.get();
-        return records.stream()
-            .filter(record -> isSameRelease(record.getDatasetRelease(), target))
-            .toList();
-    }
-
-    private boolean isSameRelease(DatasetRelease left, DatasetRelease right) {
-        if (left == null || right == null) {
-            return false;
-        }
-        if (left.getId() != null && right.getId() != null) {
-            return left.getId().equals(right.getId());
-        }
-        return Objects.equals(left.getContentHash(), right.getContentHash());
     }
 
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<LawaTrendMultiYearRecord> records) {
@@ -536,9 +435,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
             case WATER_QUALITY_TRENDS:
             case IMPROVING_SITES_TREND:
                 // If there are no facts, keep allowed claims empty to trigger refusal as per tests
-                boolean hasAnyFacts = !(factPack.getFacts().getClassifications().isEmpty()
-                        && factPack.getFacts().getMetrics().isEmpty()
-                        && factPack.getFacts().getTimeSeries().isEmpty());
+                boolean hasAnyFacts = FactPackBuilderSupport.hasAnyFacts(factPack);
                 if (hasAnyFacts) {
                     factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_distribution", "improvement_rate", "regional_comparison", "trend_summary"));
                 } else {
@@ -546,21 +443,19 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 if (!factPack.getFacts().getClassifications().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getClassifications().stream().map(ClassificationFact::getId).toList(),
                         3
                     ));
                 } else if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
                         1
                     ));
                 }
                 break;
             case REGIONAL_TREND_COMPARISON:
-                boolean hasRegionalFacts = !(factPack.getFacts().getClassifications().isEmpty()
-                        && factPack.getFacts().getMetrics().isEmpty()
-                        && factPack.getFacts().getTimeSeries().isEmpty());
+                boolean hasRegionalFacts = FactPackBuilderSupport.hasAnyFacts(factPack);
                 if (hasRegionalFacts) {
                     factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_distribution", "improvement_rate", "regional_comparison", "trend_summary"));
                     factPack.getGuardrails().setRequiredCitations(
@@ -581,62 +476,23 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         }
     }
 
-    private List<String> stableRequiredCitations(List<String> ids, int limit) {
-        if (ids == null || ids.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return ids.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .distinct()
-            .sorted()
-            .limit(limit)
-            .collect(Collectors.toCollection(ArrayList::new));
-    }
-
     private Set<String> selectDeterministicRegionalSample(
         Map<String, Long> totalSitesByRegion,
         Map<String, Long> improvingSitesByRegion
     ) {
-        List<Map.Entry<String, BigDecimal>> ranked = totalSitesByRegion.entrySet().stream()
-            .filter(e -> e.getValue() != null && e.getValue() > 0)
-            .map(e -> {
-                String region = e.getKey();
-                long total = e.getValue();
-                long improving = improvingSitesByRegion.getOrDefault(region, 0L);
-                BigDecimal percent = new BigDecimal(improving)
-                    .multiply(new BigDecimal("100"))
-                    .divide(new BigDecimal(total), 2, RoundingMode.HALF_UP);
-                return Map.entry(region, percent);
-            })
-            .toList();
-
-        Comparator<Map.Entry<String, BigDecimal>> highToLow = Comparator
-            .comparing(Map.Entry<String, BigDecimal>::getValue, Comparator.reverseOrder())
-            .thenComparing(Map.Entry::getKey);
-        Comparator<Map.Entry<String, BigDecimal>> lowToHigh = Comparator
-            .comparing(Map.Entry<String, BigDecimal>::getValue)
-            .thenComparing(Map.Entry::getKey);
-
-        LinkedHashSet<String> selected = new LinkedHashSet<>();
-        ranked.stream().sorted(highToLow).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
-        ranked.stream().sorted(lowToHigh).limit(REGIONAL_SAMPLE_K).forEach(e -> selected.add(e.getKey()));
-        return selected;
+        return FactPackBuilderSupport.selectDeterministicRegionalSample(
+            totalSitesByRegion,
+            improvingSitesByRegion,
+            REGIONAL_SAMPLE_K,
+            REGIONAL_SAMPLE_K
+        );
     }
 
     private List<String> buildRegionalTrendRequiredCitations(FactPack factPack) {
-        List<String> classFamilies = factPack.getFacts().getClassifications().stream()
-            .map(ClassificationFact::getId)
-            .map(id -> id.replaceFirst(":[^:]+$", ":*"))
-            .toList();
-        List<String> metricFamilies = factPack.getFacts().getMetrics().stream()
-            .map(MetricFact::getId)
-            .filter(id -> id.startsWith("metric:lawa:improving_sites_percentage:"))
-            .map(id -> "metric:lawa:improving_sites_percentage:*")
-            .toList();
-        List<String> families = new ArrayList<>();
-        families.addAll(classFamilies);
-        families.addAll(metricFamilies);
-        return stableRequiredCitations(families, Integer.MAX_VALUE);
+        return FactPackBuilderSupport.buildRegionalRequiredCitations(
+            factPack,
+            "metric:lawa:improving_sites_percentage:"
+        );
     }
 
     private String getPeriodCoverage(List<LawaTrendMultiYearRecord> records) {

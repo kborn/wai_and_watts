@@ -1,7 +1,6 @@
 package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
-import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.capabilities.types.MetricType;
@@ -34,33 +33,21 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
     @Override
     public FactPack buildFactPack(ExplanationRequest request) {
-        FactPack factPack = new FactPack();
-        
-        // Set request context
-        FactPack.RequestContext requestContext = new FactPack.RequestContext();
-        requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(List.of(MBIE_ANNUAL_DATASET));
-        requestContext.setFiltersApplied(request.getFilters());
-        factPack.setRequestContext(requestContext);
-
-        // Build provenance
-        FactPack.Provenance provenance = new FactPack.Provenance();
-        List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
+        FactPack factPack = FactPackBuilderSupport.initializeFactPack(request, MBIE_ANNUAL_DATASET);
 
         // Get records and pin to one canonical release for deterministic ask behavior.
-        List<MbieGenerationAnnualRecord> records = pinToCanonicalRelease(getRecordsForRequest(request));
-        if (!records.isEmpty()) {
-            DatasetRelease release = records.getFirst().getDatasetRelease();
-            FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-            source.setDatasetSourceCode(MBIE_ANNUAL_DATASET);
-            source.setDatasetReleaseId(releaseKey(release));
-            source.setContentHash(release != null ? release.getContentHash() : null);
-            source.setPeriodCoverage(getPeriodCoverage(records));
-            sources.add(source);
-        }
-        // Always set a (possibly empty) list to avoid nulls upstream
-        provenance.setDatasetSources(sources);
-        factPack.setProvenance(provenance);
+        List<MbieGenerationAnnualRecord> records = FactPackBuilderSupport.pinToCanonicalRelease(
+            getRecordsForRequest(request),
+            MbieGenerationAnnualRecord::getDatasetRelease
+        );
+        factPack.getProvenance().setDatasetSources(
+            FactPackBuilderSupport.buildGroupedProvenance(
+                records,
+                MBIE_ANNUAL_DATASET,
+                MbieGenerationAnnualRecord::getDatasetRelease,
+                this::getPeriodCoverage
+            )
+        );
 
         // Build facts based on question type
         buildFacts(factPack, request, records);
@@ -73,20 +60,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
     @Override
     public boolean canHandle(ExplanationRequest request) {
-        // Check top-level datasetSource field (Phase 12+)
-        String ds = request.getDatasetSource();
-        if (ds != null) {
-            return MBIE_ANNUAL_DATASET.equals(ds);
-        }
-        
-        // Backward compatibility: check filters
-        Map<String, Object> filters = request.getFilters();
-        if (filters != null) {
-            Object dsFilter = filters.get(FilterKey.DATASET_SOURCE.wireValue());
-            return MBIE_ANNUAL_DATASET.equals(String.valueOf(dsFilter));
-        }
-        
-        return false;
+        return FactPackBuilderSupport.supportsDatasetSource(request, MBIE_ANNUAL_DATASET);
     }
 
     @Override
@@ -124,71 +98,6 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         return repository.findForReadApi(startYear, endYear, fuelTypeForQuery);
     }
 
-    private List<MbieGenerationAnnualRecord> pinToCanonicalRelease(List<MbieGenerationAnnualRecord> records) {
-        if (records == null || records.isEmpty()) {
-            return records == null ? List.of() : records;
-        }
-
-        // Deterministic release pinning for ask: choose one canonical release.
-        Optional<DatasetRelease> canonicalRelease = records.stream()
-            .map(MbieGenerationAnnualRecord::getDatasetRelease)
-            .filter(Objects::nonNull)
-            .max(
-                Comparator.comparing(
-                        DatasetRelease::getImportedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getRetrievedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getContentHash,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        release -> release.getId() != null ? release.getId().toString() : "",
-                        Comparator.naturalOrder()
-                    )
-            );
-
-        if (canonicalRelease.isEmpty()) {
-            return records;
-        }
-
-        DatasetRelease target = canonicalRelease.get();
-        return records.stream()
-            .filter(record -> isSameRelease(record.getDatasetRelease(), target))
-            .toList();
-    }
-
-    private boolean isSameRelease(DatasetRelease left, DatasetRelease right) {
-        if (left == null || right == null) {
-            return false;
-        }
-        if (left.getId() != null && right.getId() != null) {
-            return left.getId().equals(right.getId());
-        }
-        return Objects.equals(left.getContentHash(), right.getContentHash());
-    }
-
-    private String releaseKey(DatasetRelease release) {
-        if (release == null) {
-            return "unknown";
-        }
-        if (release.getId() != null) {
-            return release.getId().toString();
-        }
-        if (release.getContentHash() != null && !release.getContentHash().isBlank()) {
-            return "hash:" + release.getContentHash();
-        }
-        return "unknown";
-    }
-
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationAnnualRecord> records) {
         QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
         if (questionType == null) {
@@ -198,7 +107,11 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
         switch (questionType) {
             case RENEWABLE_GENERATION_TREND:
-                buildRenewableGenerationTrendFacts(factPack, records, resolveMetricType(request, METRIC_GENERATION_GWH));
+                buildRenewableGenerationTrendFacts(
+                    factPack,
+                    records,
+                    FactPackBuilderSupport.resolveMetricType(request, METRIC_GENERATION_GWH)
+                );
                 break;
             case FUEL_GENERATION_TREND:
                 buildFuelGenerationTrendFacts(factPack, request, records);
@@ -292,7 +205,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         ExplanationRequest request,
         List<MbieGenerationAnnualRecord> records
     ) {
-        String fuelType = resolveRequestedFuelType(request);
+        String fuelType = FactPackBuilderSupport.resolveUppercaseFilter(request, FilterKey.FUEL_TYPE);
         if (fuelType == null || fuelType.isBlank()) {
             return;
         }
@@ -361,7 +274,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
     }
 
     private void buildFuelTypeComparisonFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationAnnualRecord> records) {
-        String metricType = resolveMetricType(request, METRIC_GENERATION_GWH);
+        String metricType = FactPackBuilderSupport.resolveMetricType(request, METRIC_GENERATION_GWH);
         List<String> fuels = extractFuelTypeFilters(request);
         if (fuels.size() >= 2) {
             buildFuelTypeTimeSeriesFacts(factPack, records, fuels);
@@ -373,7 +286,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
 
     private void buildGenerationMixOverviewFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationAnnualRecord> records) {
         // Mix overview is a metric snapshot of the latest period in scope
-        String metricType = resolveMetricType(request, METRIC_GENERATION_GWH);
+        String metricType = FactPackBuilderSupport.resolveMetricType(request, METRIC_GENERATION_GWH);
         buildFuelTypeLatestMetrics(factPack, records, null, metricType);
     }
 
@@ -526,7 +439,7 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_increase", "trend_decrease", "trend_summary"));
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation"));
                 if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
                         1
                     ));
@@ -537,12 +450,12 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setAllowedClaims(Arrays.asList("comparison", "largest_contributor", "relative_proportion"));
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation"));
                 if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
                         Integer.MAX_VALUE
                     ));
                 } else if (!factPack.getFacts().getMetrics().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getMetrics().stream().map(MetricFact::getId).toList(),
                         Integer.MAX_VALUE
                     ));
@@ -555,18 +468,6 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
                 break;
         }
-    }
-
-    private List<String> stableRequiredCitations(List<String> ids, int limit) {
-        if (ids == null || ids.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return ids.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .distinct()
-            .sorted()
-            .limit(limit)
-            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private String getPeriodCoverage(List<MbieGenerationAnnualRecord> records) {
@@ -583,25 +484,4 @@ public class MbieGenerationAnnualFactPackBuilder implements FactPackBuilder {
         return stats.getMin() + "-" + stats.getMax();
     }
 
-    private String resolveMetricType(ExplanationRequest request, String fallback) {
-        if (request == null || request.getFilters() == null) {
-            return fallback;
-        }
-        Object metricType = request.getFilters().get(FilterKey.METRIC_TYPE.wireValue());
-        if (metricType instanceof String s && !s.isBlank()) {
-            return s.trim();
-        }
-        return fallback;
-    }
-
-    private String resolveRequestedFuelType(ExplanationRequest request) {
-        if (request == null || request.getFilters() == null) {
-            return null;
-        }
-        Object fuelType = request.getFilters().get(FilterKey.FUEL_TYPE.wireValue());
-        if (fuelType instanceof String s && !s.isBlank()) {
-            return s.trim().toUpperCase(Locale.ROOT);
-        }
-        return null;
-    }
 }

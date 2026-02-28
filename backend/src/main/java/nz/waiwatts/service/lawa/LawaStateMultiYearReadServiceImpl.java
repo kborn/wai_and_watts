@@ -6,7 +6,6 @@ import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,17 +25,13 @@ public class LawaStateMultiYearReadServiceImpl implements LawaStateMultiYearRead
                                                   Integer toYear,
                                                   String indicator,
                                                   String region){
-        String indicatorNorm = indicator != null ? collapseWhitespace(indicator.trim()).toLowerCase(Locale.ROOT) : null;
-        String regionNorm = region != null ? collapseWhitespace(region.trim()).toLowerCase(Locale.ROOT) : null;
+        String indicatorNorm = LawaReadServiceSupport.normalizeFilter(indicator);
+        String regionNorm = LawaReadServiceSupport.normalizeFilter(region);
 
         return repository.findForReadApi(fromYear, toYear, indicatorNorm, regionNorm).stream()
                 .map(LawaStateMultiYearReadServiceImpl::toDto)
                 .collect(Collectors.toList());
 
-    }
-
-    private static String collapseWhitespace(String s) {
-        return s.replaceAll("\\s+", " ");
     }
 
     private static LawaStateMultiYearRecordDto toDto(LawaStateMultiYearRecord e) {

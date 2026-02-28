@@ -1,7 +1,6 @@
 package nz.waiwatts.explanations.builder;
 
 import nz.waiwatts.domain.mbie.MbieGenerationQuarterlyRecord;
-import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.capabilities.types.MetricType;
@@ -34,56 +33,21 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
     @Override
     public FactPack buildFactPack(ExplanationRequest request) {
-        FactPack factPack = new FactPack();
-        
-        // Set request context
-        FactPack.RequestContext requestContext = new FactPack.RequestContext();
-        requestContext.setQuestionType(request.getQuestionType());
-        requestContext.setDatasetScope(List.of(MBIE_QUARTERLY_DATASET));
-        requestContext.setFiltersApplied(request.getFilters());
-        factPack.setRequestContext(requestContext);
-
-        // Build provenance
-        FactPack.Provenance provenance = new FactPack.Provenance();
-        List<FactPack.DatasetSourceProvenance> sources = new ArrayList<>();
+        FactPack factPack = FactPackBuilderSupport.initializeFactPack(request, MBIE_QUARTERLY_DATASET);
 
         // Get records for facts and derive provenance from them (Phase 11 acceptable)
-        List<MbieGenerationQuarterlyRecord> records = pinToCanonicalRelease(getRecordsForRequest(request));
-        if (!records.isEmpty()) {
-            // Group by dataset release to ensure correct contentHash and per-release coverage
-            // Use a stable string key: prefer UUID string, else contentHash, else "unknown"
-            Map<String, List<MbieGenerationQuarterlyRecord>> byReleaseKey = records.stream()
-                .filter(r -> r.getDatasetRelease() != null)
-                .collect(Collectors.groupingBy(r -> {
-                    var rel = r.getDatasetRelease();
-                    if (rel.getId() != null) return rel.getId().toString();
-                    if (rel.getContentHash() != null && !rel.getContentHash().isBlank()) return "hash:" + rel.getContentHash();
-                    return "unknown";
-                }));
-
-            byReleaseKey.entrySet().stream()
-                // Deterministic ordering by key for stability
-                .sorted(Map.Entry.comparingByKey())
-                .forEach(entry -> {
-                    String releaseKey = entry.getKey();
-                    List<MbieGenerationQuarterlyRecord> group = entry.getValue();
-                    FactPack.DatasetSourceProvenance source = new FactPack.DatasetSourceProvenance();
-                    source.setDatasetSourceCode(MBIE_QUARTERLY_DATASET);
-                    source.setDatasetReleaseId(releaseKey);
-                    // contentHash from this release specifically if present
-                    if (!group.isEmpty()
-                        && group.getFirst().getDatasetRelease() != null
-                        && group.getFirst().getDatasetRelease().getContentHash() != null) {
-                        source.setContentHash(group.getFirst().getDatasetRelease().getContentHash());
-                    }
-                    // periodCoverage computed for this release's records only
-                    source.setPeriodCoverage(getPeriodCoverage(group));
-                    sources.add(source);
-                });
-        }
-        // Always set a (possibly empty) list to avoid nulls upstream
-        provenance.setDatasetSources(sources);
-        factPack.setProvenance(provenance);
+        List<MbieGenerationQuarterlyRecord> records = FactPackBuilderSupport.pinToCanonicalRelease(
+            getRecordsForRequest(request),
+            MbieGenerationQuarterlyRecord::getDatasetRelease
+        );
+        factPack.getProvenance().setDatasetSources(
+            FactPackBuilderSupport.buildGroupedProvenance(
+                records,
+                MBIE_QUARTERLY_DATASET,
+                MbieGenerationQuarterlyRecord::getDatasetRelease,
+                this::getPeriodCoverage
+            )
+        );
 
         // Build facts based on question type
         buildFacts(factPack, request, records);
@@ -96,20 +60,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
     @Override
     public boolean canHandle(ExplanationRequest request) {
-        // Check top-level datasetSource field (Phase 12+)
-        String ds = request.getDatasetSource();
-        if (ds != null) {
-            return MBIE_QUARTERLY_DATASET.equals(ds);
-        }
-        
-        // Backward compatibility: check filters
-        Map<String, Object> filters = request.getFilters();
-        if (filters != null) {
-            Object dsFilter = filters.get(FilterKey.DATASET_SOURCE.wireValue());
-            return MBIE_QUARTERLY_DATASET.equals(String.valueOf(dsFilter));
-        }
-        
-        return false;
+        return FactPackBuilderSupport.supportsDatasetSource(request, MBIE_QUARTERLY_DATASET);
     }
 
     @Override
@@ -147,58 +98,6 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         return repository.findForReadApi(startYear, endYear, null, fuelTypeForQuery);
     }
 
-    private List<MbieGenerationQuarterlyRecord> pinToCanonicalRelease(List<MbieGenerationQuarterlyRecord> records) {
-        if (records == null || records.isEmpty()) {
-            return records == null ? List.of() : records;
-        }
-
-        // Deterministic release pinning for ask: choose one canonical release.
-        Optional<DatasetRelease> canonicalRelease = records.stream()
-            .map(MbieGenerationQuarterlyRecord::getDatasetRelease)
-            .filter(Objects::nonNull)
-            .max(
-                Comparator.comparing(
-                        DatasetRelease::getImportedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getRetrievedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        DatasetRelease::getContentHash,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-                    .thenComparing(
-                        release -> release.getId() != null ? release.getId().toString() : "",
-                        Comparator.naturalOrder()
-                    )
-            );
-
-        if (canonicalRelease.isEmpty()) {
-            return records;
-        }
-
-        DatasetRelease target = canonicalRelease.get();
-        return records.stream()
-            .filter(record -> isSameRelease(record.getDatasetRelease(), target))
-            .toList();
-    }
-
-    private boolean isSameRelease(DatasetRelease left, DatasetRelease right) {
-        if (left == null || right == null) {
-            return false;
-        }
-        if (left.getId() != null && right.getId() != null) {
-            return left.getId().equals(right.getId());
-        }
-        return Objects.equals(left.getContentHash(), right.getContentHash());
-    }
-
     private void buildFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationQuarterlyRecord> records) {
         QuestionType questionType = QuestionType.fromWireValue(request.getQuestionType()).orElse(null);
         if (questionType == null) {
@@ -208,7 +107,11 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
 
         switch (questionType) {
             case RENEWABLE_GENERATION_TREND:
-                buildRenewableGenerationTrendFacts(factPack, records, resolveMetricType(request, METRIC_GENERATION_GWH));
+                buildRenewableGenerationTrendFacts(
+                    factPack,
+                    records,
+                    FactPackBuilderSupport.resolveMetricType(request, METRIC_GENERATION_GWH)
+                );
                 break;
             case FUEL_GENERATION_TREND:
                 buildFuelGenerationTrendFacts(factPack, request, records);
@@ -300,7 +203,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         ExplanationRequest request,
         List<MbieGenerationQuarterlyRecord> records
     ) {
-        String fuelType = resolveRequestedFuelType(request);
+        String fuelType = FactPackBuilderSupport.resolveUppercaseFilter(request, FilterKey.FUEL_TYPE);
         if (fuelType == null || fuelType.isBlank()) {
             return;
         }
@@ -370,7 +273,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
     }
 
     private void buildFuelTypeComparisonFacts(FactPack factPack, ExplanationRequest request, List<MbieGenerationQuarterlyRecord> records) {
-        String metricType = resolveMetricType(request, METRIC_GENERATION_GWH);
+        String metricType = FactPackBuilderSupport.resolveMetricType(request, METRIC_GENERATION_GWH);
         List<String> fuels = extractFuelTypeFilters(request);
         if (fuels.size() >= 2) {
             buildFuelTypeTimeSeriesFacts(factPack, records, fuels);
@@ -385,7 +288,12 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
         ExplanationRequest request,
         List<MbieGenerationQuarterlyRecord> records
     ) {
-        buildFuelTypeLatestMetrics(factPack, records, null, resolveMetricType(request, METRIC_GENERATION_GWH));
+        buildFuelTypeLatestMetrics(
+            factPack,
+            records,
+            null,
+            FactPackBuilderSupport.resolveMetricType(request, METRIC_GENERATION_GWH)
+        );
     }
 
     private void buildFuelTypeTimeSeriesFacts(FactPack factPack, List<MbieGenerationQuarterlyRecord> records, List<String> fuels) {
@@ -521,9 +429,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             case RENEWABLE_GENERATION_TREND:
             case FUEL_GENERATION_TREND:
                 // If no facts, keep allowedClaims empty to trigger refusal as per tests
-                boolean hasAnyFactsTrend = !(factPack.getFacts().getClassifications().isEmpty()
-                        && factPack.getFacts().getMetrics().isEmpty()
-                        && factPack.getFacts().getTimeSeries().isEmpty());
+                boolean hasAnyFactsTrend = FactPackBuilderSupport.hasAnyFacts(factPack);
                 if (hasAnyFactsTrend) {
                     factPack.getGuardrails().setAllowedClaims(Arrays.asList("trend_increase", "trend_decrease", "trend_summary"));
                 } else {
@@ -531,7 +437,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
                         1
                     ));
@@ -540,9 +446,7 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             case FUEL_TYPE_COMPARISON:
             case GENERATION_MIX_OVERVIEW:
                 // If no facts, keep allowedClaims empty to trigger refusal as per tests
-                boolean hasAnyFactsComp = !(factPack.getFacts().getClassifications().isEmpty()
-                        && factPack.getFacts().getMetrics().isEmpty()
-                        && factPack.getFacts().getTimeSeries().isEmpty());
+                boolean hasAnyFactsComp = FactPackBuilderSupport.hasAnyFacts(factPack);
                 if (hasAnyFactsComp) {
                     factPack.getGuardrails().setAllowedClaims(Arrays.asList("comparison", "largest_contributor", "relative_proportion"));
                 } else {
@@ -550,12 +454,12 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 }
                 factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 if (!factPack.getFacts().getTimeSeries().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getTimeSeries().stream().map(TimeSeriesFact::getId).toList(),
                         Integer.MAX_VALUE
                     ));
                 } else if (!factPack.getFacts().getMetrics().isEmpty()) {
-                    factPack.getGuardrails().setRequiredCitations(stableRequiredCitations(
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
                         factPack.getFacts().getMetrics().stream().map(MetricFact::getId).toList(),
                         Integer.MAX_VALUE
                     ));
@@ -568,18 +472,6 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
                 factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
                 break;
         }
-    }
-
-    private List<String> stableRequiredCitations(List<String> ids, int limit) {
-        if (ids == null || ids.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return ids.stream()
-            .filter(id -> id != null && !id.isBlank())
-            .distinct()
-            .sorted()
-            .limit(limit)
-            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private List<String> extractFuelTypeFilters(ExplanationRequest request) {
@@ -599,28 +491,6 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
             }
         }
         return fuels;
-    }
-
-    private String resolveMetricType(ExplanationRequest request, String fallback) {
-        if (request == null || request.getFilters() == null) {
-            return fallback;
-        }
-        Object metricType = request.getFilters().get(FilterKey.METRIC_TYPE.wireValue());
-        if (metricType instanceof String s && !s.isBlank()) {
-            return s.trim();
-        }
-        return fallback;
-    }
-
-    private String resolveRequestedFuelType(ExplanationRequest request) {
-        if (request == null || request.getFilters() == null) {
-            return null;
-        }
-        Object fuelType = request.getFilters().get(FilterKey.FUEL_TYPE.wireValue());
-        if (fuelType instanceof String s && !s.isBlank()) {
-            return s.trim().toUpperCase(Locale.ROOT);
-        }
-        return null;
     }
 
     private String getPeriodCoverage(List<MbieGenerationQuarterlyRecord> records) {

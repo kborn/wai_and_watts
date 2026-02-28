@@ -1,11 +1,13 @@
 import { test, expect } from '@playwright/test'
+import {
+  assertLawaViewTypeSwitch,
+  navigateFromHome,
+  registerDialogAutoClose,
+} from './support'
 
 test.describe('Dynamic Filters - Comprehensive Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Accept any dialogs
-    page.on('dialog', () => {
-      page.close()
-    })
+    registerDialogAutoClose(page)
   })
 
   test('MBIE: should load and display dynamic fuel types', async ({ page }) => {
@@ -27,10 +29,7 @@ test.describe('Dynamic Filters - Comprehensive Tests', () => {
   })
 
   test('LAWA: should load and display dynamic regions', async ({ page }) => {
-    await page.goto('/browse/lawa')
-
-    // Wait for page to load
-    await expect(page.getByText('LAWA Water Quality')).toBeVisible()
+    await navigateFromHome(page, '/browse/lawa', 'LAWA Water Quality')
 
     // Check that region dropdown exists and has dynamic options
     const regionSelect = page.locator('select').first()
@@ -42,10 +41,7 @@ test.describe('Dynamic Filters - Comprehensive Tests', () => {
   })
 
   test('LAWA: should load and display dynamic indicators', async ({ page }) => {
-    await page.goto('/browse/lawa')
-
-    // Wait for page to load
-    await expect(page.getByText('LAWA Water Quality')).toBeVisible()
+    await navigateFromHome(page, '/browse/lawa', 'LAWA Water Quality')
 
     // Check that indicator dropdown exists and has dynamic options
     const indicatorSelect = page.locator('select').nth(1)
@@ -58,16 +54,7 @@ test.describe('Dynamic Filters - Comprehensive Tests', () => {
 
   test('should switch between view types', async ({ page }) => {
     await page.goto('/browse/lawa')
-
-    // Should default to state view - State button should be selected
-    const stateButton = page.getByRole('button', { name: 'State' })
-    const trendButton = page.getByRole('button', { name: 'Trend' })
-    await expect(stateButton).toHaveClass(/bg-primary-600/)
-
-    // Switch to trend view
-    await trendButton.click()
-    await page.waitForTimeout(500)
-    await expect(trendButton).toHaveClass(/bg-primary-600/)
+    await assertLawaViewTypeSwitch(page)
   })
 
   test('should handle loading states correctly', async ({ page }) => {
