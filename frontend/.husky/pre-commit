@@ -1,13 +1,16 @@
-#!/usr/bin/env sh
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-. "$REPO_ROOT/.husky/_/husky.sh"
+#!/bin/sh
 
 # Navigate to frontend directory
 cd "$(dirname "$0")/.."
 
+if [ ! -f node_modules/typescript/bin/tsc ] || [ ! -f node_modules/vite/bin/vite.js ]; then
+  echo "❌ Frontend dependencies are incomplete. Run 'cd frontend && npm ci' before committing."
+  exit 1
+fi
+
 # TypeScript compilation check
 echo "🔍 Running TypeScript compilation check..."
-npm run build
+node ./node_modules/typescript/bin/tsc -b && node ./node_modules/vite/bin/vite.js build
 if [ $? -ne 0 ]; then
   echo "❌ TypeScript compilation failed. Please fix build errors before committing."
   exit 1
@@ -15,7 +18,7 @@ fi
 
 # Run lint-staged for all staged files
 echo "🔧 Running lint-staged..."
-npx lint-staged
+node ./node_modules/lint-staged/bin/lint-staged.js
 if [ $? -ne 0 ]; then
   echo "❌ Lint-staged failed. Please fix linting/formatting errors before committing."
   exit 1
@@ -23,7 +26,7 @@ fi
 
 # Only run Prettier check on frontend files
 echo "🎨 Running Prettier formatting check..."
-npx prettier --check src index.html --ignore-path ../.gitignore
+node ./node_modules/prettier/bin/prettier.cjs --check src index.html --ignore-path ../.gitignore
 if [ $? -ne 0 ]; then
   echo "❌ Prettier check failed. Some files are not properly formatted."
   echo "💡 Run 'npx prettier --write . --ignore-path .gitignore' to fix formatting."
