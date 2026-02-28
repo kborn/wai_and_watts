@@ -900,7 +900,7 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
 - [x] `/api/v1/capabilities` contract stability tests include capability schema, suggested token values, and examples.
 - [x] Capability declaration remains registry-authoritative; internal structuring additions do not create a second source of truth.
 - [x] Existing API wire contracts remain backward compatible.
-- [ ] Fitness suite v1 is implemented as a bounded rule set (8-12 rules), fails fast with clear messages, runs in the unit-test phase, and includes dependency graph, controller-boundary, and DTO-boundary rules.
+- [x] Fitness suite v1 is implemented as a bounded rule set (8-12 rules), fails fast with clear messages, runs in the unit-test phase, and includes dependency graph, controller-boundary, and DTO-boundary rules.
 - [ ] API contract strategy pins `/api/v1` stability with snapshot coverage for `/api/v1/capabilities`, one successful `/ask` response shape, one refusal `/ask` response shape, deprecation-header parity for aliases vs canonical endpoints, and schema-drift failures.
 - [ ] Observability work emits stage counters/timers plus refusal-code counters, carries correlation id end-to-end in logs, and is documented in a runbook that maps refusal categories to likely causes and relevant metrics.
 
@@ -943,10 +943,10 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Add `archive/tools/python/setup-python.sh` venv bootstrap
     - [x] Add `archive/tools/python/requirements.txt`
     - [x] Add `archive/tools/python/README.md`
-- [ ] Fitness suite v1 hardening
-  - [ ] Expand architecture fitness coverage to 8-12 bounded rules total.
-  - [ ] Ensure failures are immediate and violation messages are reviewer-readable.
-  - [ ] Include dependency graph, controller boundary, and DTO/API boundary enforcement in unit-test scope.
+- [x] Fitness suite v1 hardening
+  - [x] Expand architecture fitness coverage to 8-12 bounded rules total.
+  - [x] Ensure failures are immediate and violation messages are reviewer-readable.
+  - [x] Include dependency graph, controller boundary, and DTO/API boundary enforcement in unit-test scope.
 - [ ] API contract strategy hardening
   - [ ] Add snapshot test for `/api/v1/capabilities`.
   - [ ] Add snapshot tests for one successful and one refusal `/api/v1/explanations/ask` response shape.

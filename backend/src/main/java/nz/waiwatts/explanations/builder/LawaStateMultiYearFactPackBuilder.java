@@ -4,7 +4,6 @@ import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.capabilities.types.QuestionType;
-import nz.waiwatts.explanations.config.LawaStateCategoryProperties;
 import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 
@@ -30,16 +29,14 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
 
     public LawaStateMultiYearFactPackBuilder(
         LawaStateMultiYearRecordRepository repository,
-        LawaStateCategoryProperties lawaProperties
+        LawaStateFactPackSettings settings
     ) {
         this.repository = repository;
-        this.stateCategoryBands = buildStateCategoryBands(lawaProperties);
-        this.regionalTopK = lawaProperties != null && lawaProperties.getRegionalSample() != null
-            ? lawaProperties.getRegionalSample().getTopK()
-            : 2;
-        this.regionalBottomK = lawaProperties != null && lawaProperties.getRegionalSample() != null
-            ? lawaProperties.getRegionalSample().getBottomK()
-            : 2;
+        this.stateCategoryBands = settings != null && settings.stateCategoryBands() != null
+            ? settings.stateCategoryBands()
+            : defaultStateCategoryBands();
+        this.regionalTopK = settings != null ? settings.regionalTopK() : 2;
+        this.regionalBottomK = settings != null ? settings.regionalBottomK() : 2;
     }
 
     @Override
@@ -511,31 +508,13 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         return startStats.getMin() + "-" + endStats.getMax();
     }
 
-    private Map<String, Set<String>> buildStateCategoryBands(LawaStateCategoryProperties properties) {
-        Map<String, List<String>> raw = properties != null ? properties.getStateCategoryBands() : null;
-        if (raw == null || raw.isEmpty()) {
-            return Map.of(
-                "EXCELLENT", Set.of("A"),
-                "GOOD", Set.of("B"),
-                "FAIR", Set.of("C"),
-                "POOR", Set.of("D", "E")
-            );
-        }
-        Map<String, Set<String>> normalized = new HashMap<>();
-        raw.forEach((category, bands) -> {
-            if (category == null || bands == null) {
-                return;
-            }
-            Set<String> cleanedBands = bands.stream()
-                .filter(Objects::nonNull)
-                .map(this::normalizeBand)
-                .filter(b -> !b.isBlank())
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-            if (!cleanedBands.isEmpty()) {
-                normalized.put(category.trim().toUpperCase(Locale.ROOT), cleanedBands);
-            }
-        });
-        return normalized;
+    private Map<String, Set<String>> defaultStateCategoryBands() {
+        return Map.of(
+            "EXCELLENT", Set.of("A"),
+            "GOOD", Set.of("B"),
+            "FAIR", Set.of("C"),
+            "POOR", Set.of("D", "E")
+        );
     }
 
     private String resolveStateCategory(ExplanationRequest request) {
