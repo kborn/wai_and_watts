@@ -1,10 +1,13 @@
 package nz.waiwatts.explanations.service;
 
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import nz.waiwatts.explanations.builder.FactPackBuilder;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.provider.ExplanationProvider;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -24,12 +27,21 @@ class ExplanationServiceImplEdgeCaseTest {
     private ExplanationServiceImpl service;
     private FactPackBuilder factPackBuilder;
     private ExplanationProvider explanationProvider;
+    private SimpleMeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
         factPackBuilder = mock(FactPackBuilder.class);
         explanationProvider = mock(ExplanationProvider.class);
         service = new ExplanationServiceImpl(List.of(factPackBuilder), explanationProvider);
+        meterRegistry = new SimpleMeterRegistry();
+        Metrics.globalRegistry.add(meterRegistry);
+    }
+
+    @AfterEach
+    void tearDown() {
+        Metrics.globalRegistry.remove(meterRegistry);
+        meterRegistry.close();
     }
 
     @Test
@@ -300,6 +312,10 @@ class ExplanationServiceImplEdgeCaseTest {
         verify(factPackBuilder).buildFactPack(request);
         verify(explanationProvider).generateExplanation("fuel_generation_trend", factPack);
         verify(explanationProvider, never()).validateCitations(any(), any());
+        assertEquals(1.0, meterRegistry.get("waiwatts.explanation.stage.count").tag("stage", "provider").counter().count());
+        assertEquals(1.0, meterRegistry.get("waiwatts.explanation.stage.count").tag("stage", "citation_validation").counter().count());
+        assertEquals(1L, meterRegistry.get("waiwatts.explanation.stage.duration").tag("stage", "provider").timer().count());
+        assertEquals(1L, meterRegistry.get("waiwatts.explanation.stage.duration").tag("stage", "citation_validation").timer().count());
     }
 
     @Test
