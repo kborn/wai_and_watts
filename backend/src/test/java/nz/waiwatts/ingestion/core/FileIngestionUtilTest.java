@@ -147,7 +147,7 @@ class FileIngestionUtilTest {
             IllegalArgumentException.class,
             () -> FileIngestionUtil.validateFilePath(unsafePath)
         );
-        assertTrue(exception.getMessage().contains("does not exist"));
+        assertTrue(exception.getMessage().contains("traversal-sensitive tokens"));
     }
 
     @Test
@@ -160,7 +160,22 @@ class FileIngestionUtilTest {
             IllegalArgumentException.class,
             () -> FileIngestionUtil.validateFilePath(unsafePath)
         );
-        assertTrue(exception.getMessage().contains("does not exist"));
+        assertTrue(exception.getMessage().contains("traversal-sensitive tokens"));
+    }
+
+    @Test
+    void validateFilePath_whenOutsideTrustedRoots_throwsException() {
+        Path repoRoot = Path.of("").toAbsolutePath().normalize();
+        Path tempRoot = tempDir.toAbsolutePath().normalize();
+        Path candidate = repoRoot.getRoot().resolve("waiwatts-untrusted-test.csv").normalize();
+        Assumptions.assumeFalse(candidate.startsWith(repoRoot), "Candidate path unexpectedly falls under repo root");
+        Assumptions.assumeFalse(candidate.startsWith(tempRoot), "Candidate path unexpectedly falls under temp root");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> FileIngestionUtil.validateFilePath(candidate.toString())
+        );
+        assertTrue(exception.getMessage().contains("must be under trusted roots"));
     }
 
     @Test
