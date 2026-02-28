@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { assertLawaViewTypeSwitch, navigateFromHome } from './support'
 
 test.describe('MBIE Browse Page - Dynamic Filters', () => {
   test('should load dynamic fuel type options', async ({ page }) => {
-    // Go to MBIE browse page
-    await page.goto('/')
-    await page.click('a[href="/browse/mbie"]')
+    await navigateFromHome(page, '/browse/mbie', 'MBIE Electricity Generation')
 
     // Wait for fuel type checkboxes to be rendered
     const fuelContainer = page.locator(
@@ -16,8 +15,7 @@ test.describe('MBIE Browse Page - Dynamic Filters', () => {
   })
 
   test('should switch between annual and quarterly views', async ({ page }) => {
-    await page.goto('/')
-    await page.click('a[href="/browse/mbie"]')
+    await navigateFromHome(page, '/browse/mbie', 'MBIE Electricity Generation')
 
     const viewTypeSelect = page.locator('select').first()
     await expect(viewTypeSelect).toHaveValue('annual')
@@ -28,9 +26,7 @@ test.describe('MBIE Browse Page - Dynamic Filters', () => {
 
 test.describe('LAWA Browse Page - Dynamic Filters', () => {
   test('should load dynamic region and indicator options', async ({ page }) => {
-    // Go to LAWA browse page
-    await page.goto('/')
-    await page.click('a[href="/browse/lawa"]')
+    await navigateFromHome(page, '/browse/lawa', 'LAWA Water Quality')
 
     // Wait for dropdowns to be populated
     const regionSelect = page.locator('select').first()
@@ -48,18 +44,8 @@ test.describe('LAWA Browse Page - Dynamic Filters', () => {
   })
 
   test('should switch between state and trend views', async ({ page }) => {
-    await page.goto('/')
-    await page.click('a[href="/browse/lawa"]')
-
-    // Should default to state view - State button should be selected
-    const stateButton = page.getByRole('button', { name: 'State' })
-    const trendButton = page.getByRole('button', { name: 'Trend' })
-    await expect(stateButton).toHaveClass(/bg-primary-600/)
-
-    // Switch to trend
-    await trendButton.click()
-    await page.waitForTimeout(500)
-    await expect(trendButton).toHaveClass(/bg-primary-600/)
+    await navigateFromHome(page, '/browse/lawa', 'LAWA Water Quality')
+    await assertLawaViewTypeSwitch(page)
   })
 
   test('should show loading states while fetching filters', async ({
@@ -81,8 +67,7 @@ test.describe('LAWA Browse Page - Dynamic Filters', () => {
       }
     )
 
-    await page.goto('/')
-    await page.click('a[href="/browse/lawa"]')
+    await navigateFromHome(page, '/browse/lawa', 'LAWA Water Quality')
 
     const regionSelect = page.locator('select').first()
     await expect(regionSelect).toBeVisible()

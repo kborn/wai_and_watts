@@ -132,19 +132,19 @@ public class CitationMapper {
         }
 
         if (coverage.contains("_to_")) {
-            String[] parts = coverage.split("_to_");
-            Integer start = parseYear(parts[0]).orElse(null);
-            Integer end = parts.length > 1 ? parseYear(parts[1]).orElse(null) : null;
-            return (start == null && end == null) ? null : new Citation.Period(start, end);
+            return parseCoverageParts(coverage.split("_to_"));
         }
 
         if (coverage.contains("_")) {
-            String[] parts = coverage.split("_");
-            Integer start = parseYear(parts[0]).orElse(null);
-            Integer end = parts.length > 1 ? parseYear(parts[1]).orElse(null) : null;
-            return (start == null && end == null) ? null : new Citation.Period(start, end);
+            return parseCoverageParts(coverage.split("_"));
         }
 
         return parseYear(coverage).map(year -> new Citation.Period(year, year)).orElse(null);
+    }
+
+    private Citation.Period parseCoverageParts(String[] parts) {
+        Integer start = parseYear(parts[0]).orElse(null);
+        Integer end = parts.length > 1 ? parseYear(parts[1]).orElse(null) : null;
+        return (start == null && end == null) ? null : new Citation.Period(start, end);
     }
 }
