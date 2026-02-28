@@ -85,6 +85,14 @@ const LawaBrowsePage: React.FC = () => {
   const stateIndicators = useLawaStateIndicators()
   const trendRegions = useLawaTrendRegions()
   const trendIndicators = useLawaTrendIndicators()
+  const viewIndicators =
+    (viewType === 'state' ? stateIndicators.data : trendIndicators.data) || []
+  const indicatorOptions = useMemo(() => {
+    if (!indicator || viewIndicators.includes(indicator)) {
+      return viewIndicators
+    }
+    return [indicator, ...viewIndicators]
+  }, [indicator, viewIndicators])
 
   const stateData = useLawaStateMultiYear({
     region: region || undefined,
@@ -583,10 +591,7 @@ const LawaBrowsePage: React.FC = () => {
                 }
               >
                 <option value="">All Indicators</option>
-                {(viewType === 'state'
-                  ? stateIndicators.data
-                  : trendIndicators.data
-                )?.map(ind => (
+                {indicatorOptions.map(ind => (
                   <option key={ind} value={ind}>
                     {ind}
                   </option>
@@ -640,7 +645,6 @@ const LawaBrowsePage: React.FC = () => {
               <button
                 onClick={() => {
                   setViewType('state')
-                  setIndicator('')
                   setSelectedSite(null)
                   setTrendClassificationFilter(null)
                   setStateBandFilter(null)
@@ -656,7 +660,6 @@ const LawaBrowsePage: React.FC = () => {
               <button
                 onClick={() => {
                   setViewType('trend')
-                  setIndicator('')
                   setSelectedSite(null)
                   setTrendClassificationFilter(null)
                   setStateBandFilter(null)

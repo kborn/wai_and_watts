@@ -957,8 +957,8 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
   - [ ] Track refusal codes as tagged counters.
   - [ ] Ensure correlation id is carried end-to-end in logs for ask/explanation flows.
   - [ ] Add operator-facing runbook mapping refusal categories to likely causes and relevant metrics/signals.
-- [ ] LAWA browse filter UX fix
-  - [ ] Preserve indicator selection across State/Trend view switches in the same way region selection is currently sticky.
+- [x] LAWA browse filter UX fix
+  - [x] Preserve indicator selection across State/Trend view switches in the same way region selection is currently sticky.
 - [x] Code cleanup
   - [x] Static analysis
     - [x] Uncalled methods
