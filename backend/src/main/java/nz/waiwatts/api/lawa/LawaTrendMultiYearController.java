@@ -30,10 +30,10 @@ public class LawaTrendMultiYearController {
 
     @GetMapping("/trend/multiyear")
     public ResponseEntity<?> getTrendMultiYear(
-            @RequestParam(value = "fromYear", required = false) Integer fromYear,
-            @RequestParam(value = "toYear", required = false) Integer toYear,
-            @RequestParam(value = "indicator", required = false) String indicator,
-            @RequestParam(value = "region", required = false) String region
+            @RequestParam(required = false) Integer fromYear,
+            @RequestParam(required = false) Integer toYear,
+            @RequestParam(required = false) String indicator,
+            @RequestParam(required = false) String region
     ) {
         if (fromYear != null && toYear != null && fromYear > toYear) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "fromYear must be <= toYear"));

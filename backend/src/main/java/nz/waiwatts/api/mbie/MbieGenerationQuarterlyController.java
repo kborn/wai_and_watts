@@ -37,10 +37,10 @@ public class MbieGenerationQuarterlyController {
 
     @GetMapping("/generation/quarterly")
     public ResponseEntity<?> getQuarterly(
-            @RequestParam(value = "fromYear", required = false) Integer fromYear,
-            @RequestParam(value = "toYear", required = false) Integer toYear,
-            @RequestParam(value = "quarter", required = false) Integer quarter,
-            @RequestParam(value = "fuelType", required = false) String fuelType
+            @RequestParam(required = false) Integer fromYear,
+            @RequestParam(required = false) Integer toYear,
+            @RequestParam(required = false) Integer quarter,
+            @RequestParam(required = false) String fuelType
     ) {
         long startTime = System.currentTimeMillis();
         
