@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
-import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -21,7 +22,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -38,19 +38,25 @@ public class DatasetSelectionService {
     private final ObjectMapper objectMapper;
     private final LlmProperties llmProperties;
     private final QuestionTypeCatalog questionTypeCatalog;
+    private final CapabilityRegistry capabilityRegistry;
+    private final ContractValidator contractValidator;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
         OpenAiApiClient client,
         ObjectMapper objectMapper,
         LlmProperties llmProperties,
-        QuestionTypeCatalog questionTypeCatalog
+        QuestionTypeCatalog questionTypeCatalog,
+        CapabilityRegistry capabilityRegistry,
+        ContractValidator contractValidator
     ) {
         this.datasetCatalog = datasetCatalog;
         this.client = client;
         this.objectMapper = objectMapper;
         this.llmProperties = llmProperties;
         this.questionTypeCatalog = questionTypeCatalog;
+        this.capabilityRegistry = capabilityRegistry;
+        this.contractValidator = contractValidator;
     }
 
     public DatasetSelectionResult selectDataset(String question, ExplanationRequest request) {
@@ -175,46 +181,18 @@ public class DatasetSelectionService {
     }
 
     private DatasetSelectionResult verifyCandidate(ExplanationRequest request, String datasetSource) {
-        Optional<DatasetDescriptor> descriptor = datasetCatalog.findBySource(datasetSource);
-        if (descriptor.isEmpty()) {
+        ContractValidator.Result validation = contractValidator.validateForDatasetCandidate(request, datasetSource);
+        if (!validation.valid()) {
             return DatasetSelectionResult.refusal(
-                "UNSUPPORTED_CAPABILITY",
-                "Dataset not found in catalog.",
+                validation.refusalCategory(),
+                validation.refusalMessage(),
                 DatasetSelectionStrategy.LLM_CANDIDATES,
                 List.of(datasetSource)
             );
-        }
-
-        DatasetDescriptor ds = descriptor.get();
-        String questionType = request != null ? request.getQuestionType() : null;
-        if (questionType == null || !ds.supportedQuestionTypes().contains(questionType)) {
-            return DatasetSelectionResult.refusal(
-                "UNSUPPORTED_CAPABILITY",
-                "Dataset " + datasetSource + " does not support " + questionType + ".",
-                DatasetSelectionStrategy.LLM_CANDIDATES,
-                List.of(datasetSource)
-            );
-        }
-
-        Map<String, Object> filters = request.getFilters();
-        if (filters != null) {
-            for (String key : filters.keySet()) {
-                if (FilterKey.METRIC_TYPE.wireValue().equals(key)) {
-                    continue;
-                }
-                if (!ds.supportedFilters().contains(key)) {
-                    return DatasetSelectionResult.refusal(
-                        "UNSUPPORTED_CAPABILITY",
-                        "Dataset " + datasetSource + " does not support filter: " + key,
-                        DatasetSelectionStrategy.LLM_CANDIDATES,
-                        List.of(datasetSource)
-                    );
-                }
-            }
         }
 
         return DatasetSelectionResult.selected(
-            ds.datasetSource(),
+            datasetSource,
             "Selected from LLM candidates after verifying question type and filters.",
             DatasetSelectionStrategy.LLM_CANDIDATES
         );
@@ -271,7 +249,9 @@ public class DatasetSelectionService {
                 .append(" | grain=")
                 .append(descriptor.grain())
                 .append(" | questionTypes=")
-                .append(descriptor.supportedQuestionTypes())
+                .append(capabilityRegistry.datasetContract(descriptor.datasetSource())
+                    .map(contract -> contract.supportedQuestionTypes().stream().map(QuestionType::wireValue).toList())
+                    .orElse(descriptor.supportedQuestionTypes()))
                 .append("\n");
         }
 

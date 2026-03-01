@@ -1690,3 +1690,24 @@ Implications:
 - Explanation generation types live under `explanations.generator`.
 - Internal explanation-layer types use `Generator` terminology instead of `Provider`.
 - External vendor selection remains represented separately by `LlmProvider` configuration.
+
+---
+
+### Phase 17 — Capability Rules Must Have One Source of Truth
+Date: 2026-03-01
+
+Decision:
+Unify dataset/question/filter compatibility rules under contract objects owned by `CapabilityRegistry`, with layered enforcement retained but rule ownership centralized.
+
+Rationale:
+- The current system benefits from multiple enforcement points (parser, selection, validation, builders), especially with an LLM in the path.
+- The problem is duplicated rule ownership, not duplicated enforcement.
+- Compatibility rules should be defined once and reused by parser hints, dataset selection, validation, and builder routing.
+
+Implications:
+- Introduce minimal contract models for dataset/question/binding compatibility rather than a broad semantic-query model.
+- Treat request inputs as typed bindings (for example time range, region/site, indicator/metric) instead of a purely arbitrary filter map.
+- Add a shared `ContractValidator` as the authoritative server-side compatibility checker.
+- `DatasetSelectionService` must consult contracts when pruning and finalizing candidates.
+- Builders should not re-own generic compatibility checks; builder-local failures should be limited to build/runtime concerns.
+- Parser-side constraints remain useful as quality guidance, but they are derived hints rather than a second source of truth.

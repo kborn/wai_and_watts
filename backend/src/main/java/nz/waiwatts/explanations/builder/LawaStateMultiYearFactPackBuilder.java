@@ -67,11 +67,6 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     @Override
-    public boolean canHandle(ExplanationRequest request) {
-        return FactPackBuilderSupport.supportsDatasetSource(request, LAWA_STATE_DATASET);
-    }
-
-    @Override
     public String getSupportedDatasetSourceCode() {
         return LAWA_STATE_DATASET;
     }

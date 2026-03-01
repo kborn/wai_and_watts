@@ -55,8 +55,9 @@ class IntentParseDeterminismContractTest {
     @Test
     void fixedCorpus_parseNormalizeAndValidationSignature_remainsStableAcrossRepeatedRuns() {
         IntentParserServiceImpl service = buildServiceWithDeterministicParser();
+        CapabilityRegistry capabilityRegistry = new CapabilityRegistry(new DatasetCatalog());
         RequestValidationService validationService = new RequestValidationService(
-            new CapabilityRegistry(new DatasetCatalog())
+            new ContractValidator(capabilityRegistry)
         );
 
         for (String prompt : FIXED_PROMPT_CORPUS) {

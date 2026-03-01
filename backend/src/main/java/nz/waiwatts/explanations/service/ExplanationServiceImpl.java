@@ -7,9 +7,10 @@ import nz.waiwatts.explanations.dto.*;
 import nz.waiwatts.explanations.generator.ExplanationGenerator;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,43 +25,38 @@ public class ExplanationServiceImpl implements ExplanationService {
 
     private final List<FactPackBuilder> factPackBuilders;
     private final ExplanationGenerator explanationGenerator;
+    private final RequestValidationService validationService;
 
-    public ExplanationServiceImpl(List<FactPackBuilder> factPackBuilders, ExplanationGenerator explanationGenerator) {
+    public ExplanationServiceImpl(
+        List<FactPackBuilder> factPackBuilders,
+        ExplanationGenerator explanationGenerator,
+        RequestValidationService validationService
+    ) {
         if (factPackBuilders == null) {
             throw new IllegalArgumentException("FactPack builders list cannot be null");
         }
         if (explanationGenerator == null) {
             throw new IllegalArgumentException("ExplanationGenerator cannot be null");
         }
+        if (validationService == null) {
+            throw new IllegalArgumentException("RequestValidationService cannot be null");
+        }
+        validateUniqueBuilderSources(factPackBuilders);
         this.factPackBuilders = factPackBuilders;
         this.explanationGenerator = explanationGenerator;
+        this.validationService = validationService;
     }
 
     @Override
     public Explanation generateExplanation(ExplanationRequest request) {
         // Validate request structure first
-        String validationError = validateRequest(request);
-        if (validationError != null) {
-            return Explanation.refusal(validationError);
+        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(request);
+        if (!validationResult.isValid()) {
+            return Explanation.refusal(validationResult.getRefusalMessage());
         }
 
         // Select appropriate Fact Pack Builder
         FactPackBuilder builder = selectFactPackBuilder(request);
-
-        if (builder == null) {
-            // Helpful context for diagnosis without exposing internals
-            try {
-                String ds = request.getDatasetSource();
-                if (ds == null && request.getFilters() != null) {
-                    ds = (String) request.getFilters().get(FilterKey.DATASET_SOURCE.wireValue());
-                }
-                log.info("FactPackBuilder selection: none found for questionType={} datasetSource={}",
-                        request.getQuestionType(), ds);
-            } catch (Exception ignore) {
-                // avoid impacting user flow
-            }
-            return Explanation.refusal("No data source available for this request");
-        }
 
         // Generate Fact Pack
         try {
@@ -175,23 +171,16 @@ public class ExplanationServiceImpl implements ExplanationService {
     @Override
     public Object buildFactPack(ExplanationRequest request) {
         // Validate request structure first
-        String validationError = validateRequest(request);
-        if (validationError != null) {
+        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(request);
+        if (!validationResult.isValid()) {
             return Map.of(
-                "error", validationError,
+                "error", validationResult.getRefusalMessage(),
                 "request", request
             );
         }
 
         // Select appropriate Fact Pack Builder
         FactPackBuilder builder = selectFactPackBuilder(request);
-
-        if (builder == null) {
-            return Map.of(
-                "error", "No FactPackBuilder found for this request",
-                "request", request
-            );
-        }
 
         // Generate Fact Pack
         try {
@@ -271,104 +260,31 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
     }
 
-    /**
-     * Validate request structure and constraints
-     */
-    private String validateRequest(ExplanationRequest request) {
-        if (request == null) {
-            return "Invalid request: request cannot be null";
-        }
-
-        String questionType = request.getQuestionType();
-        String datasetSource = request.getDatasetSource();
-        Map<String, Object> filters = request.getFilters();
-
-        // Validate question type
-        if (questionType == null || questionType.trim().isEmpty()) {
-            return "Invalid request: questionType is required";
-        }
-
-        // Validate dataset source (now a top-level field in Phase 12)
-        if (datasetSource == null || datasetSource.trim().isEmpty()) {
-            // Backward compatibility: check filters for datasetSource
-            if (filters != null) {
-                Object dsObj = filters.get(FilterKey.DATASET_SOURCE.wireValue());
-                if (dsObj instanceof String) {
-                    datasetSource = (String) dsObj;
-                }
-            }
-            
-            if (datasetSource == null || datasetSource.trim().isEmpty()) {
-                return "Invalid request: datasetSource is required";
-            }
-            
-            // Update the request object to maintain consistency
-            request.setDatasetSource(datasetSource);
-        }
-
-        // Validate time range filters (if present)
-        return validateTimeRangeFilters(filters); // No validation errors
-    }
-
-
-    /**
-     * Validate time range filters (startYear, endYear)
-     */
-    private String validateTimeRangeFilters(Map<String, Object> filters) {
-        if (filters == null) {
-            return null;
-        }
-        Object startYear = filters.get(FilterKey.START_YEAR.wireValue());
-        Object endYear = filters.get(FilterKey.END_YEAR.wireValue());
-
-        if (startYear != null && endYear != null) {
-            try {
-                int start = Integer.parseInt(startYear.toString());
-                int end = Integer.parseInt(endYear.toString());
-
-                if (start > end) {
-                    log.info("Auto-swapping time range: startYear ({}) > endYear ({}), swapping", start, end);
-                    end = start;
-                }
-
-                // Validate reasonable bounds (e.g., no future data, reasonable historical range)
-                int currentYear = java.time.Year.now().getValue();
-                if (end > currentYear) {
-                    return String.format("Invalid time range: endYear (%d) cannot be in the future", end);
-                }
-
-            } catch (NumberFormatException e) {
-                return "Invalid time range: startYear and endYear must be valid integers";
-            }
-        }
-
-        return null; // No time range validation errors
-    }
-
     private FactPackBuilder selectFactPackBuilder(ExplanationRequest request) {
-        List<FactPackBuilder> matches = factPackBuilders.stream()
-            .filter(builder -> builder.canHandle(request))
-            .toList();
+        String datasetSource = request != null ? request.getDatasetSource() : null;
+        return factPackBuilders.stream()
+            .filter(builder -> datasetSource != null && datasetSource.equals(builder.getSupportedDatasetSourceCode()))
+            .findFirst()
+            .orElse(null);
+    }
 
-        if (matches.isEmpty()) {
-            return null;
+    private void validateUniqueBuilderSources(List<FactPackBuilder> builders) {
+        LinkedHashMap<String, String> ownersByDatasetSource = new LinkedHashMap<>();
+        for (FactPackBuilder builder : builders) {
+            String datasetSource = builder.getSupportedDatasetSourceCode();
+            String builderName = builder.getClass().getSimpleName();
+            String existing = ownersByDatasetSource.putIfAbsent(datasetSource, builderName);
+            if (existing != null) {
+                throw new IllegalArgumentException(
+                    "Duplicate FactPackBuilder registration for datasetSource="
+                        + datasetSource
+                        + ": "
+                        + existing
+                        + " and "
+                        + builderName
+                );
+            }
         }
-
-        if (matches.size() > 1) {
-            String questionType = request != null ? request.getQuestionType() : null;
-            String datasetSource = request != null ? request.getDatasetSource() : null;
-            throw new IllegalStateException(
-                "Ambiguous FactPackBuilder resolution: expected exactly 1 match but found "
-                    + matches.size()
-                    + " for questionType="
-                    + questionType
-                    + ", datasetSource="
-                    + datasetSource
-            );
-        }
-
-        // Deterministic rule: exactly one builder must match; ambiguity fails fast.
-        return matches.getFirst();
     }
 
     private void logFactPackShape(FactPack factPack) {

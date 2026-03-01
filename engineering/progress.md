@@ -963,6 +963,12 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
   - [x] Move `/ask` orchestration from `ExplanationController` into a dedicated `AskService`.
   - [x] Centralize refusal-code mapping for parse, selection, validation, explanation, and internal failures.
   - [x] Make `CitationMapper` injectable so the ask pipeline uses constructor-injected collaborators consistently.
+- [x] Contract-driven capability validation hardening
+  - [x] Introduce typed request bindings as the canonical contract inputs instead of treating filters as an arbitrary key/value map.
+  - [x] Make `CapabilityRegistry` the single owner of dataset/question/binding compatibility rules via contract objects.
+  - [x] Add a shared `ContractValidator` to authoritatively validate dataset/question/binding compatibility server-side.
+  - [x] Make `DatasetSelectionService` consult contracts for candidate pruning and final compatibility checks.
+  - [x] Remove duplicated compatibility ownership from builders so builder failures are limited to build-local/runtime concerns.
 - [x] Code cleanup
   - [x] Static analysis
     - [x] Uncalled methods

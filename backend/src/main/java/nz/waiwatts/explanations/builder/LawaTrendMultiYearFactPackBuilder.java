@@ -57,11 +57,6 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     @Override
-    public boolean canHandle(ExplanationRequest request) {
-        return FactPackBuilderSupport.supportsDatasetSource(request, LAWA_TREND_DATASET);
-    }
-
-    @Override
     public String getSupportedDatasetSourceCode() {
         return LAWA_TREND_DATASET;
     }
