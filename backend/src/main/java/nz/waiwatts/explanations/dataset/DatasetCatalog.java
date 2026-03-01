@@ -60,6 +60,7 @@ public class DatasetCatalog {
             List.of(
                 QuestionType.WATER_QUALITY_OVERVIEW.wireValue(),
                 QuestionType.WATER_QUALITY_STATE_SITES_TREND.wireValue(),
+                QuestionType.GUIDELINE_EXCEEDANCE_SITES.wireValue(),
                 QuestionType.REGIONAL_WATER_QUALITY.wireValue()
             ),
             Set.of(

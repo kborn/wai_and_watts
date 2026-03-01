@@ -2,6 +2,7 @@ package nz.waiwatts.explanations.generator;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.dto.ClassificationFact;
 import nz.waiwatts.explanations.dto.TimeSeriesFact;
 import nz.waiwatts.explanations.dto.MetricFact;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,6 +90,51 @@ class DemoExplanationGeneratorTest {
         
         // Validate citations should fail
         assertFalse(generator.validateCitations(explanation, factPack));
+    }
+
+    @Test
+    void testGuidelineExceedanceSitesExplanation() {
+        FactPack factPack = new FactPack();
+        var requestContext = new FactPack.RequestContext();
+        requestContext.setQuestionType("guideline_exceedance_sites");
+        factPack.setRequestContext(requestContext);
+        factPack.getGuardrails().setAllowedClaims(List.of("site_list", "count"));
+        factPack.getGuardrails().setRequiredCitations(List.of(
+            "class:lawa:guideline_exceedance_site:2024:SITE001",
+            "class:lawa:guideline_exceedance_site:2024:SITE002"
+        ));
+        factPack.getFacts().getMetrics().add(new MetricFact(
+            "metric:lawa:guideline_exceedance_sites_count:2024",
+            "guideline_exceedance_sites_count",
+            new BigDecimal("2"),
+            "sites",
+            "2024",
+            Map.of("scope", "latest_year")
+        ));
+        factPack.getFacts().getClassifications().add(new ClassificationFact(
+            "class:lawa:guideline_exceedance_site:2024:SITE001",
+            "site",
+            "guideline_exceedance_site",
+            "Site One",
+            2024,
+            2024,
+            Map.of("region", "Auckland")
+        ));
+        factPack.getFacts().getClassifications().add(new ClassificationFact(
+            "class:lawa:guideline_exceedance_site:2024:SITE002",
+            "site",
+            "guideline_exceedance_site",
+            "Site Two",
+            2024,
+            2024,
+            Map.of("region", "Auckland")
+        ));
+
+        Explanation explanation = generator.generateExplanation("guideline_exceedance_sites", factPack);
+
+        assertFalse(explanation.isRefusal());
+        assertTrue(explanation.getExplanationText().contains("2 sites exceeded the guideline in 2024"));
+        assertEquals(2, explanation.getCitations().size());
     }
 
     @Test

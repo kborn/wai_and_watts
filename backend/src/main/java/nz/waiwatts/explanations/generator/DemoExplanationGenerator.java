@@ -73,6 +73,8 @@ public class DemoExplanationGenerator implements ExplanationGenerator {
                     generateWaterQualityOverviewExplanation(factPack);
             case WATER_QUALITY_STATE_SITES_TREND ->
                     generateExcellentSitesTrendExplanation(factPack);
+            case GUIDELINE_EXCEEDANCE_SITES ->
+                    generateGuidelineExceedanceSitesExplanation(factPack);
             case REGIONAL_WATER_QUALITY ->
                     generateRegionalWaterQualityExplanation(factPack);
             case WATER_QUALITY_TRENDS ->
@@ -349,6 +351,39 @@ public class DemoExplanationGenerator implements ExplanationGenerator {
         }
         
         return Explanation.refusal("Insufficient water quality data for overview analysis");
+    }
+
+    private Explanation generateGuidelineExceedanceSitesExplanation(FactPack factPack) {
+        List<ClassificationFact> sites = factPack.getFacts().getClassifications().stream()
+            .filter(classification -> "guideline_exceedance_site".equals(classification.getClassificationType()))
+            .sorted(Comparator.comparing(ClassificationFact::getClassification, String.CASE_INSENSITIVE_ORDER))
+            .toList();
+        if (sites.isEmpty()) {
+            return Explanation.refusal("No guideline exceedance sites were found for the requested filters");
+        }
+
+        MetricFact countMetric = factPack.getFacts().getMetrics().stream()
+            .filter(metric -> metric.getId().startsWith("metric:lawa:guideline_exceedance_sites_count:"))
+            .findFirst()
+            .orElse(null);
+
+        StringBuilder explanation = new StringBuilder("In the latest available year, ");
+        explanation.append(sites.size()).append(" site");
+        if (sites.size() != 1) {
+            explanation.append("s");
+        }
+        explanation.append(" exceeded the guideline");
+        if (countMetric != null && countMetric.getPeriod() != null) {
+            explanation.append(" in ").append(countMetric.getPeriod());
+        }
+        explanation.append(": ");
+        explanation.append(String.join(", ", sites.stream().map(ClassificationFact::getClassification).toList()));
+        explanation.append(".");
+
+        return new Explanation(
+            explanation.toString(),
+            sites.stream().limit(3).map(ClassificationFact::getId).toList()
+        );
     }
 
     private Explanation generateExcellentSitesTrendExplanation(FactPack factPack) {

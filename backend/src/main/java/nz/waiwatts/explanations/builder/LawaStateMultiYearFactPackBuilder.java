@@ -120,6 +120,9 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
             case WATER_QUALITY_STATE_SITES_TREND:
                 buildStateCategorySitesTrendFacts(factPack, request, records);
                 break;
+            case GUIDELINE_EXCEEDANCE_SITES:
+                buildGuidelineExceedanceSitesFacts(factPack, records);
+                break;
             case REGIONAL_WATER_QUALITY:
                 buildRegionalWaterQualityFacts(factPack, records);
                 break;
@@ -383,6 +386,60 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
         );
     }
 
+    private void buildGuidelineExceedanceSitesFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
+        if (records.isEmpty()) {
+            return;
+        }
+
+        int latestYear = records.stream()
+            .mapToInt(LawaStateMultiYearRecord::getPeriodEndYear)
+            .max()
+            .orElse(0);
+
+        Set<String> poorBands = bandsForCategory("POOR");
+        List<LawaStateMultiYearRecord> poorRecords = records.stream()
+            .filter(r -> r.getPeriodEndYear() == latestYear)
+            .filter(r -> poorBands.contains(normalizeBand(r.getAttributeBand())))
+            .toList();
+        if (poorRecords.isEmpty()) {
+            return;
+        }
+
+        Map<String, LawaStateMultiYearRecord> distinctSites = poorRecords.stream()
+            .sorted(Comparator.comparing(LawaStateMultiYearRecord::getSiteName, String.CASE_INSENSITIVE_ORDER))
+            .collect(Collectors.toMap(
+                LawaStateMultiYearRecord::getLawaSiteId,
+                record -> record,
+                (existing, ignored) -> existing,
+                LinkedHashMap::new
+            ));
+
+        distinctSites.values().forEach(record -> factPack.getFacts().getClassifications().add(
+            new ClassificationFact(
+                "class:lawa:guideline_exceedance_site:" + latestYear + ":" + record.getLawaSiteId(),
+                "site",
+                "guideline_exceedance_site",
+                record.getSiteName(),
+                latestYear,
+                latestYear,
+                Map.of(
+                    "site_id", record.getLawaSiteId(),
+                    "site_name", record.getSiteName(),
+                    "region", record.getRegion()
+                )
+            )
+        ));
+
+        factPack.getFacts().getMetrics().add(new MetricFact(
+            "metric:lawa:guideline_exceedance_sites_count:" + latestYear,
+            "guideline_exceedance_sites_count",
+            new BigDecimal(distinctSites.size()),
+            "sites",
+            String.valueOf(latestYear),
+            Map.of("scope", "latest_year", "state_category", "POOR")
+        ));
+    }
+
     private void buildBasicFacts(FactPack factPack, List<LawaStateMultiYearRecord> records) {
         // Add basic summary statistics for unsupported question types
         if (!records.isEmpty()) {
@@ -446,6 +503,19 @@ public class LawaStateMultiYearFactPackBuilder implements FactPackBuilder {
                         1
                     ));
                 }
+                break;
+            case GUIDELINE_EXCEEDANCE_SITES:
+                if (FactPackBuilderSupport.hasAnyFacts(factPack)) {
+                    factPack.getGuardrails().setAllowedClaims(Arrays.asList("site_list", "count", "latest_period_summary"));
+                    factPack.getGuardrails().setRequiredCitations(FactPackBuilderSupport.stableRequiredCitations(
+                        factPack.getFacts().getClassifications().stream().map(ClassificationFact::getId).toList(),
+                        3
+                    ));
+                } else {
+                    factPack.getGuardrails().setAllowedClaims(new ArrayList<>());
+                    factPack.getGuardrails().setRequiredCitations(new ArrayList<>());
+                }
+                factPack.getGuardrails().setForbiddenClaims(Arrays.asList("forecast", "causation", "policy_recommendation", "site_specific_advice"));
                 break;
             case REGIONAL_WATER_QUALITY:
                 boolean hasRegionalFacts = FactPackBuilderSupport.hasAnyFacts(factPack);

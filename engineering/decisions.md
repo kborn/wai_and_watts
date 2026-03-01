@@ -1711,3 +1711,22 @@ Implications:
 - `DatasetSelectionService` must consult contracts when pruning and finalizing candidates.
 - Builders should not re-own generic compatibility checks; builder-local failures should be limited to build/runtime concerns.
 - Parser-side constraints remain useful as quality guidance, but they are derived hints rather than a second source of truth.
+
+---
+
+### Phase 17 — Guideline Exceedance Sites Uses Latest-Year Site Semantics
+Date: 2026-03-01
+
+Decision:
+Support `guideline_exceedance_sites` on LAWA state data as a latest-available-year site question with optional `indicator` and `region` bindings plus implicit `stateCategory=POOR`.
+
+Rationale:
+- Users naturally ask “which sites exceeded the guideline?” more often than they ask for site-indicator pair counts.
+- Requiring an indicator would make the question type less discoverable without adding a clarification feature in this phase.
+- The underlying LAWA state model still evaluates exceedance per indicator, so the no-indicator case must be defined explicitly rather than left ambiguous.
+
+Implications:
+- If `indicator` is omitted, the question returns distinct sites with at least one poor-band exceedance in the latest available year for the scoped dataset.
+- If `indicator` is provided, the question returns distinct sites with a poor-band exceedance for that indicator in the latest available year.
+- `region` is optional; when omitted the scope is nationwide.
+- The builder must anchor to the latest available year in the scoped records, not the latest year that happens to contain a poor-band record.

@@ -61,6 +61,19 @@ class DemoIntentParserTest {
     }
 
     @Test
+    void parsesGuidelineExceedanceSample() {
+        ExplanationRequest request = parser.parseQuestion(
+            "Which E. coli sites exceeded the guideline in Auckland?"
+        );
+
+        assertNotNull(request);
+        assertEquals("guideline_exceedance_sites", request.getQuestionType());
+        assertEquals("lawa.water_quality.state.multi_year", request.getDatasetSource());
+        assertEquals("E. coli", request.getFilters().get("indicator"));
+        assertEquals("Auckland", request.getFilters().get("region"));
+    }
+
+    @Test
     void refusesNonSampleQuestion() {
         ExplanationRequest request = parser.parseQuestion("Tell me something else");
         assertNull(request);
