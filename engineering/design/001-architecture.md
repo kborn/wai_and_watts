@@ -22,7 +22,7 @@ This document describes the current runtime architecture, module boundaries, and
 
 Primary backend packages (`backend/src/main/java/nz/waiwatts`):
 - `api/` public REST endpoints for datasets, MBIE, LAWA, health, context, and insights.
-- `explanations/` ask/explanation pipeline (intent parsing, validation, selection, fact-pack builders, providers).
+- `explanations/` ask/explanation pipeline (intent parsing, validation, selection, fact-pack builders, generators, shared LLM client code).
 - `service/` read services used by API controllers.
 - `ingestion/` orchestration, dataset parsers, dataset ingestion services, transformer utilities.
 - `cli/` manual transform and ingestion command entrypoints.
@@ -65,8 +65,8 @@ Both tables reference `dataset_release_id` and persist raw + normalized fuel val
 Both tables reference `dataset_release_id`, include region metadata normalization, and support filterable read paths.
 
 ### 3.4 Explanation data boundary
-- Fact Packs are the only payload passed to explanation providers.
-- Providers return explanation text + citations or explicit refusal.
+- Fact Packs are the only payload passed to explanation generators.
+- Generators return explanation text + citations or explicit refusal.
 - Citation mapping/validation occurs in service/controller pipeline before response.
 
 ---
@@ -89,7 +89,7 @@ Both tables reference `dataset_release_id`, include region metadata normalizatio
 2. Intent parser -> structured request.
 3. Dataset selection + request validation enforce supported envelope.
 4. FactPackBuilder resolves one canonical dataset release and constructs facts.
-5. Provider generates grounded explanation/refusal.
+5. Generator produces grounded explanation/refusal.
 6. Citation mapping + refusal normalization produce API response.
 
 ---

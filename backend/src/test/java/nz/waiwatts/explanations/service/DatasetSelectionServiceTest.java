@@ -5,7 +5,7 @@ import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
-import nz.waiwatts.explanations.provider.OpenAiResponseClient;
+import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -21,7 +21,7 @@ class DatasetSelectionServiceTest {
     @Test
     void selectsCandidateWhenDatasetMissing() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();
@@ -60,7 +60,7 @@ class DatasetSelectionServiceTest {
     @Test
     void refusesInvalidCandidate() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();
@@ -98,7 +98,7 @@ class DatasetSelectionServiceTest {
     @Test
     void refusesEmptyCandidateList() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();
@@ -136,7 +136,7 @@ class DatasetSelectionServiceTest {
     @Test
     void selectsLawaStateWithoutLlmWhenQuestionTypeFixed() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();
@@ -172,7 +172,7 @@ class DatasetSelectionServiceTest {
     @Test
     void preservesExplicitRefusalMessageFromVerification() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();
@@ -209,7 +209,7 @@ class DatasetSelectionServiceTest {
     @Test
     void deterministicallyPrefersAnnualWhenMbieCandidatesAreBothValidWithoutQuarterSignal() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();
@@ -248,7 +248,7 @@ class DatasetSelectionServiceTest {
     @Test
     void deterministicallyPrefersQuarterlyWhenQuestionContainsQuarterSignal() {
         DatasetCatalog catalog = new DatasetCatalog();
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         LlmProperties properties = new LlmProperties();

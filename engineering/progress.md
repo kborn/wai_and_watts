@@ -381,7 +381,7 @@ Definition of Done:
 Work Items:
 - [x] Record Phase 11 decision brief in decisions.md (fact pack contract + grounding + refusal posture)
 - [x] Implement fact pack builders per dataset (MBIE annual, MBIE quarterly, LAWA)
-- [x] Implement explanation service (pluggable LLM provider)
+- [x] Implement explanation service (pluggable explanation generator)
 - [x] Add minimal tests for:
 - fact pack correctness (query returns expected fields)
 - explanation output includes citations/field references
@@ -968,7 +968,7 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] dead code cleanup
     - [X] security improvements
     - [x] remove deprecates references
-    - [x] miscellaneous
+    - [ ] miscellaneous
   - [x] TODOs
 
 ### Non-goals (explicit)

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
-import nz.waiwatts.explanations.provider.OpenAiResponseClient;
+import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 import java.util.Map;
@@ -20,7 +20,7 @@ class OpenAiIntentParserTest {
 
     @Test
     void stripsNullStringFilters() {
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
@@ -57,7 +57,7 @@ class OpenAiIntentParserTest {
 
     @Test
     void parsesMetricTypeFilterWhenPresent() {
-        OpenAiResponseClient client = mock(OpenAiResponseClient.class);
+        OpenAiApiClient client = mock(OpenAiApiClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))

@@ -12,7 +12,7 @@ import java.util.Map;
  * <p>
  * Supports exactly the four Ask sample questions and refuses all others.
  */
-public class HardcodedDemoIntentParser implements IntentParser {
+public class DemoIntentParser implements IntentParser {
 
     private static final String Q_RENEWABLE_TREND = "explain renewable generation trends between 2020 and 2023";
     private static final String Q_GENERATION_MIX = "what are the main sources of electricity generation in new zealand";

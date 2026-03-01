@@ -1,4 +1,4 @@
-package nz.waiwatts.explanations.provider;
+package nz.waiwatts.explanations.llm;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,15 +15,15 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
-public class OpenAiResponseClient {
+public class OpenAiApiClient {
 
-    private static final Logger log = LoggerFactory.getLogger(OpenAiResponseClient.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenAiApiClient.class);
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final LlmProperties properties;
 
-    public OpenAiResponseClient(HttpClient httpClient, ObjectMapper objectMapper, LlmProperties properties) {
+    public OpenAiApiClient(HttpClient httpClient, ObjectMapper objectMapper, LlmProperties properties) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.properties = properties;

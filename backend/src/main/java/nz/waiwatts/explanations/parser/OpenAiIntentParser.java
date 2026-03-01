@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
-import nz.waiwatts.explanations.provider.OpenAiResponseClient;
+import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +27,13 @@ public class OpenAiIntentParser implements IntentParser {
 
     private static final String UNKNOWN = "unknown";
 
-    private final OpenAiResponseClient client;
+    private final OpenAiApiClient client;
     private final ObjectMapper objectMapper;
     private final String model;
     private final CapabilityRegistry capabilityRegistry;
 
     public OpenAiIntentParser(
-        OpenAiResponseClient client,
+        OpenAiApiClient client,
         ObjectMapper objectMapper,
         String model,
         CapabilityRegistry capabilityRegistry

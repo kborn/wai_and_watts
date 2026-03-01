@@ -1671,3 +1671,22 @@ Implications:
 - Carry correlation id end-to-end in logs for ask/explanation flows.
 - Add a runbook document that maps refusal categories to likely causes and relevant metrics/signals.
 - Dashboarding/alerting may be added later but is out of scope for this decision.
+
+---
+
+### Phase 17 — Shared OpenAI Access Is Separate from Explanation Generation
+Date: 2026-02-28
+
+Decision:
+Separate shared OpenAI API access from the explanation-generation layer and rename the explanation layer from `provider` to `generator`.
+
+Rationale:
+- The shared OpenAI client is used by parsing, dataset selection, and explanation generation, so it should not appear to belong only to the explanation layer.
+- `provider` was overloaded and made the explanation boundary harder to read than necessary.
+- Clearer package and type names reduce cognitive overhead without changing runtime behavior.
+
+Implications:
+- Shared OpenAI transport lives under `explanations.llm` as `OpenAiApiClient`.
+- Explanation generation types live under `explanations.generator`.
+- Internal explanation-layer types use `Generator` terminology instead of `Provider`.
+- External vendor selection remains represented separately by `LlmProvider` configuration.

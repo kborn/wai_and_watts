@@ -1,4 +1,4 @@
-package nz.waiwatts.explanations.provider;
+package nz.waiwatts.explanations.generator;
 
 import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.ClassificationFact;
@@ -12,14 +12,14 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Stubbed/deterministic Explanation Provider for Phase 11 testing.
+ * Stubbed/deterministic explanation generator for Phase 11 testing.
  * <p>
- * This provider returns deterministic responses based on the question type and Fact Pack content
- * without calling a real LLM. This allows testing the architecture, grounding, citations, 
+ * This generator returns deterministic responses based on the question type and Fact Pack content
+ * without calling a real LLM. This allows testing the architecture, grounding, citations,
  * and refusal behavior in Phase 11. Citation validation uses the shared validation layer
- * so behavior stays aligned with live providers.
+ * so behavior stays aligned with live generators.
  */
-public class StubExplanationProvider implements ExplanationProvider {
+public class DemoExplanationGenerator implements ExplanationGenerator {
 
     @Override
     public Explanation generateExplanation(String questionType, FactPack factPack) {

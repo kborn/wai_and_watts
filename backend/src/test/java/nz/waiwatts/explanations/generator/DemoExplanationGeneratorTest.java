@@ -1,4 +1,4 @@
-package nz.waiwatts.explanations.provider;
+package nz.waiwatts.explanations.generator;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
@@ -15,15 +15,15 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test citation validation for StubExplanationProvider
+ * Test citation validation for DemoExplanationGenerator
  */
-class StubExplanationProviderTest {
+class DemoExplanationGeneratorTest {
 
-    private StubExplanationProvider provider;
+    private DemoExplanationGenerator generator;
 
     @BeforeEach
     void setUp() {
-        provider = new StubExplanationProvider();
+        generator = new DemoExplanationGenerator();
     }
 
     @Test
@@ -32,7 +32,7 @@ class StubExplanationProviderTest {
         FactPack factPack = createTimeSeriesFactPack();
         
         // Generate explanation
-        Explanation explanation = provider.generateExplanation("renewable_generation_trend", factPack);
+        Explanation explanation = generator.generateExplanation("renewable_generation_trend", factPack);
         
         // Should not be a refusal
         assertFalse(explanation.isRefusal());
@@ -45,7 +45,7 @@ class StubExplanationProviderTest {
         assertTrue(explanation.getCitations().getFirst().contains("ts:mbie:renewable_generation_gwh:2018_2024"));
 
         // Validate citations passes
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -54,7 +54,7 @@ class StubExplanationProviderTest {
         FactPack factPack = createMetricFactPack();
         
         // Generate explanation
-        Explanation explanation = provider.generateExplanation("fuel_type_comparison", factPack);
+        Explanation explanation = generator.generateExplanation("fuel_type_comparison", factPack);
         
         // Should not be a refusal
         assertFalse(explanation.isRefusal());
@@ -64,19 +64,19 @@ class StubExplanationProviderTest {
         assertEquals(3, explanation.getCitations().size()); // HYDRO, WIND, GEOTHERMAL
         
         // Validate citations passes
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
     void testCitationValidationForGenerationMixOverview() {
         FactPack factPack = createMetricFactPack();
 
-        Explanation explanation = provider.generateExplanation("generation_mix_overview", factPack);
+        Explanation explanation = generator.generateExplanation("generation_mix_overview", factPack);
 
         assertFalse(explanation.isRefusal());
         assertNotNull(explanation.getCitations());
         assertEquals(3, explanation.getCitations().size());
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -88,7 +88,7 @@ class StubExplanationProviderTest {
         Explanation explanation = new Explanation("Some explanation text", List.of());
         
         // Validate citations should fail
-        assertFalse(provider.validateCitations(explanation, factPack));
+        assertFalse(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -101,7 +101,7 @@ class StubExplanationProviderTest {
         factPack.getGuardrails().setAllowedClaims(List.of()); // Empty = unsupported
         
         // Generate explanation
-        Explanation explanation = provider.generateExplanation("unsupported_question", factPack);
+        Explanation explanation = generator.generateExplanation("unsupported_question", factPack);
         
         // Should be a refusal
         assertTrue(explanation.isRefusal());
