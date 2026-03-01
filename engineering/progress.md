@@ -959,6 +959,10 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
   - [x] Add operator-facing runbook mapping refusal categories to likely causes and relevant metrics/signals.
 - [x] LAWA browse filter UX fix
   - [x] Preserve indicator selection across State/Trend view switches in the same way region selection is currently sticky.
+- [x] `/ask` pipeline consolidation hardening
+  - [x] Move `/ask` orchestration from `ExplanationController` into a dedicated `AskService`.
+  - [x] Centralize refusal-code mapping for parse, selection, validation, explanation, and internal failures.
+  - [x] Make `CitationMapper` injectable so the ask pipeline uses constructor-injected collaborators consistently.
 - [x] Code cleanup
   - [x] Static analysis
     - [x] Uncalled methods

@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.dto.Citation;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 public class CitationMapper {
 
     private static final Pattern YEAR_PATTERN = Pattern.compile("(\\d{4})");
