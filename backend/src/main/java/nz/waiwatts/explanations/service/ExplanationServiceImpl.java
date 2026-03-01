@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,11 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         // Select appropriate Fact Pack Builder
-        FactPackBuilder builder = selectFactPackBuilder(request);
+        Optional<FactPackBuilder> builderSelection = selectFactPackBuilder(request);
+        if (builderSelection.isEmpty()) {
+            return Explanation.refusal("No data source available for this request");
+        }
+        FactPackBuilder builder = builderSelection.get();
 
         // Generate Fact Pack
         try {
@@ -180,7 +185,14 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
 
         // Select appropriate Fact Pack Builder
-        FactPackBuilder builder = selectFactPackBuilder(request);
+        Optional<FactPackBuilder> builderSelection = selectFactPackBuilder(request);
+        if (builderSelection.isEmpty()) {
+            return Map.of(
+                "error", "No data source available for this request",
+                "request", request
+            );
+        }
+        FactPackBuilder builder = builderSelection.get();
 
         // Generate Fact Pack
         try {
@@ -260,12 +272,11 @@ public class ExplanationServiceImpl implements ExplanationService {
         }
     }
 
-    private FactPackBuilder selectFactPackBuilder(ExplanationRequest request) {
+    private Optional<FactPackBuilder> selectFactPackBuilder(ExplanationRequest request) {
         String datasetSource = request != null ? request.getDatasetSource() : null;
         return factPackBuilders.stream()
             .filter(builder -> datasetSource != null && datasetSource.equals(builder.getSupportedDatasetSourceCode()))
-            .findFirst()
-            .orElse(null);
+            .findFirst();
     }
 
     private void validateUniqueBuilderSources(List<FactPackBuilder> builders) {
