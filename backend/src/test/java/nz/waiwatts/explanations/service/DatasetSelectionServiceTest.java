@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -18,6 +19,25 @@ import static org.mockito.Mockito.when;
 
 class DatasetSelectionServiceTest {
 
+    private DatasetSelectionService service(
+        DatasetCatalog catalog,
+        OpenAiApiClient client,
+        ObjectMapper objectMapper,
+        LlmProperties properties
+    ) {
+        CapabilityRegistry capabilityRegistry = new CapabilityRegistry(catalog);
+        return new DatasetSelectionService(
+            catalog,
+            client,
+            objectMapper,
+            properties,
+            new QuestionTypeCatalog(catalog),
+            capabilityRegistry,
+            new ContractValidator(capabilityRegistry),
+            new ExplanationRequestNormalizer(capabilityRegistry)
+        );
+    }
+
     @Test
     void selectsCandidateWhenDatasetMissing() {
         DatasetCatalog catalog = new DatasetCatalog();
@@ -33,13 +53,7 @@ class DatasetSelectionServiceTest {
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
             .thenReturn("{\"candidates\": [\"mbie.generation.quarterly\"]}");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",
@@ -72,13 +86,7 @@ class DatasetSelectionServiceTest {
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
             .thenReturn("{\"candidates\": [\"invalid.dataset\"]}");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",
@@ -110,13 +118,7 @@ class DatasetSelectionServiceTest {
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
             .thenReturn("{\"candidates\": []}");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",
@@ -145,13 +147,7 @@ class DatasetSelectionServiceTest {
         properties.setApiKey("test-key");
         properties.setBaseUrl("https://api.openai.com");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "water_quality_overview",
@@ -181,13 +177,7 @@ class DatasetSelectionServiceTest {
         properties.setApiKey("test-key");
         properties.setBaseUrl("https://api.openai.com");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",
@@ -203,7 +193,7 @@ class DatasetSelectionServiceTest {
         assertFalse(result.isSelected());
         assertEquals(DatasetSelectionService.DatasetSelectionStrategy.EXPLICIT, result.getStrategy());
         assertEquals("UNSUPPORTED_CAPABILITY", result.getRefusalCategory());
-        assertEquals("Dataset mbie.generation.annual does not support filter: indicator", result.getRefusalMessage());
+        assertEquals("Question type renewable_generation_trend does not support filter: indicator", result.getRefusalMessage());
     }
 
     @Test
@@ -221,13 +211,7 @@ class DatasetSelectionServiceTest {
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
             .thenReturn("{\"candidates\": [\"mbie.generation.quarterly\", \"mbie.generation.annual\"]}");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",
@@ -260,13 +244,7 @@ class DatasetSelectionServiceTest {
         when(client.createResponseWithSchema(anyString(), anyString(), anyString(), any(), anyString()))
             .thenReturn("{\"candidates\": [\"mbie.generation.annual\", \"mbie.generation.quarterly\"]}");
 
-        DatasetSelectionService service = new DatasetSelectionService(
-            catalog,
-            client,
-            objectMapper,
-            properties,
-            new QuestionTypeCatalog(catalog)
-        );
+        DatasetSelectionService service = service(catalog, client, objectMapper, properties);
 
         ExplanationRequest request = new ExplanationRequest(
             "renewable_generation_trend",

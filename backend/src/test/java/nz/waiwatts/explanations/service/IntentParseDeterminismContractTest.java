@@ -55,8 +55,9 @@ class IntentParseDeterminismContractTest {
     @Test
     void fixedCorpus_parseNormalizeAndValidationSignature_remainsStableAcrossRepeatedRuns() {
         IntentParserServiceImpl service = buildServiceWithDeterministicParser();
+        CapabilityRegistry capabilityRegistry = new CapabilityRegistry(new DatasetCatalog());
         RequestValidationService validationService = new RequestValidationService(
-            new CapabilityRegistry(new DatasetCatalog())
+            new ContractValidator(capabilityRegistry)
         );
 
         for (String prompt : FIXED_PROMPT_CORPUS) {
@@ -84,7 +85,12 @@ class IntentParseDeterminismContractTest {
         props.setApiKey("test-key");
         props.setBaseUrl("https://api.openai.com");
 
-        return new IntentParserServiceImpl(llmParser, props, new UnsupportedIntentDetector());
+        return new IntentParserServiceImpl(
+            llmParser,
+            props,
+            new UnsupportedIntentDetector(),
+            new ExplanationRequestNormalizer(new CapabilityRegistry(new DatasetCatalog()))
+        );
     }
 
     private ExplanationRequest deterministicParsedRequest(String question) {

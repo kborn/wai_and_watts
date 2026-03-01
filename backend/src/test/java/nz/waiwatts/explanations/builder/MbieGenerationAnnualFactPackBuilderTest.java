@@ -93,18 +93,7 @@ class MbieGenerationAnnualFactPackBuilderTest {
 
     @Test
     void testCanHandle() {
-        ExplanationRequest supportedRequest = new ExplanationRequest(
-            "any",
-            Map.of("datasetSource", "mbie.generation.annual")
-        );
-
-        ExplanationRequest unsupportedRequest = new ExplanationRequest(
-            "any",
-            Map.of("datasetSource", "other.source")
-        );
-
-        assertTrue(builder.canHandle(supportedRequest));
-        assertFalse(builder.canHandle(unsupportedRequest));
+        assertEquals("mbie.generation.annual", builder.getSupportedDatasetSourceCode());
     }
 
     @Test

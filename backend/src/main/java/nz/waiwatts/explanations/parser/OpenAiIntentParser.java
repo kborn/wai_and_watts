@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
-import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry.BindingType;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import org.slf4j.Logger;
@@ -98,14 +98,15 @@ public class OpenAiIntentParser implements IntentParser {
         Map<String, Object> filters = new HashMap<>();
         filtersNode.properties().forEach(entry -> {
             String key = entry.getKey();
-            if (!capabilityRegistry.getAllowedFilterKeys().contains(key)) {
+            CapabilityRegistry.BindingDefinition bindingDefinition = capabilityRegistry.bindingDefinition(key).orElse(null);
+            if (bindingDefinition == null) {
                 return;
             }
             JsonNode value = entry.getValue();
             if (value == null || value.isNull()) {
                 return;
             }
-            Object normalized = normalizeFilterValue(key, value);
+            Object normalized = normalizeFilterValue(bindingDefinition, value);
             if (normalized != null) {
                 filters.put(key, normalized);
             }
@@ -114,34 +115,40 @@ public class OpenAiIntentParser implements IntentParser {
         return filters.isEmpty() ? null : filters;
     }
 
-    private Object normalizeFilterValue(String key, JsonNode value) {
-        if (FilterKey.START_YEAR.wireValue().equals(key) || FilterKey.END_YEAR.wireValue().equals(key)) {
-            if (value.isInt()) {
-                return value.intValue();
-            }
-            if (value.isTextual()) {
-                String text = value.asText().trim();
-                if (text.equalsIgnoreCase("null") || text.isEmpty()) {
-                    return null;
-                }
-                try {
-                    return Integer.parseInt(text);
-                } catch (NumberFormatException ignored) {
-                    return null;
-                }
-            }
-            return null;
-        }
+    private Object normalizeFilterValue(CapabilityRegistry.BindingDefinition bindingDefinition, JsonNode value) {
+        return switch (bindingDefinition.type()) {
+            case INTEGER -> normalizeInteger(value);
+            case STRING, METRIC_TYPE -> normalizeString(value);
+        };
+    }
 
+    private Integer normalizeInteger(JsonNode value) {
+        if (value.isInt()) {
+            return value.intValue();
+        }
         if (value.isTextual()) {
             String text = value.asText().trim();
-            if (text.equalsIgnoreCase("null")) {
+            if (text.equalsIgnoreCase("null") || text.isEmpty()) {
                 return null;
             }
-            return text.isEmpty() ? null : text;
+            try {
+                return Integer.parseInt(text);
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
         }
-
         return null;
+    }
+
+    private String normalizeString(JsonNode value) {
+        if (!value.isTextual()) {
+            return null;
+        }
+        String text = value.asText().trim();
+        if (text.equalsIgnoreCase("null")) {
+            return null;
+        }
+        return text.isEmpty() ? null : text;
     }
 
     private String textOrNull(JsonNode node, String field) {
@@ -170,29 +177,25 @@ public class OpenAiIntentParser implements IntentParser {
         filters.put("additionalProperties", false);
 
         ObjectNode filterProps = filters.putObject("properties");
-        filterProps.set(FilterKey.FUEL_TYPE.wireValue(), nullableType("string"));
-        filterProps.set(FilterKey.FUEL_TYPE_B.wireValue(), nullableType("string"));
-        filterProps.set(FilterKey.INDICATOR.wireValue(), nullableType("string"));
-        filterProps.set(FilterKey.STATE_CATEGORY.wireValue(), nullableType("string"));
-        filterProps.set(FilterKey.REGION.wireValue(), nullableType("string"));
-        filterProps.set(FilterKey.TREND.wireValue(), nullableType("string"));
-        filterProps.set(FilterKey.START_YEAR.wireValue(), nullableType("integer"));
-        filterProps.set(FilterKey.END_YEAR.wireValue(), nullableType("integer"));
-        filterProps.set(FilterKey.METRIC_TYPE.wireValue(), nullableEnumNode(
-            capabilityRegistry.getAllSupportedMetricTypes(),
-            UNKNOWN
-        ));
+        capabilityRegistry.bindingDefinitions().forEach((filterKey, bindingDefinition) -> {
+            if (bindingDefinition.type() == BindingType.METRIC_TYPE) {
+                filterProps.set(filterKey.wireValue(), nullableEnumNode(
+                    capabilityRegistry.getAllSupportedMetricTypes(),
+                    UNKNOWN
+                ));
+                return;
+            }
+            filterProps.set(filterKey.wireValue(), nullableType(
+                bindingDefinition.type() == BindingType.INTEGER ? "integer" : "string"
+            ));
+        });
 
+        // This is intentionally "required but nullable" for every known binding key.
+        // It shapes the LLM to emit a stable object with explicit nulls, but it is not
+        // the business-required capability contract. Required bindings are enforced
+        // later by ContractValidator against the selected question contract.
         ArrayNode filterRequired = filters.putArray("required");
-        filterRequired.add(FilterKey.FUEL_TYPE.wireValue());
-        filterRequired.add(FilterKey.FUEL_TYPE_B.wireValue());
-        filterRequired.add(FilterKey.INDICATOR.wireValue());
-        filterRequired.add(FilterKey.STATE_CATEGORY.wireValue());
-        filterRequired.add(FilterKey.REGION.wireValue());
-        filterRequired.add(FilterKey.TREND.wireValue());
-        filterRequired.add(FilterKey.START_YEAR.wireValue());
-        filterRequired.add(FilterKey.END_YEAR.wireValue());
-        filterRequired.add(FilterKey.METRIC_TYPE.wireValue());
+        capabilityRegistry.bindingDefinitions().keySet().forEach(filterKey -> filterRequired.add(filterKey.wireValue()));
 
         ArrayNode required = schema.putArray("required");
         required.add("questionType");

@@ -32,6 +32,7 @@ class AskServiceTest {
     private ExplanationService explanationService;
     private AskService askService;
     private SimpleMeterRegistry meterRegistry;
+    private ExplanationRequestNormalizer requestNormalizer;
 
     @BeforeEach
     void setUp() {
@@ -39,6 +40,7 @@ class AskServiceTest {
         validationService = mock(RequestValidationService.class);
         datasetSelectionService = mock(DatasetSelectionService.class);
         explanationService = mock(ExplanationService.class);
+        requestNormalizer = new ExplanationRequestNormalizer(new CapabilityRegistry(new DatasetCatalog()));
         askService = new AskService(
             intentParserService,
             validationService,
@@ -46,7 +48,8 @@ class AskServiceTest {
             explanationService,
             new CapabilityRegistry(new DatasetCatalog()),
             new CitationMapper(),
-            new AskRefusalMapper()
+            new AskRefusalMapper(),
+            requestNormalizer
         );
         meterRegistry = new SimpleMeterRegistry();
         Metrics.globalRegistry.add(meterRegistry);

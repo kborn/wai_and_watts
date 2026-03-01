@@ -59,11 +59,6 @@ public class MbieGenerationQuarterlyFactPackBuilder implements FactPackBuilder {
     }
 
     @Override
-    public boolean canHandle(ExplanationRequest request) {
-        return FactPackBuilderSupport.supportsDatasetSource(request, MBIE_QUARTERLY_DATASET);
-    }
-
-    @Override
     public String getSupportedDatasetSourceCode() {
         return MBIE_QUARTERLY_DATASET;
     }

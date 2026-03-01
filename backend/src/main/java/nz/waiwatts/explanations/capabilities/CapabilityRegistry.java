@@ -38,11 +38,13 @@ public class CapabilityRegistry {
 
     private final DatasetCatalog datasetCatalog;
     private final Map<QuestionType, CapabilityDefinition> byQuestionType;
+    private final Map<FilterKey, BindingDefinition> bindingDefinitions;
     private final Map<String, String> unsupportedQuestionTypes;
 
     public CapabilityRegistry(DatasetCatalog datasetCatalog) {
         this.datasetCatalog = datasetCatalog;
         this.byQuestionType = buildCapabilities();
+        this.bindingDefinitions = buildBindingDefinitions();
         this.unsupportedQuestionTypes = Map.ofEntries(
             Map.entry("forecasting", "Predicting future values"),
             Map.entry("causation", "Claiming cause-and-effect relationships"),
@@ -72,24 +74,6 @@ public class CapabilityRegistry {
             && datasetCatalog.findBySource(datasetSource.trim()).isPresent();
     }
 
-    public boolean isDatasetSupportedForQuestion(String questionType, String datasetSource) {
-        CapabilityDefinition capability = get(questionType);
-        Optional<DatasetSource> datasetSourceEnum = parseDatasetSource(datasetSource);
-        return datasetSourceEnum.filter(source -> capability.datasetSources().contains(source)).isPresent();
-    }
-
-    public boolean isFilterSupportedForQuestion(String questionType, String filterKey) {
-        CapabilityDefinition capability = get(questionType);
-        Optional<FilterKey> filterKeyEnum = FilterKey.fromWireValue(filterKey);
-        if (filterKeyEnum.isEmpty()) {
-            return false;
-        }
-        if (METRIC_TYPE_FILTER == filterKeyEnum.get()) {
-            return true;
-        }
-        return capability.supportedFilters().contains(filterKeyEnum.get());
-    }
-
     public boolean isMetricTypeSupportedForQuestion(String questionType, String metricType) {
         CapabilityDefinition capability = get(questionType);
         Optional<MetricType> metricTypeEnum = MetricType.fromWireValue(metricType);
@@ -101,10 +85,10 @@ public class CapabilityRegistry {
         String datasetSource,
         String metricType
     ) {
-        if (!isDatasetSupportedForQuestion(questionType, datasetSource)) {
-            return false;
-        }
-        return isMetricTypeSupportedForQuestion(questionType, metricType);
+        return questionContract(questionType)
+            .filter(contract -> contract.supportedDatasets().contains(parseDatasetSource(datasetSource).orElse(null)))
+            .map(contract -> isMetricTypeSupportedForQuestion(questionType, metricType))
+            .orElse(false);
     }
 
     public Optional<String> defaultMetricTypeForQuestion(String questionType) {
@@ -115,11 +99,6 @@ public class CapabilityRegistry {
     public Set<String> supportedMetricTypesForQuestion(String questionType) {
         CapabilityDefinition capability = get(questionType);
         return toWireSet(capability.metricTypes(), MetricType::wireValue);
-    }
-
-    public Set<String> supportedDatasetSourcesForQuestion(String questionType) {
-        CapabilityDefinition capability = get(questionType);
-        return toWireSet(capability.datasetSources(), DatasetSource::wireValue);
     }
 
     public List<String> examplesForQuestion(String questionType) {
@@ -139,16 +118,6 @@ public class CapabilityRegistry {
             .flatMap(Collection::stream)
             .map(DatasetSource::wireValue)
             .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    public Set<String> getAllowedFilterKeys() {
-        LinkedHashSet<String> keys = byQuestionType.values().stream()
-            .map(CapabilityDefinition::supportedFilters)
-            .flatMap(Collection::stream)
-            .map(FilterKey::wireValue)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
-        keys.add(METRIC_TYPE_FILTER.wireValue());
-        return keys;
     }
 
     public Set<String> getAllSupportedMetricTypes() {
@@ -185,8 +154,7 @@ public class CapabilityRegistry {
             "Must specify a dataset source compatible with the selected question type."
         ));
 
-        LinkedHashMap<String, String> filterStructure = getStringStringLinkedHashMap();
-        response.put("filterStructure", filterStructure);
+        response.put("filterStructure", filterStructure());
         response.put("suggestedValuesByToken", suggestedValuesByToken());
 
         response.put("metricTypes", byQuestionType.values().stream()
@@ -247,19 +215,20 @@ public class CapabilityRegistry {
         return response;
     }
 
-    private static LinkedHashMap<String, String> getStringStringLinkedHashMap() {
+    private LinkedHashMap<String, String> filterStructure() {
         LinkedHashMap<String, String> filterStructure = new LinkedHashMap<>();
         filterStructure.put(DATASET_SOURCE_FILTER.wireValue(), "string (required)");
-        filterStructure.put(FilterKey.FUEL_TYPE.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.FUEL_TYPE_B.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.INDICATOR.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.STATE_CATEGORY.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.REGION.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.TREND.wireValue(), "string (optional)");
-        filterStructure.put(FilterKey.START_YEAR.wireValue(), "integer (optional)");
-        filterStructure.put(FilterKey.END_YEAR.wireValue(), "integer (optional)");
-        filterStructure.put(METRIC_TYPE_FILTER.wireValue(), "string (optional)");
+        bindingDefinitions.values().forEach(definition ->
+            filterStructure.put(definition.key().wireValue(), bindingStructure(definition.type()))
+        );
         return filterStructure;
+    }
+
+    private String bindingStructure(BindingType type) {
+        return switch (type) {
+            case STRING, METRIC_TYPE -> "string (optional)";
+            case INTEGER -> "integer (optional)";
+        };
     }
 
     private Map<String, List<String>> suggestedValuesByToken() {
@@ -296,6 +265,70 @@ public class CapabilityRegistry {
             .orElse(null);
     }
 
+    public Optional<QuestionContract> questionContract(String questionType) {
+        CapabilityDefinition capability = get(questionType);
+        if (capability == null) {
+            return Optional.empty();
+        }
+        LinkedHashSet<FilterKey> allowedBindings = new LinkedHashSet<>(capability.supportedFilters());
+        allowedBindings.add(METRIC_TYPE_FILTER);
+        return Optional.of(new QuestionContract(
+            capability.questionType(),
+            capability.datasetSources(),
+            allowedBindings,
+            capability.requiredFilters(),
+            capability.implicitBindings(),
+            capability.promotionRules(),
+            expectedDatasetKind(capability.datasetSources()),
+            capability.metricTypes(),
+            capability.defaultMetricType()
+        ));
+    }
+
+    public Optional<DatasetContract> datasetContract(String datasetSource) {
+        return datasetCatalog.findBySource(datasetSource)
+            .flatMap(descriptor -> parseDatasetSource(descriptor.datasetSource()).map(source -> {
+                LinkedHashSet<QuestionType> supportedQuestions = descriptor.supportedQuestionTypes().stream()
+                    .map(QuestionType::fromWireValue)
+                    .flatMap(Optional::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                LinkedHashSet<FilterKey> supportedBindings = descriptor.supportedFilters().stream()
+                    .map(FilterKey::fromWireValue)
+                    .flatMap(Optional::stream)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                return new DatasetContract(
+                    source,
+                    descriptor.domain(),
+                    descriptor.grain(),
+                    datasetKind(source),
+                    supportedQuestions,
+                    supportedBindings
+                );
+            }));
+    }
+
+    public Map<FilterKey, BindingDefinition> bindingDefinitions() {
+        return bindingDefinitions;
+    }
+
+    public Optional<BindingDefinition> bindingDefinition(String filterKey) {
+        return FilterKey.fromWireValue(filterKey).map(bindingDefinitions::get);
+    }
+
+    private Map<FilterKey, BindingDefinition> buildBindingDefinitions() {
+        LinkedHashMap<FilterKey, BindingDefinition> definitions = new LinkedHashMap<>();
+        definitions.put(FilterKey.FUEL_TYPE, new BindingDefinition(FilterKey.FUEL_TYPE, BindingType.STRING));
+        definitions.put(FilterKey.FUEL_TYPE_B, new BindingDefinition(FilterKey.FUEL_TYPE_B, BindingType.STRING));
+        definitions.put(FilterKey.INDICATOR, new BindingDefinition(FilterKey.INDICATOR, BindingType.STRING));
+        definitions.put(FilterKey.STATE_CATEGORY, new BindingDefinition(FilterKey.STATE_CATEGORY, BindingType.STRING));
+        definitions.put(FilterKey.REGION, new BindingDefinition(FilterKey.REGION, BindingType.STRING));
+        definitions.put(FilterKey.TREND, new BindingDefinition(FilterKey.TREND, BindingType.STRING));
+        definitions.put(FilterKey.START_YEAR, new BindingDefinition(FilterKey.START_YEAR, BindingType.INTEGER));
+        definitions.put(FilterKey.END_YEAR, new BindingDefinition(FilterKey.END_YEAR, BindingType.INTEGER));
+        definitions.put(FilterKey.METRIC_TYPE, new BindingDefinition(FilterKey.METRIC_TYPE, BindingType.METRIC_TYPE));
+        return definitions;
+    }
+
     private Map<QuestionType, CapabilityDefinition> buildCapabilities() {
         LinkedHashMap<QuestionType, CapabilityDefinition> capabilities = new LinkedHashMap<>();
 
@@ -305,6 +338,8 @@ public class CapabilityRegistry {
             "Explain renewable electricity trends over time",
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR),
+            List.of(),
+            Map.of(),
             List.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.RENEWABLE_SHARE_PCT),
             MetricType.GENERATION_GWH,
@@ -324,6 +359,11 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR, FilterKey.FUEL_TYPE),
             List.of(FilterKey.FUEL_TYPE),
+            Map.of(),
+            List.of(new QuestionPromotionRule(
+                orderedSet(FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
+                QuestionType.FUEL_TYPE_COMPARISON
+            )),
             orderedSet(MetricType.GENERATION_GWH),
             MetricType.GENERATION_GWH,
             List.of(
@@ -342,6 +382,8 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR, FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
             List.of(FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
+            Map.of(),
+            List.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.GENERATION_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -359,6 +401,8 @@ public class CapabilityRegistry {
             "Summarize generation mix by fuel type",
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR),
+            List.of(),
+            Map.of(),
             List.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.GENERATION_SHARE_PCT),
             MetricType.GENERATION_GWH,
@@ -379,6 +423,8 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -397,6 +443,8 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
             orderedSet(FilterKey.STATE_CATEGORY, FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(FilterKey.STATE_CATEGORY),
+            Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_COUNT),
             MetricType.SITE_COUNT,
             List.of(
@@ -414,6 +462,8 @@ public class CapabilityRegistry {
             "Compare water quality state across regions",
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
+            List.of(),
+            Map.of(),
             List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
@@ -433,6 +483,8 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE, MetricType.AVERAGE_TREND_SCORE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -451,6 +503,8 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(FilterKey.TREND, "improving"),
+            List.of(),
             orderedSet(MetricType.SITE_COUNT),
             MetricType.SITE_COUNT,
             List.of(
@@ -467,6 +521,8 @@ public class CapabilityRegistry {
             "Compare trend outcomes across regions",
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
+            List.of(),
+            Map.of(),
             List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
@@ -497,6 +553,22 @@ public class CapabilityRegistry {
         return values.stream().map(mapper).toList();
     }
 
+    private DatasetKind expectedDatasetKind(Set<DatasetSource> datasetSources) {
+        LinkedHashSet<DatasetKind> kinds = datasetSources.stream()
+            .map(this::datasetKind)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return kinds.size() == 1 ? kinds.getFirst() : DatasetKind.MIXED;
+    }
+
+    private DatasetKind datasetKind(DatasetSource datasetSource) {
+        return switch (datasetSource) {
+            case MBIE_GENERATION_ANNUAL -> DatasetKind.MBIE_ANNUAL;
+            case MBIE_GENERATION_QUARTERLY -> DatasetKind.MBIE_QUARTERLY;
+            case LAWA_WATER_QUALITY_STATE_MULTI_YEAR -> DatasetKind.LAWA_STATE_MULTI_YEAR;
+            case LAWA_WATER_QUALITY_TREND_MULTI_YEAR -> DatasetKind.LAWA_TREND_MULTI_YEAR;
+        };
+    }
+
     public record CapabilityDefinition(
         QuestionType questionType,
         String displayName,
@@ -504,9 +576,56 @@ public class CapabilityRegistry {
         Set<DatasetSource> datasetSources,
         Set<FilterKey> supportedFilters,
         List<FilterKey> requiredFilters,
+        Map<FilterKey, Object> implicitBindings,
+        List<QuestionPromotionRule> promotionRules,
         Set<MetricType> metricTypes,
         MetricType defaultMetricType,
         List<String> exampleTemplates,
         List<String> examples
     ) {}
+
+    public record DatasetContract(
+        DatasetSource datasetSource,
+        String domain,
+        String grain,
+        DatasetKind datasetKind,
+        Set<QuestionType> supportedQuestionTypes,
+        Set<FilterKey> supportedBindings
+    ) {}
+
+    public record QuestionContract(
+        QuestionType questionType,
+        Set<DatasetSource> supportedDatasets,
+        Set<FilterKey> allowedBindings,
+        List<FilterKey> requiredBindings,
+        Map<FilterKey, Object> implicitBindings,
+        List<QuestionPromotionRule> promotionRules,
+        DatasetKind expectedDatasetKind,
+        Set<MetricType> metricTypes,
+        MetricType defaultMetricType
+    ) {}
+
+    public record QuestionPromotionRule(
+        Set<FilterKey> requiredBindings,
+        QuestionType targetQuestionType
+    ) {}
+
+    public record BindingDefinition(
+        FilterKey key,
+        BindingType type
+    ) {}
+
+    public enum BindingType {
+        STRING,
+        INTEGER,
+        METRIC_TYPE
+    }
+
+    public enum DatasetKind {
+        MBIE_ANNUAL,
+        MBIE_QUARTERLY,
+        LAWA_STATE_MULTI_YEAR,
+        LAWA_TREND_MULTI_YEAR,
+        MIXED
+    }
 }

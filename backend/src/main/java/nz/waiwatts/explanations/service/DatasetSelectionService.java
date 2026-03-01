@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
-import nz.waiwatts.explanations.capabilities.types.FilterKey;
+import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.config.LlmProvider;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -21,7 +22,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -38,19 +38,28 @@ public class DatasetSelectionService {
     private final ObjectMapper objectMapper;
     private final LlmProperties llmProperties;
     private final QuestionTypeCatalog questionTypeCatalog;
+    private final CapabilityRegistry capabilityRegistry;
+    private final ContractValidator contractValidator;
+    private final ExplanationRequestNormalizer requestNormalizer;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
         OpenAiApiClient client,
         ObjectMapper objectMapper,
         LlmProperties llmProperties,
-        QuestionTypeCatalog questionTypeCatalog
+        QuestionTypeCatalog questionTypeCatalog,
+        CapabilityRegistry capabilityRegistry,
+        ContractValidator contractValidator,
+        ExplanationRequestNormalizer requestNormalizer
     ) {
         this.datasetCatalog = datasetCatalog;
         this.client = client;
         this.objectMapper = objectMapper;
         this.llmProperties = llmProperties;
         this.questionTypeCatalog = questionTypeCatalog;
+        this.capabilityRegistry = capabilityRegistry;
+        this.contractValidator = contractValidator;
+        this.requestNormalizer = requestNormalizer;
     }
 
     public DatasetSelectionResult selectDataset(String question, ExplanationRequest request) {
@@ -100,10 +109,10 @@ public class DatasetSelectionService {
 
         List<String> clamped = clampCandidates(candidates, allowedSources);
         if (allowedSources != null && clamped.isEmpty()) {
-            if (isCrossDomainMismatch(group, candidates)) {
+            if (hasMismatchCandidate(questionType, candidates)) {
                 return DatasetSelectionResult.refusal(
                     "DATASET_MISMATCH",
-                    mismatchMessage(group, candidates.isEmpty() ? null : candidates.getFirst()),
+                    contractValidator.mismatchMessage(questionType, candidates.getFirst()),
                     DatasetSelectionStrategy.LLM_CANDIDATES,
                     candidates
                 );
@@ -149,10 +158,13 @@ public class DatasetSelectionService {
         String datasetSource,
         QuestionTypeCatalog.QuestionTypeGroup group
     ) {
-        if (group != QuestionTypeCatalog.QuestionTypeGroup.UNKNOWN && !isAllowedForGroup(datasetSource, group)) {
+        String questionType = request != null ? request.getQuestionType() : null;
+        if (group != QuestionTypeCatalog.QuestionTypeGroup.UNKNOWN
+            && !isAllowedForGroup(datasetSource, group)
+            && contractValidator.isMismatch(questionType, datasetSource)) {
             return DatasetSelectionResult.refusal(
                 "DATASET_MISMATCH",
-                mismatchMessage(group, datasetSource),
+                contractValidator.mismatchMessage(questionType, datasetSource),
                 DatasetSelectionStrategy.EXPLICIT,
                 List.of(datasetSource)
             );
@@ -175,46 +187,19 @@ public class DatasetSelectionService {
     }
 
     private DatasetSelectionResult verifyCandidate(ExplanationRequest request, String datasetSource) {
-        Optional<DatasetDescriptor> descriptor = datasetCatalog.findBySource(datasetSource);
-        if (descriptor.isEmpty()) {
+        ExplanationRequest normalizedRequest = requestNormalizer.normalizeForDataset(request, datasetSource);
+        ContractValidator.Result validation = contractValidator.validateForDatasetCandidate(normalizedRequest, datasetSource);
+        if (!validation.valid()) {
             return DatasetSelectionResult.refusal(
-                "UNSUPPORTED_CAPABILITY",
-                "Dataset not found in catalog.",
+                validation.refusalCategory(),
+                validation.refusalMessage(),
                 DatasetSelectionStrategy.LLM_CANDIDATES,
                 List.of(datasetSource)
             );
-        }
-
-        DatasetDescriptor ds = descriptor.get();
-        String questionType = request != null ? request.getQuestionType() : null;
-        if (questionType == null || !ds.supportedQuestionTypes().contains(questionType)) {
-            return DatasetSelectionResult.refusal(
-                "UNSUPPORTED_CAPABILITY",
-                "Dataset " + datasetSource + " does not support " + questionType + ".",
-                DatasetSelectionStrategy.LLM_CANDIDATES,
-                List.of(datasetSource)
-            );
-        }
-
-        Map<String, Object> filters = request.getFilters();
-        if (filters != null) {
-            for (String key : filters.keySet()) {
-                if (FilterKey.METRIC_TYPE.wireValue().equals(key)) {
-                    continue;
-                }
-                if (!ds.supportedFilters().contains(key)) {
-                    return DatasetSelectionResult.refusal(
-                        "UNSUPPORTED_CAPABILITY",
-                        "Dataset " + datasetSource + " does not support filter: " + key,
-                        DatasetSelectionStrategy.LLM_CANDIDATES,
-                        List.of(datasetSource)
-                    );
-                }
-            }
         }
 
         return DatasetSelectionResult.selected(
-            ds.datasetSource(),
+            datasetSource,
             "Selected from LLM candidates after verifying question type and filters.",
             DatasetSelectionStrategy.LLM_CANDIDATES
         );
@@ -271,7 +256,9 @@ public class DatasetSelectionService {
                 .append(" | grain=")
                 .append(descriptor.grain())
                 .append(" | questionTypes=")
-                .append(descriptor.supportedQuestionTypes())
+                .append(capabilityRegistry.datasetContract(descriptor.datasetSource())
+                    .map(contract -> contract.supportedQuestionTypes().stream().map(QuestionType::wireValue).toList())
+                    .orElse(descriptor.supportedQuestionTypes()))
                 .append("\n");
         }
 
@@ -344,34 +331,11 @@ public class DatasetSelectionService {
         return allowed.stream().anyMatch(ds -> ds.equalsIgnoreCase(datasetSource));
     }
 
-    private boolean isCrossDomainMismatch(QuestionTypeCatalog.QuestionTypeGroup group, List<String> candidates) {
-        if (candidates == null || candidates.isEmpty()) {
+    private boolean hasMismatchCandidate(String questionType, List<String> candidates) {
+        if (questionType == null || questionType.isBlank() || candidates == null || candidates.isEmpty()) {
             return false;
         }
-        boolean hasMbie = candidates.stream().anyMatch(this::isMbieDataset);
-        boolean hasLawa = candidates.stream().anyMatch(this::isLawaDataset);
-        return (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE && hasLawa)
-            || ((group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE
-                    || group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND) && hasMbie);
-    }
-
-    private boolean isMbieDataset(String datasetSource) {
-        return DatasetSource.MBIE_GENERATION_ANNUAL.wireValue().equalsIgnoreCase(datasetSource)
-            || DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue().equalsIgnoreCase(datasetSource);
-    }
-
-    private boolean isLawaDataset(String datasetSource) {
-        return DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue().equalsIgnoreCase(datasetSource)
-            || DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue().equalsIgnoreCase(datasetSource);
-    }
-
-    private String mismatchMessage(QuestionTypeCatalog.QuestionTypeGroup group, String datasetSource) {
-        return switch (group) {
-            case MBIE -> "Parsed an MBIE generation question, but selected a LAWA dataset.";
-            case LAWA_STATE -> "Parsed a LAWA state question, but selected a non-state dataset.";
-            case LAWA_TREND -> "Parsed a LAWA trend question, but selected a non-trend dataset.";
-            default -> "Parsed question is incompatible with dataset " + datasetSource + ".";
-        };
+        return candidates.stream().anyMatch(candidate -> contractValidator.isMismatch(questionType, candidate));
     }
 
     private DatasetSelectionResult selectDeterministicCandidate(

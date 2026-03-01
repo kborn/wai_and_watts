@@ -96,6 +96,24 @@ class RegionContextAggregationServiceImplTest {
     }
 
     @Test
+    void getRegionContext_indicatorFilter_acceptsDisplayLabelForNormalizedIndicators() {
+        DatasetRelease release = new DatasetRelease();
+        release.setId(UUID.randomUUID());
+
+        LawaTrendMultiYearRecord trend = createTrendRecord(release, "Auckland", "ECOLI", 2);
+        LawaStateMultiYearRecord state = createStateRecord(release, "Auckland", "ECOLI", "A", "site1");
+
+        when(trendRepository.findAll()).thenReturn(List.of(trend));
+        when(stateRepository.findAll()).thenReturn(List.of(state));
+        when(mbieRepository.findAll()).thenReturn(List.of());
+
+        RegionContextFactPackDto result = service.getRegionContext("Auckland", "E. coli", null);
+
+        assertThat(result.water().trend().unitCount()).isEqualTo(1);
+        assertThat(result.water().state().unitCount()).isEqualTo(1);
+    }
+
+    @Test
     void getRegionContext_stateData_withoutIndicatorFilter_excludesNullUnitKeysFromUnitCount() {
         DatasetRelease release = new DatasetRelease();
         release.setId(UUID.randomUUID());

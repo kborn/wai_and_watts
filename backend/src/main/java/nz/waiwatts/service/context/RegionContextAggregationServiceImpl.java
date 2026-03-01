@@ -4,6 +4,7 @@ import nz.waiwatts.api.context.dto.*;
 import nz.waiwatts.domain.lawa.LawaStateMultiYearRecord;
 import nz.waiwatts.domain.lawa.LawaTrendMultiYearRecord;
 import nz.waiwatts.domain.mbie.MbieGenerationAnnualRecord;
+import nz.waiwatts.lawa.LawaBindingNormalization;
 import nz.waiwatts.persistence.repositories.LawaStateMultiYearRecordRepository;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 import nz.waiwatts.persistence.repositories.MbieGenerationAnnualRecordRepository;
@@ -59,8 +60,7 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
         records = records.stream()
                 .filter(r -> region == null || region.isEmpty() || 
                         (r.getRegion() != null && r.getRegion().equalsIgnoreCase(region)))
-                .filter(r -> indicator == null || indicator.isEmpty() || 
-                        (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(indicator)))
+                .filter(r -> LawaBindingNormalization.matchesNormalizedTrendIndicator(r.getIndicatorNorm(), indicator))
                 .collect(Collectors.toList());
 
         Map<String, LawaTrendMultiYearRecord> deduplicated = deduplicateToCanonicalTrend(records, trendWindow);
@@ -160,8 +160,7 @@ public class RegionContextAggregationServiceImpl implements RegionContextAggrega
         records = records.stream()
                 .filter(r -> region == null || region.isEmpty() || 
                         (r.getRegion() != null && r.getRegion().equalsIgnoreCase(region)))
-                .filter(r -> indicator == null || indicator.isEmpty() || 
-                        (r.getIndicatorNorm() != null && r.getIndicatorNorm().equalsIgnoreCase(indicator)))
+                .filter(r -> LawaBindingNormalization.matchesNormalizedStateIndicator(r.getIndicatorNorm(), indicator))
                 .toList();
 
         boolean hasIndicatorFilter = indicator != null && !indicator.isEmpty();

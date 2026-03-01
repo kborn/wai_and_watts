@@ -40,24 +40,6 @@ class MbieGenerationQuarterlyFactPackBuilderComprehensiveTest {
     }
 
     @Test
-    void testCanHandle_WithQuarterlyDatasetSource_ReturnsTrue() {
-        ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("renewable_generation_trend");
-        request.setFilters(Map.of("datasetSource", "mbie.generation.quarterly"));
-
-        assertTrue(builder.canHandle(request));
-    }
-
-    @Test
-    void testCanHandle_WithAnnualDatasetSource_ReturnsFalse() {
-        ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("renewable_generation_trend");
-        request.setFilters(Map.of("datasetSource", "mbie.generation.annual"));
-
-        assertFalse(builder.canHandle(request));
-    }
-
-    @Test
     void testGetSupportedDatasetSourceCode_ReturnsCorrectCode() {
         assertEquals("mbie.generation.quarterly", builder.getSupportedDatasetSourceCode());
     }

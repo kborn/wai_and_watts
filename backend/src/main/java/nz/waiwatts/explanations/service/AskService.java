@@ -29,6 +29,7 @@ public class AskService {
     private final CapabilityRegistry capabilityRegistry;
     private final CitationMapper citationMapper;
     private final AskRefusalMapper refusalMapper;
+    private final ExplanationRequestNormalizer requestNormalizer;
 
     public AskService(
         IntentParserService intentParserService,
@@ -37,7 +38,8 @@ public class AskService {
         ExplanationService explanationService,
         CapabilityRegistry capabilityRegistry,
         CitationMapper citationMapper,
-        AskRefusalMapper refusalMapper
+        AskRefusalMapper refusalMapper,
+        ExplanationRequestNormalizer requestNormalizer
     ) {
         this.intentParserService = intentParserService;
         this.validationService = validationService;
@@ -46,6 +48,7 @@ public class AskService {
         this.capabilityRegistry = capabilityRegistry;
         this.citationMapper = citationMapper;
         this.refusalMapper = refusalMapper;
+        this.requestNormalizer = requestNormalizer;
     }
 
     public AskResponse ask(String question) {
@@ -82,7 +85,7 @@ public class AskService {
                 return response(refusal.code().httpStatus(), result);
             }
 
-            parsedRequest = parseResponse.getRequest();
+            parsedRequest = requestNormalizer.normalize(parseResponse.getRequest());
             logger.info("Intent parse result: ok - questionType: {}, datasetSource: {}, filters: {}",
                 parsedRequest.getQuestionType(),
                 parsedRequest.getDatasetSource(),
@@ -108,7 +111,7 @@ public class AskService {
                 return response(refusal.code().httpStatus(), result);
             }
 
-            parsedRequest.setDatasetSource(selectionResult.getDatasetSource());
+            parsedRequest = requestNormalizer.normalizeForDataset(parsedRequest, selectionResult.getDatasetSource());
 
             long validationStart = System.nanoTime();
             RequestValidationService.ValidationResult validationResult = validationService.validateRequest(parsedRequest);

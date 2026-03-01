@@ -42,24 +42,6 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
     }
 
     @Test
-    void testCanHandle_WithStateDatasetSource_ReturnsTrue() {
-        ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("water_quality_overview");
-        request.setFilters(Map.of("datasetSource", "lawa.water_quality.state.multi_year"));
-
-        assertTrue(builder.canHandle(request));
-    }
-
-    @Test
-    void testCanHandle_WithTrendDatasetSource_ReturnsFalse() {
-        ExplanationRequest request = new ExplanationRequest();
-        request.setQuestionType("water_quality_trends");
-        request.setFilters(Map.of("datasetSource", "lawa.water_quality.trend.multi_year"));
-
-        assertFalse(builder.canHandle(request));
-    }
-
-    @Test
     void testGetSupportedDatasetSourceCode_ReturnsCorrectCode() {
         assertEquals("lawa.water_quality.state.multi_year", builder.getSupportedDatasetSourceCode());
     }
@@ -102,6 +84,23 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
         builder.buildFactPack(request);
 
         verify(repository).findForReadApi(null, null, "nitrogen", null);
+    }
+
+    @Test
+    void testBuildFactPack_WithDisplayIndicatorLabel_NormalizesBeforeRepositoryQuery() {
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of());
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("water_quality_overview");
+        request.setFilters(Map.of(
+            "datasetSource", "lawa.water_quality.state.multi_year",
+            "indicator", "E. coli",
+            "region", "Auckland"
+        ));
+
+        builder.buildFactPack(request);
+
+        verify(repository).findForReadApi(null, null, "ecoli", "auckland");
     }
 
     @Test

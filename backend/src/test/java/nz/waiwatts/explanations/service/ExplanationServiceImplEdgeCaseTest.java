@@ -27,13 +27,20 @@ class ExplanationServiceImplEdgeCaseTest {
     private ExplanationServiceImpl service;
     private FactPackBuilder factPackBuilder;
     private ExplanationGenerator explanationGenerator;
+    private RequestValidationService validationService;
     private SimpleMeterRegistry meterRegistry;
+    private ExplanationRequestNormalizer requestNormalizer;
 
     @BeforeEach
     void setUp() {
         factPackBuilder = mock(FactPackBuilder.class);
         explanationGenerator = mock(ExplanationGenerator.class);
-        service = new ExplanationServiceImpl(List.of(factPackBuilder), explanationGenerator);
+        validationService = mock(RequestValidationService.class);
+        when(validationService.validateRequest(any())).thenReturn(RequestValidationService.ValidationResult.success());
+        requestNormalizer = new ExplanationRequestNormalizer(
+            new nz.waiwatts.explanations.capabilities.CapabilityRegistry(new nz.waiwatts.explanations.dataset.DatasetCatalog())
+        );
+        service = new ExplanationServiceImpl(List.of(factPackBuilder), explanationGenerator, validationService, requestNormalizer);
         meterRegistry = new SimpleMeterRegistry();
         Metrics.globalRegistry.add(meterRegistry);
     }
@@ -49,9 +56,11 @@ class ExplanationServiceImplEdgeCaseTest {
         // Create two builders
         FactPackBuilder mbieBuilder = mock(FactPackBuilder.class);
         FactPackBuilder lawaBuilder = mock(FactPackBuilder.class);
+        when(mbieBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(lawaBuilder.getSupportedDatasetSourceCode()).thenReturn("lawa.water_quality.state.multi_year");
         
         ExplanationService multiBuilderService = new ExplanationServiceImpl(
-            List.of(lawaBuilder, mbieBuilder), explanationGenerator
+            List.of(lawaBuilder, mbieBuilder), explanationGenerator, validationService, requestNormalizer
         );
 
         ExplanationRequest mbieRequest = new ExplanationRequest(
@@ -63,18 +72,11 @@ class ExplanationServiceImplEdgeCaseTest {
             "water_quality_trend",
             Map.of("datasetSource", "lawa.water_quality.state.multi_year")
         );
-
-        // Configure builders
-        when(mbieBuilder.canHandle(mbieRequest)).thenReturn(true);
-        when(lawaBuilder.canHandle(mbieRequest)).thenReturn(false);
-        when(mbieBuilder.canHandle(lawaRequest)).thenReturn(false);
-        when(lawaBuilder.canHandle(lawaRequest)).thenReturn(true);
-
         FactPack mbieFactPack = new FactPack();
         FactPack lawaFactPack = new FactPack();
         
-        when(mbieBuilder.buildFactPack(mbieRequest)).thenReturn(mbieFactPack);
-        when(lawaBuilder.buildFactPack(lawaRequest)).thenReturn(lawaFactPack);
+        when(mbieBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(mbieFactPack);
+        when(lawaBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(lawaFactPack);
 
         Explanation explanation = new Explanation("test", List.of("citation1"));
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
@@ -82,12 +84,12 @@ class ExplanationServiceImplEdgeCaseTest {
 
         // Test MBIE request selects MBIE builder
         multiBuilderService.generateExplanation(mbieRequest);
-        verify(mbieBuilder).buildFactPack(mbieRequest);
+        verify(mbieBuilder).buildFactPack(any(ExplanationRequest.class));
         verify(lawaBuilder, never()).buildFactPack(any());
 
         // Test LAWA request selects LAWA builder
         multiBuilderService.generateExplanation(lawaRequest);
-        verify(lawaBuilder).buildFactPack(lawaRequest);
+        verify(lawaBuilder).buildFactPack(any(ExplanationRequest.class));
         verify(mbieBuilder, times(1)).buildFactPack(any()); // Only called once for MBIE
     }
 
@@ -98,7 +100,7 @@ class ExplanationServiceImplEdgeCaseTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        when(factPackBuilder.canHandle(request)).thenReturn(false);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("other.dataset");
 
         Explanation result = service.generateExplanation(request);
 
@@ -114,26 +116,15 @@ class ExplanationServiceImplEdgeCaseTest {
     void testMultipleMatchingBuildersFailFast() {
         FactPackBuilder builderA = mock(FactPackBuilder.class);
         FactPackBuilder builderB = mock(FactPackBuilder.class);
-        ExplanationService ambiguousService = new ExplanationServiceImpl(
-            List.of(builderA, builderB), explanationGenerator
-        );
 
-        ExplanationRequest request = new ExplanationRequest(
-            "fuel_generation_trend",
-            Map.of("datasetSource", "mbie.generation.annual")
-        );
+        when(builderA.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(builderB.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
 
-        when(builderA.canHandle(request)).thenReturn(true);
-        when(builderB.canHandle(request)).thenReturn(true);
-
-        IllegalStateException ex = assertThrows(
-            IllegalStateException.class,
-            () -> ambiguousService.generateExplanation(request)
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> new ExplanationServiceImpl(List.of(builderA, builderB), explanationGenerator, validationService, requestNormalizer)
         );
-        assertTrue(ex.getMessage().contains("Ambiguous FactPackBuilder resolution"));
-        verify(builderA, never()).buildFactPack(any());
-        verify(builderB, never()).buildFactPack(any());
-        verify(explanationGenerator, never()).generateExplanation(any(), any());
+        assertTrue(ex.getMessage().contains("Duplicate FactPackBuilder registration"));
     }
 
     @Test
@@ -143,8 +134,8 @@ class ExplanationServiceImplEdgeCaseTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(null);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(null);
 
         // Should handle null gracefully by refusing, not crashing
         Explanation result = service.generateExplanation(request);
@@ -163,8 +154,8 @@ class ExplanationServiceImplEdgeCaseTest {
         // Satisfy pre-provider gates
         factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m0", null, null, null, null, null));
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(null);
 
         // Should handle null gracefully by refusing, not crashing
@@ -187,8 +178,8 @@ class ExplanationServiceImplEdgeCaseTest {
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m1", null, null, null, null, null));
         Explanation explanation = new Explanation("Some explanation", List.of());
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
@@ -204,8 +195,8 @@ class ExplanationServiceImplEdgeCaseTest {
             Map.of("datasetSource", "mbie.generation.annual")
         );
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request))
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class)))
             .thenThrow(new RuntimeException("Database connection failed"));
 
         Explanation result = service.generateExplanation(request);
@@ -225,8 +216,8 @@ class ExplanationServiceImplEdgeCaseTest {
         // Satisfy pre-provider gates
         factPack.getGuardrails().setAllowedClaims(List.of("claim:trend"));
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m2", null, null, null, null, null));
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any()))
             .thenThrow(new RuntimeException("LLM provider unavailable"));
 
@@ -248,8 +239,8 @@ class ExplanationServiceImplEdgeCaseTest {
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("m3", null, null, null, null, null));
         Explanation explanation = new Explanation("Some explanation", List.of("m3"));
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
@@ -259,7 +250,7 @@ class ExplanationServiceImplEdgeCaseTest {
 
     @Test
     void testEmptyBuilderList() {
-        ExplanationService emptyService = new ExplanationServiceImpl(List.of(), explanationGenerator);
+        ExplanationService emptyService = new ExplanationServiceImpl(List.of(), explanationGenerator, validationService, requestNormalizer);
         
         ExplanationRequest request = new ExplanationRequest(
             "fuel_generation_trend",
@@ -275,13 +266,18 @@ class ExplanationServiceImplEdgeCaseTest {
     @Test
     void testNullProviderInConstructor() {
         // Should handle null provider gracefully in constructor
-        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(List.of(factPackBuilder), null));
+        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(List.of(factPackBuilder), null, validationService, requestNormalizer));
     }
 
     @Test
     void testNullBuilderListInConstructor() {
         // Should handle null builder list gracefully in constructor
-        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(null, explanationGenerator));
+        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(null, explanationGenerator, validationService, requestNormalizer));
+    }
+
+    @Test
+    void testNullValidationServiceInConstructor() {
+        assertThrows(IllegalArgumentException.class, () -> new ExplanationServiceImpl(List.of(factPackBuilder), explanationGenerator, null, requestNormalizer));
     }
 
     @Test
@@ -297,8 +293,8 @@ class ExplanationServiceImplEdgeCaseTest {
         factPack.getFacts().getMetrics().add(new nz.waiwatts.explanations.dto.MetricFact("metric:mbie:generation_gwh:2023:HYDRO", null, null, null, null, null));
         Explanation explanation = new Explanation("Successful explanation", List.of("metric:mbie:generation_gwh:2023:HYDRO"));
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation("fuel_generation_trend", factPack)).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
@@ -308,8 +304,8 @@ class ExplanationServiceImplEdgeCaseTest {
         assertEquals(List.of("metric:mbie:generation_gwh:2023:HYDRO"), result.getCitations());
 
         // Verify all components were called correctly
-        verify(factPackBuilder).canHandle(request);
-        verify(factPackBuilder).buildFactPack(request);
+        verify(factPackBuilder, atLeastOnce()).getSupportedDatasetSourceCode();
+        verify(factPackBuilder).buildFactPack(any(ExplanationRequest.class));
         verify(explanationGenerator).generateExplanation("fuel_generation_trend", factPack);
         verify(explanationGenerator, never()).validateCitations(any(), any());
         assertEquals(1.0, meterRegistry.get("waiwatts.explanation.stage.count").tag("stage", "provider").counter().count());
@@ -335,8 +331,8 @@ class ExplanationServiceImplEdgeCaseTest {
             List.of("metric:lawa:excellent_sites_percentage:canterbury")
         );
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("lawa.water_quality.state.multi_year");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
@@ -360,8 +356,8 @@ class ExplanationServiceImplEdgeCaseTest {
             List.of("metric:lawa:improving_sites_percentage:canterbury")
         );
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("lawa.water_quality.state.multi_year");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
@@ -384,8 +380,8 @@ class ExplanationServiceImplEdgeCaseTest {
         );
         Explanation explanation = new Explanation("Some explanation", List.of());
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);
@@ -411,8 +407,8 @@ class ExplanationServiceImplEdgeCaseTest {
             List.of("metric:mbie:generation_gwh:2024:HYDRO")
         );
 
-        when(factPackBuilder.canHandle(request)).thenReturn(true);
-        when(factPackBuilder.buildFactPack(request)).thenReturn(factPack);
+        when(factPackBuilder.getSupportedDatasetSourceCode()).thenReturn("mbie.generation.annual");
+        when(factPackBuilder.buildFactPack(any(ExplanationRequest.class))).thenReturn(factPack);
         when(explanationGenerator.generateExplanation(any(), any())).thenReturn(explanation);
 
         Explanation result = service.generateExplanation(request);

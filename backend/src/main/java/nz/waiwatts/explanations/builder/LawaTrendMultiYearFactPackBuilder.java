@@ -5,6 +5,7 @@ import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.*;
+import nz.waiwatts.lawa.LawaBindingNormalization;
 import nz.waiwatts.persistence.repositories.LawaTrendMultiYearRecordRepository;
 
 import java.math.BigDecimal;
@@ -57,11 +58,6 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
     }
 
     @Override
-    public boolean canHandle(ExplanationRequest request) {
-        return FactPackBuilderSupport.supportsDatasetSource(request, LAWA_TREND_DATASET);
-    }
-
-    @Override
     public String getSupportedDatasetSourceCode() {
         return LAWA_TREND_DATASET;
     }
@@ -85,7 +81,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         if (filters != null && !filters.isEmpty()) {
             Object indObj = filters.get(FilterKey.INDICATOR.wireValue());
             if (indObj instanceof String str && !str.isBlank()) {
-                indicatorFilter = str.trim().toLowerCase(Locale.ROOT);
+                indicatorFilter = LawaBindingNormalization.normalizeTrendIndicatorForQuery(str);
             }
         }
 
@@ -93,7 +89,7 @@ public class LawaTrendMultiYearFactPackBuilder implements FactPackBuilder {
         if (filters != null && !filters.isEmpty()) {
             Object regObj = filters.get(FilterKey.REGION.wireValue());
             if (regObj instanceof String str && !str.isBlank()) {
-                regionFilter = str.trim().toLowerCase(Locale.ROOT);
+                regionFilter = LawaBindingNormalization.normalizeRegionForQuery(str);
             }
         }
 

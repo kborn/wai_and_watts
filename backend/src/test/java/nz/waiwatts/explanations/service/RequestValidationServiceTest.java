@@ -14,7 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RequestValidationServiceTest {
 
     private final RequestValidationService service =
-        new RequestValidationService(new CapabilityRegistry(new DatasetCatalog()));
+        new RequestValidationService(
+            new ContractValidator(new CapabilityRegistry(new DatasetCatalog()))
+        );
 
     @Test
     void validatesHappyPathForMbieRequest() {
@@ -197,7 +199,7 @@ class RequestValidationServiceTest {
         RequestValidationService.ValidationResult result = service.validateRequest(request);
 
         assertEquals("MISSING_REQUIRED_FILTERS", result.getRefusalCategory());
-        assertEquals("fuel_type_comparison requires fuelType and fuelTypeB", result.getRefusalMessage());
+        assertEquals("Missing required filters: fuelTypeB", result.getRefusalMessage());
     }
 
     @Test
