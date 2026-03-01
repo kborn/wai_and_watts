@@ -969,6 +969,8 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
   - [x] Add a shared `ContractValidator` to authoritatively validate dataset/question/binding compatibility server-side.
   - [x] Make `DatasetSelectionService` consult contracts for candidate pruning and final compatibility checks.
   - [x] Remove duplicated compatibility ownership from builders so builder failures are limited to build-local/runtime concerns.
+- [x] Add bounded LAWA question type expansion
+  - [x] Implement `guideline_exceedance_sites` on LAWA state data with optional `indicator` and `region` bindings plus implicit `stateCategory=POOR`.
 - [x] Code cleanup
   - [x] Static analysis
     - [x] Uncalled methods

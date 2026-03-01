@@ -29,6 +29,7 @@ public class QuestionTypeCatalog {
         DESCRIPTION_OVERRIDES.put(QuestionType.FUEL_TYPE_COMPARISON.wireValue(), "Compare two fuel types (e.g., hydro vs geothermal)");
         DESCRIPTION_OVERRIDES.put(QuestionType.GENERATION_MIX_OVERVIEW.wireValue(), "Summarize main sources of electricity generation");
         DESCRIPTION_OVERRIDES.put(QuestionType.WATER_QUALITY_OVERVIEW.wireValue(), "Provide overview of water quality state distribution");
+        DESCRIPTION_OVERRIDES.put(QuestionType.GUIDELINE_EXCEEDANCE_SITES.wireValue(), "List sites with guideline exceedances in the latest available year");
         DESCRIPTION_OVERRIDES.put(QuestionType.REGIONAL_WATER_QUALITY.wireValue(), "Compare water quality across regions");
         DESCRIPTION_OVERRIDES.put(QuestionType.WATER_QUALITY_TRENDS.wireValue(), "Explain overall water quality trend distribution");
         DESCRIPTION_OVERRIDES.put(QuestionType.IMPROVING_SITES_TREND.wireValue(), "Explain trends in improving water quality sites");

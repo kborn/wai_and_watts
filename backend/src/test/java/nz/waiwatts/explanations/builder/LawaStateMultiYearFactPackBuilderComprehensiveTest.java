@@ -349,6 +349,120 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
     }
 
     @Test
+    void testBuildFactPack_GuidelineExceedanceSites_DeduplicatesSitesInLatestYear() {
+        DatasetRelease release = createDatasetRelease();
+
+        LawaStateMultiYearRecord latestPoorA = new LawaStateMultiYearRecord();
+        latestPoorA.setLawaSiteId("SITE001");
+        latestPoorA.setSiteName("Auckland Site One");
+        latestPoorA.setRegion("Auckland");
+        latestPoorA.setIndicatorRaw("E. coli");
+        latestPoorA.setIndicatorNorm("ecoli");
+        latestPoorA.setAttributeBand("D");
+        latestPoorA.setStateNorm("POOR");
+        latestPoorA.setPeriodType("HYDRO_NYR_WINDOW");
+        latestPoorA.setPeriodStartYear(2020);
+        latestPoorA.setPeriodEndYear(2024);
+        latestPoorA.setDatasetRelease(release);
+
+        LawaStateMultiYearRecord latestPoorDuplicateIndicator = new LawaStateMultiYearRecord();
+        latestPoorDuplicateIndicator.setLawaSiteId("SITE001");
+        latestPoorDuplicateIndicator.setSiteName("Auckland Site One");
+        latestPoorDuplicateIndicator.setRegion("Auckland");
+        latestPoorDuplicateIndicator.setIndicatorRaw("Nitrate");
+        latestPoorDuplicateIndicator.setIndicatorNorm("nitrate_toxicity");
+        latestPoorDuplicateIndicator.setAttributeBand("E");
+        latestPoorDuplicateIndicator.setStateNorm("POOR");
+        latestPoorDuplicateIndicator.setPeriodType("HYDRO_NYR_WINDOW");
+        latestPoorDuplicateIndicator.setPeriodStartYear(2020);
+        latestPoorDuplicateIndicator.setPeriodEndYear(2024);
+        latestPoorDuplicateIndicator.setDatasetRelease(release);
+
+        LawaStateMultiYearRecord latestPoorB = new LawaStateMultiYearRecord();
+        latestPoorB.setLawaSiteId("SITE002");
+        latestPoorB.setSiteName("Auckland Site Two");
+        latestPoorB.setRegion("Auckland");
+        latestPoorB.setIndicatorRaw("E. coli");
+        latestPoorB.setIndicatorNorm("ecoli");
+        latestPoorB.setAttributeBand("D");
+        latestPoorB.setStateNorm("POOR");
+        latestPoorB.setPeriodType("HYDRO_NYR_WINDOW");
+        latestPoorB.setPeriodStartYear(2020);
+        latestPoorB.setPeriodEndYear(2024);
+        latestPoorB.setDatasetRelease(release);
+
+        LawaStateMultiYearRecord olderPoor = new LawaStateMultiYearRecord();
+        olderPoor.setLawaSiteId("SITE003");
+        olderPoor.setSiteName("Older Poor Site");
+        olderPoor.setRegion("Auckland");
+        olderPoor.setIndicatorRaw("E. coli");
+        olderPoor.setIndicatorNorm("ecoli");
+        olderPoor.setAttributeBand("D");
+        olderPoor.setStateNorm("POOR");
+        olderPoor.setPeriodType("HYDRO_NYR_WINDOW");
+        olderPoor.setPeriodStartYear(2019);
+        olderPoor.setPeriodEndYear(2023);
+        olderPoor.setDatasetRelease(release);
+
+        when(repository.findForReadApi(any(), any(), any(), any()))
+            .thenReturn(List.of(latestPoorA, latestPoorDuplicateIndicator, latestPoorB, olderPoor));
+
+        FactPack factPack = builder.buildFactPack(new ExplanationRequest(
+            "guideline_exceedance_sites",
+            "lawa.water_quality.state.multi_year",
+            Map.of("region", "auckland")
+        ));
+
+        assertEquals(1, factPack.getFacts().getMetrics().size());
+        assertEquals(new BigDecimal("2"), factPack.getFacts().getMetrics().getFirst().getValue());
+        assertEquals(2, factPack.getFacts().getClassifications().size());
+        assertTrue(factPack.getFacts().getClassifications().stream().allMatch(c -> c.getId().contains(":2024:")));
+    }
+
+    @Test
+    void testBuildFactPack_GuidelineExceedanceSites_UsesLatestAvailableYearNotLatestPoorYear() {
+        DatasetRelease release = createDatasetRelease();
+
+        LawaStateMultiYearRecord poor2023 = new LawaStateMultiYearRecord();
+        poor2023.setLawaSiteId("SITE001");
+        poor2023.setSiteName("Older Poor Site");
+        poor2023.setRegion("Auckland");
+        poor2023.setIndicatorRaw("E. coli");
+        poor2023.setIndicatorNorm("ecoli");
+        poor2023.setAttributeBand("D");
+        poor2023.setStateNorm("POOR");
+        poor2023.setPeriodType("HYDRO_NYR_WINDOW");
+        poor2023.setPeriodStartYear(2019);
+        poor2023.setPeriodEndYear(2023);
+        poor2023.setDatasetRelease(release);
+
+        LawaStateMultiYearRecord good2024 = new LawaStateMultiYearRecord();
+        good2024.setLawaSiteId("SITE002");
+        good2024.setSiteName("Latest Good Site");
+        good2024.setRegion("Auckland");
+        good2024.setIndicatorRaw("E. coli");
+        good2024.setIndicatorNorm("ecoli");
+        good2024.setAttributeBand("A");
+        good2024.setStateNorm("EXCELLENT");
+        good2024.setPeriodType("HYDRO_NYR_WINDOW");
+        good2024.setPeriodStartYear(2020);
+        good2024.setPeriodEndYear(2024);
+        good2024.setDatasetRelease(release);
+
+        when(repository.findForReadApi(any(), any(), any(), any()))
+            .thenReturn(List.of(poor2023, good2024));
+
+        FactPack factPack = builder.buildFactPack(new ExplanationRequest(
+            "guideline_exceedance_sites",
+            "lawa.water_quality.state.multi_year",
+            Map.of("region", "auckland")
+        ));
+
+        assertTrue(factPack.getFacts().getMetrics().isEmpty());
+        assertTrue(factPack.getFacts().getClassifications().isEmpty());
+    }
+
+    @Test
     void testBuildFactPack_WithTimeRangeFilters_AppliesCorrectly() {
         // Setup test data spanning multiple years
         DatasetRelease release = createDatasetRelease();

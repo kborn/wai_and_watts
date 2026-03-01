@@ -456,6 +456,26 @@ public class CapabilityRegistry {
                 "Track POOR state-category sites for E. coli in Auckland."
             )
         ));
+        capabilities.put(QuestionType.GUIDELINE_EXCEEDANCE_SITES, new CapabilityDefinition(
+            QuestionType.GUIDELINE_EXCEEDANCE_SITES,
+            "Guideline Exceedance Sites",
+            "List distinct sites with guideline exceedances in the latest available year",
+            orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
+            orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.STATE_CATEGORY),
+            List.of(),
+            Map.of(FilterKey.STATE_CATEGORY, "POOR"),
+            List.of(),
+            orderedSet(MetricType.SITE_COUNT),
+            MetricType.SITE_COUNT,
+            List.of(
+                "Which sites exceeded the guideline last year?",
+                "Which {indicator} sites exceeded the guideline in {region}?"
+            ),
+            List.of(
+                "Which sites exceeded the guideline last year?",
+                "Which E. coli sites exceeded the guideline in Auckland?"
+            )
+        ));
         capabilities.put(QuestionType.REGIONAL_WATER_QUALITY, new CapabilityDefinition(
             QuestionType.REGIONAL_WATER_QUALITY,
             "Regional Water Quality Comparison",

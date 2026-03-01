@@ -18,6 +18,7 @@ public class DemoIntentParser implements IntentParser {
     private static final String Q_GENERATION_MIX = "what are the main sources of electricity generation in new zealand";
     private static final String Q_FUEL_COMPARE = "compare hydro and geothermal generation patterns";
     private static final String Q_HYDRO_TREND = "explain hydro generation trends between 2018 and 2023";
+    private static final String Q_GUIDELINE_EXCEEDANCE = "which e. coli sites exceeded the guideline in auckland";
 
     @Override
     public ExplanationRequest parseQuestion(String question) {
@@ -50,6 +51,14 @@ public class DemoIntentParser implements IntentParser {
                     FilterKey.START_YEAR.wireValue(), 2018,
                     FilterKey.END_YEAR.wireValue(), 2023,
                     FilterKey.FUEL_TYPE.wireValue(), "HYDRO"
+                )
+            );
+            case Q_GUIDELINE_EXCEEDANCE -> new ExplanationRequest(
+                QuestionType.GUIDELINE_EXCEEDANCE_SITES.wireValue(),
+                DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue(),
+                Map.of(
+                    FilterKey.INDICATOR.wireValue(), "E. coli",
+                    FilterKey.REGION.wireValue(), "Auckland"
                 )
             );
             default -> null;

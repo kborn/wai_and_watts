@@ -10,6 +10,7 @@ public enum QuestionType {
     GENERATION_MIX_OVERVIEW("generation_mix_overview"),
     WATER_QUALITY_OVERVIEW("water_quality_overview"),
     WATER_QUALITY_STATE_SITES_TREND("water_quality_state_sites_trend"),
+    GUIDELINE_EXCEEDANCE_SITES("guideline_exceedance_sites"),
     REGIONAL_WATER_QUALITY("regional_water_quality"),
     WATER_QUALITY_TRENDS("water_quality_trends"),
     IMPROVING_SITES_TREND("improving_sites_trend"),
