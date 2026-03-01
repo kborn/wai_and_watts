@@ -191,13 +191,6 @@ public class CapabilityRegistry {
                 row.put("requiredFilters", requiredFilters);
                 row.put("optionalFilters", optionalFilters);
                 row.put("supportedFilters", toWireSet(capability.supportedFilters(), FilterKey::wireValue));
-                row.put("implicitFilters", capability.implicitBindings().entrySet().stream()
-                    .collect(Collectors.toMap(
-                        entry -> entry.getKey().wireValue(),
-                        Map.Entry::getValue,
-                        (a, b) -> a,
-                        LinkedHashMap::new
-                    )));
                 row.put("metricTypes", toWireSet(capability.metricTypes(), MetricType::wireValue));
                 row.put("defaultMetricType", capability.defaultMetricType().wireValue());
                 row.put("exampleTemplates", capability.exampleTemplates());
