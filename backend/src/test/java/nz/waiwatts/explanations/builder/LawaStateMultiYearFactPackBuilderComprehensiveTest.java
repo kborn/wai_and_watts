@@ -87,6 +87,23 @@ class LawaStateMultiYearFactPackBuilderComprehensiveTest {
     }
 
     @Test
+    void testBuildFactPack_WithDisplayIndicatorLabel_NormalizesBeforeRepositoryQuery() {
+        when(repository.findForReadApi(any(), any(), any(), any())).thenReturn(List.of());
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("water_quality_overview");
+        request.setFilters(Map.of(
+            "datasetSource", "lawa.water_quality.state.multi_year",
+            "indicator", "E. coli",
+            "region", "Auckland"
+        ));
+
+        builder.buildFactPack(request);
+
+        verify(repository).findForReadApi(null, null, "ecoli", "auckland");
+    }
+
+    @Test
     void testBuildFactPack_WaterQualityOverview_CreatesClassificationsAndMetrics() {
         // Setup test data with various state classifications
         DatasetRelease release = createDatasetRelease();

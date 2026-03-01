@@ -191,7 +191,6 @@ public class IntentParserServiceImpl implements IntentParserService {
 
         return request;
     }
-
     private void removeNullishCategoricalFilters(Map<String, Object> filters) {
         Set<String> keysToRemove = new LinkedHashSet<>();
         for (String filterKey : NULLABLE_CATEGORICAL_FILTERS) {

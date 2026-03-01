@@ -87,6 +87,23 @@ class LawaTrendMultiYearFactPackBuilderComprehensiveTest {
     }
 
     @Test
+    void testBuildFactPack_WithDisplayIndicatorLabel_NormalizesBeforeRepositoryQuery() {
+        when(repository.findForAsk(any(), any(), any(), any(), any())).thenReturn(List.of());
+
+        ExplanationRequest request = new ExplanationRequest();
+        request.setQuestionType("water_quality_trends");
+        request.setFilters(Map.of(
+            "datasetSource", "lawa.water_quality.trend.multi_year",
+            "indicator", "E. coli",
+            "region", "Auckland"
+        ));
+
+        builder.buildFactPack(request);
+
+        verify(repository).findForAsk(null, null, "ecoli", "auckland", null);
+    }
+
+    @Test
     void testBuildFactPack_WaterQualityTrends_CreatesClassificationsAndMetrics() {
         // Setup test data with various trend classifications
         DatasetRelease release = createDatasetRelease();
