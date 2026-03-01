@@ -11,7 +11,7 @@ import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
 import nz.waiwatts.explanations.dataset.DatasetDescriptor;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
-import nz.waiwatts.explanations.provider.OpenAiResponseClient;
+import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -34,14 +34,14 @@ public class DatasetSelectionService {
     );
 
     private final DatasetCatalog datasetCatalog;
-    private final OpenAiResponseClient client;
+    private final OpenAiApiClient client;
     private final ObjectMapper objectMapper;
     private final LlmProperties llmProperties;
     private final QuestionTypeCatalog questionTypeCatalog;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
-        OpenAiResponseClient client,
+        OpenAiApiClient client,
         ObjectMapper objectMapper,
         LlmProperties llmProperties,
         QuestionTypeCatalog questionTypeCatalog

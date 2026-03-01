@@ -2,13 +2,13 @@ package nz.waiwatts.explanations.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
-import nz.waiwatts.explanations.provider.ExplanationProvider;
-import nz.waiwatts.explanations.provider.OpenAiExplanationProvider;
-import nz.waiwatts.explanations.provider.OpenAiResponseClient;
-import nz.waiwatts.explanations.provider.StubExplanationProvider;
+import nz.waiwatts.explanations.generator.ExplanationGenerator;
+import nz.waiwatts.explanations.generator.OpenAiExplanationGenerator;
+import nz.waiwatts.explanations.generator.DemoExplanationGenerator;
+import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import nz.waiwatts.explanations.parser.IntentParser;
 import nz.waiwatts.explanations.parser.OpenAiIntentParser;
-import nz.waiwatts.explanations.parser.HardcodedDemoIntentParser;
+import nz.waiwatts.explanations.parser.DemoIntentParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -39,35 +39,35 @@ public class LlmProviderConfig {
     }
 
     @Bean
-    public ExplanationProvider explanationProvider(
+    public ExplanationGenerator explanationGenerator(
         LlmProperties properties,
         ObjectMapper objectMapper,
-        OpenAiResponseClient client
+        OpenAiApiClient client
     ) {
         if (!properties.isConfigured()) {
-            log.info("LLM not configured (model/apiKey missing). Using StubExplanationProvider.");
-            return new StubExplanationProvider();
+            log.info("LLM not configured (model/apiKey missing). Using DemoExplanationGenerator.");
+            return new DemoExplanationGenerator();
         }
 
         if (properties.getProvider() == LlmProvider.OPENAI) {
             log.info("LLM configured: provider=OPENAI model={}", properties.getModel());
-            return new OpenAiExplanationProvider(client, objectMapper, properties.getModel());
+            return new OpenAiExplanationGenerator(client, objectMapper, properties.getModel());
         }
 
-        log.warn("LLM provider '{}' not recognized. Falling back to StubExplanationProvider.", properties.getProvider());
-        return new StubExplanationProvider();
+        log.warn("LLM provider '{}' not recognized. Falling back to DemoExplanationGenerator.", properties.getProvider());
+        return new DemoExplanationGenerator();
     }
 
     @Bean
     public IntentParser intentParser(
         LlmProperties properties,
         ObjectMapper objectMapper,
-        OpenAiResponseClient client,
+        OpenAiApiClient client,
         CapabilityRegistry capabilityRegistry
     ) {
         if (!properties.isConfigured()) {
-            log.info("LLM not configured (model/apiKey missing). Using HardcodedDemoIntentParser.");
-            return new HardcodedDemoIntentParser();
+            log.info("LLM not configured (model/apiKey missing). Using DemoIntentParser.");
+            return new DemoIntentParser();
         }
 
         if (properties.getProvider() == LlmProvider.OPENAI) {
@@ -75,16 +75,16 @@ public class LlmProviderConfig {
             return new OpenAiIntentParser(client, objectMapper, properties.getModel(), capabilityRegistry);
         }
 
-        log.warn("LLM provider '{}' not recognized. Using HardcodedDemoIntentParser.", properties.getProvider());
-        return new HardcodedDemoIntentParser();
+        log.warn("LLM provider '{}' not recognized. Using DemoIntentParser.", properties.getProvider());
+        return new DemoIntentParser();
     }
 
     @Bean
-    public OpenAiResponseClient openAiResponseClient(
+    public OpenAiApiClient openAiApiClient(
         LlmProperties properties,
         ObjectMapper objectMapper,
         HttpClient llmHttpClient
     ) {
-        return new OpenAiResponseClient(llmHttpClient, objectMapper, properties);
+        return new OpenAiApiClient(llmHttpClient, objectMapper, properties);
     }
 }

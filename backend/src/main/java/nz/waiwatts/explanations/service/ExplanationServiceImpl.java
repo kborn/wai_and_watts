@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.Metrics;
 import nz.waiwatts.explanations.builder.FactPackBuilder;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.dto.*;
-import nz.waiwatts.explanations.provider.ExplanationProvider;
+import nz.waiwatts.explanations.generator.ExplanationGenerator;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -23,17 +23,17 @@ public class ExplanationServiceImpl implements ExplanationService {
     private static final Logger log = LoggerFactory.getLogger(ExplanationServiceImpl.class);
 
     private final List<FactPackBuilder> factPackBuilders;
-    private final ExplanationProvider explanationProvider;
+    private final ExplanationGenerator explanationGenerator;
 
-    public ExplanationServiceImpl(List<FactPackBuilder> factPackBuilders, ExplanationProvider explanationProvider) {
+    public ExplanationServiceImpl(List<FactPackBuilder> factPackBuilders, ExplanationGenerator explanationGenerator) {
         if (factPackBuilders == null) {
             throw new IllegalArgumentException("FactPack builders list cannot be null");
         }
-        if (explanationProvider == null) {
-            throw new IllegalArgumentException("ExplanationProvider cannot be null");
+        if (explanationGenerator == null) {
+            throw new IllegalArgumentException("ExplanationGenerator cannot be null");
         }
         this.factPackBuilders = factPackBuilders;
-        this.explanationProvider = explanationProvider;
+        this.explanationGenerator = explanationGenerator;
     }
 
     @Override
@@ -114,7 +114,7 @@ public class ExplanationServiceImpl implements ExplanationService {
         Explanation explanation;
         try {
             long providerStart = System.nanoTime();
-            explanation = explanationProvider.generateExplanation(request.getQuestionType(), factPack);
+            explanation = explanationGenerator.generateExplanation(request.getQuestionType(), factPack);
             long providerDurationMs = (System.nanoTime() - providerStart) / 1_000_000;
             recordExplanationStageMetrics("provider", providerDurationMs);
         } catch (RuntimeException e) {

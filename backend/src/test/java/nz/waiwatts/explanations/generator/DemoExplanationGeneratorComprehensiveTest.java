@@ -1,4 +1,4 @@
-package nz.waiwatts.explanations.provider;
+package nz.waiwatts.explanations.generator;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
@@ -15,15 +15,15 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Additional comprehensive tests for StubExplanationProvider
+ * Additional comprehensive tests for DemoExplanationGenerator
  */
-class StubExplanationProviderComprehensiveTest {
+class DemoExplanationGeneratorComprehensiveTest {
 
-    private StubExplanationProvider provider;
+    private DemoExplanationGenerator generator;
 
     @BeforeEach
     void setUp() {
-        provider = new StubExplanationProvider();
+        generator = new DemoExplanationGenerator();
     }
 
     @Test
@@ -37,7 +37,7 @@ class StubExplanationProviderComprehensiveTest {
         );
         
         // With exact-match policy, partial/substring matches must NOT pass
-        assertFalse(provider.validateCitations(explanation, factPack));
+        assertFalse(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -51,7 +51,7 @@ class StubExplanationProviderComprehensiveTest {
         );
         
         // Should fail validation
-        assertFalse(provider.validateCitations(partialExplanation, factPack));
+        assertFalse(generator.validateCitations(partialExplanation, factPack));
         
         // Create explanation with all required citations
         Explanation completeExplanation = new Explanation(
@@ -64,7 +64,7 @@ class StubExplanationProviderComprehensiveTest {
         );
         
         // Should pass validation
-        assertTrue(provider.validateCitations(completeExplanation, factPack));
+        assertTrue(generator.validateCitations(completeExplanation, factPack));
     }
 
     @Test
@@ -77,7 +77,7 @@ class StubExplanationProviderComprehensiveTest {
             List.of("metric:lawa:improving_sites_pct:canterbury")
         );
 
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -90,7 +90,7 @@ class StubExplanationProviderComprehensiveTest {
             List.of("class:lawa:water_quality_state:good")
         );
 
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -104,7 +104,7 @@ class StubExplanationProviderComprehensiveTest {
         emptyFactPack.getGuardrails().setRequiredCitations(List.of("ts:mbie:renewable_generation_gwh:2018_2024"));
         // No facts added
         
-        Explanation explanation = provider.generateExplanation("renewable_generation_trend", emptyFactPack);
+        Explanation explanation = generator.generateExplanation("renewable_generation_trend", emptyFactPack);
         
         // Should be a refusal due to insufficient data
         assertTrue(explanation.isRefusal());
@@ -116,8 +116,8 @@ class StubExplanationProviderComprehensiveTest {
         FactPack factPack = createTimeSeriesFactPack();
         
         // Generate explanation twice
-        Explanation explanation1 = provider.generateExplanation("renewable_generation_trend", factPack);
-        Explanation explanation2 = provider.generateExplanation("renewable_generation_trend", factPack);
+        Explanation explanation1 = generator.generateExplanation("renewable_generation_trend", factPack);
+        Explanation explanation2 = generator.generateExplanation("renewable_generation_trend", factPack);
         
         // Should be identical (deterministic)
         assertEquals(explanation1.getExplanationText(), explanation2.getExplanationText());
@@ -129,7 +129,7 @@ class StubExplanationProviderComprehensiveTest {
     void testExplanationForHydroGenerationTrend() {
         FactPack factPack = createHydroFactPack();
         
-        Explanation explanation = provider.generateExplanation("fuel_generation_trend", factPack);
+        Explanation explanation = generator.generateExplanation("fuel_generation_trend", factPack);
         
         // Should not be a refusal
         assertFalse(explanation.isRefusal());
@@ -144,14 +144,14 @@ class StubExplanationProviderComprehensiveTest {
         assertFalse(explanation.getCitations().isEmpty());
         
         // Should validate citations
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
     void testExplanationForFuelTypeComparison() {
         FactPack factPack = createMetricFactPack();
         
-        Explanation explanation = provider.generateExplanation("fuel_type_comparison", factPack);
+        Explanation explanation = generator.generateExplanation("fuel_type_comparison", factPack);
         
         // Should not be a refusal
         assertFalse(explanation.isRefusal());
@@ -164,26 +164,26 @@ class StubExplanationProviderComprehensiveTest {
         assertEquals(3, explanation.getCitations().size());
         
         // Should validate citations
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
     void testExplanationForGenerationMixOverview() {
         FactPack factPack = createMetricFactPack();
 
-        Explanation explanation = provider.generateExplanation("generation_mix_overview", factPack);
+        Explanation explanation = generator.generateExplanation("generation_mix_overview", factPack);
 
         assertFalse(explanation.isRefusal());
         assertTrue(explanation.getExplanationText().contains("largest contributor"));
         assertEquals(3, explanation.getCitations().size());
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
     void testRefusalForUnknownQuestionType() {
         FactPack factPack = createTimeSeriesFactPack();
         
-        Explanation explanation = provider.generateExplanation("unknown_question_type", factPack);
+        Explanation explanation = generator.generateExplanation("unknown_question_type", factPack);
         
         // Should be a refusal
         assertTrue(explanation.isRefusal());
@@ -194,14 +194,14 @@ class StubExplanationProviderComprehensiveTest {
     void testWaterQualityOverviewIncludesMetricCitationsForNumericClaims() {
         FactPack factPack = createWaterQualityOverviewFactPack();
 
-        Explanation explanation = provider.generateExplanation("water_quality_overview", factPack);
+        Explanation explanation = generator.generateExplanation("water_quality_overview", factPack);
 
         assertFalse(explanation.isRefusal());
         assertTrue(explanation.getExplanationText().contains("42.50%"));
         assertTrue(explanation.getExplanationText().contains("11.00%"));
         assertTrue(explanation.getCitations().contains("metric:lawa:excellent_sites_percentage:canterbury"));
         assertTrue(explanation.getCitations().contains("metric:lawa:poor_sites_percentage:canterbury"));
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     @Test
@@ -224,11 +224,11 @@ class StubExplanationProviderComprehensiveTest {
         factPack.getGuardrails().setAllowedClaims(List.of("trend_distribution", "classification_summary"));
         factPack.getGuardrails().setRequiredCitations(List.of("class:lawa:water_quality_trend:IMPROVING"));
 
-        Explanation explanation = provider.generateExplanation("water_quality_trends", factPack);
+        Explanation explanation = generator.generateExplanation("water_quality_trends", factPack);
 
         assertFalse(explanation.isRefusal());
         assertTrue(explanation.getExplanationText().contains("distribution of trend directions"));
-        assertTrue(provider.validateCitations(explanation, factPack));
+        assertTrue(generator.validateCitations(explanation, factPack));
     }
 
     private FactPack createHydroFactPack() {

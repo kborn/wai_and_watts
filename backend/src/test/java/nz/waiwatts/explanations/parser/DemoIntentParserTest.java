@@ -7,9 +7,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class HardcodedDemoIntentParserTest {
+class DemoIntentParserTest {
 
-    private final HardcodedDemoIntentParser parser = new HardcodedDemoIntentParser();
+    private final DemoIntentParser parser = new DemoIntentParser();
 
     @Test
     void parsesRenewableTrendSample() {

@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import nz.waiwatts.explanations.builder.FactPackBuilder;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
-import nz.waiwatts.explanations.provider.ExplanationProvider;
+import nz.waiwatts.explanations.generator.ExplanationGenerator;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -173,32 +173,32 @@ class ArchitectureFitnessContractTest {
     }
 
     @Test
-    void explanationProvidersMustHonorFactPackBoundary() throws Exception {
+    void explanationGeneratorsMustHonorFactPackBoundary() throws Exception {
         List<String> violations = new ArrayList<>();
-        for (Class<?> providerClass : findProjectClasses()) {
-            if (!isConcreteExplanationProvider(providerClass)) {
+        for (Class<?> generatorClass : findProjectClasses()) {
+            if (!isConcreteExplanationGenerator(generatorClass)) {
                 continue;
             }
 
-            assertTrue(ExplanationProvider.class.isAssignableFrom(providerClass),
-                providerClass.getName() + " must implement ExplanationProvider");
+            assertTrue(ExplanationGenerator.class.isAssignableFrom(generatorClass),
+                generatorClass.getName() + " must implement ExplanationGenerator");
 
-            collectFieldAndConstructorViolations(providerClass, violations, type -> {
+            collectFieldAndConstructorViolations(generatorClass, violations, type -> {
                 if (isFromRepositoryPackage(type) || isFromDomainPackage(type)) {
-                    return providerClass.getName() + " crosses explanation boundary with " + type.getName();
+                    return generatorClass.getName() + " crosses explanation boundary with " + type.getName();
                 }
                 return null;
             });
 
-            Method generateExplanation = providerClass.getMethod("generateExplanation", String.class, FactPack.class);
+            Method generateExplanation = generatorClass.getMethod("generateExplanation", String.class, FactPack.class);
             assertEquals(Explanation.class, generateExplanation.getReturnType(),
-                providerClass.getName() + "#generateExplanation must return Explanation");
+                generatorClass.getName() + "#generateExplanation must return Explanation");
         }
         assertNoViolations(violations);
     }
 
     @Test
-    void factPackBuildersMustNotDependOnControllersOrProviders() {
+    void factPackBuildersMustNotDependOnControllersOrGenerators() {
         List<String> violations = new ArrayList<>();
         for (Class<?> builderClass : findProjectClasses()) {
             if (!isConcreteFactPackBuilder(builderClass)) {
@@ -208,8 +208,8 @@ class ArchitectureFitnessContractTest {
                 if (isRestController(type)) {
                     return builderClass.getName() + " must not depend on controller type " + type.getName();
                 }
-                if (isExplanationProviderType(type)) {
-                    return builderClass.getName() + " must not depend on explanation provider type " + type.getName();
+                if (isExplanationGeneratorType(type)) {
+                    return builderClass.getName() + " must not depend on explanation generator type " + type.getName();
                 }
                 return null;
             });
@@ -273,7 +273,7 @@ class ArchitectureFitnessContractTest {
                 continue;
             }
             boolean boundaryType = isRestController(projectClass)
-                || isConcreteExplanationProvider(projectClass)
+                || isConcreteExplanationGenerator(projectClass)
                 || isConcreteFactPackBuilder(projectClass);
             if (!boundaryType) {
                 continue;
@@ -394,12 +394,12 @@ class ArchitectureFitnessContractTest {
         return type.isAnnotationPresent(RestController.class);
     }
 
-    private boolean isConcreteExplanationProvider(Class<?> type) {
-        return isExplanationProviderType(type) && !type.isInterface() && !java.lang.reflect.Modifier.isAbstract(type.getModifiers());
+    private boolean isConcreteExplanationGenerator(Class<?> type) {
+        return isExplanationGeneratorType(type) && !type.isInterface() && !java.lang.reflect.Modifier.isAbstract(type.getModifiers());
     }
 
-    private boolean isExplanationProviderType(Class<?> type) {
-        return ExplanationProvider.class.isAssignableFrom(type);
+    private boolean isExplanationGeneratorType(Class<?> type) {
+        return ExplanationGenerator.class.isAssignableFrom(type);
     }
 
     private boolean isConcreteFactPackBuilder(Class<?> type) {

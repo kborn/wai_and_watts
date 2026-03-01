@@ -1,21 +1,21 @@
-package nz.waiwatts.explanations.provider;
+package nz.waiwatts.explanations.generator;
 
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
 
 /**
- * Interface for LLM providers that generate explanations from Fact Packs.
+ * Interface for components that generate explanations from Fact Packs.
  * <p>
- * LLM Provider Adapters are responsible for:
- * - Serializing Fact Pack + instructions to provider format
- * - Calling the provider
+ * Explanation generators are responsible for:
+ * - Serializing Fact Pack + instructions to generator-specific format
+ * - Calling an external LLM/API when needed
  * - Returning structured response
  * <p>
  * Must not query DB or modify facts.
  * Citation validation must follow the shared citation-validation layer rules
- * so stub and live providers cannot diverge.
+ * so stub and live generators cannot diverge.
  */
-public interface ExplanationProvider {
+public interface ExplanationGenerator {
     
     /**
      * Generates an explanation from a Fact Pack.

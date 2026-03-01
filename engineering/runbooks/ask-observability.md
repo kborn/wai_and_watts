@@ -125,7 +125,7 @@ Check:
 
 Likely causes:
 - uncaught runtime exception in ask flow
-- explanation provider failure
+- explanation generator failure
 - citation validation failure surfaced as an internal refusal path
 
 Check:

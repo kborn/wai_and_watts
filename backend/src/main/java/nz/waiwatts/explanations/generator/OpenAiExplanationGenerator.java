@@ -1,9 +1,10 @@
-package nz.waiwatts.explanations.provider;
+package nz.waiwatts.explanations.generator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
+import nz.waiwatts.explanations.llm.OpenAiApiClient;
 import nz.waiwatts.explanations.service.CitationValidationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,21 +12,21 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * OpenAI-backed ExplanationProvider.
+ * OpenAI-backed explanation generator.
  * <p>
  * Uses the Responses API in JSON mode and returns a structured Explanation.
  * All facts must come from the provided FactPack.
  * Citation validation uses the shared validation layer to stay aligned with stub behavior.
  */
-public class OpenAiExplanationProvider implements ExplanationProvider {
+public class OpenAiExplanationGenerator implements ExplanationGenerator {
 
-    private static final Logger log = LoggerFactory.getLogger(OpenAiExplanationProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenAiExplanationGenerator.class);
 
-    private final OpenAiResponseClient client;
+    private final OpenAiApiClient client;
     private final ObjectMapper objectMapper;
     private final String model;
 
-    public OpenAiExplanationProvider(OpenAiResponseClient client, ObjectMapper objectMapper, String model) {
+    public OpenAiExplanationGenerator(OpenAiApiClient client, ObjectMapper objectMapper, String model) {
         this.client = client;
         this.objectMapper = objectMapper;
         this.model = model;

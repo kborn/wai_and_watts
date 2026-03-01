@@ -8,7 +8,7 @@ import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dto.IntentParseResponse;
 import nz.waiwatts.explanations.parser.IntentParser;
-import nz.waiwatts.explanations.parser.HardcodedDemoIntentParser;
+import nz.waiwatts.explanations.parser.DemoIntentParser;
 import nz.waiwatts.explanations.parser.UnsupportedIntentDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class IntentParserServiceImpl implements IntentParserService {
     private final IntentParser intentParser;
     private final LlmProperties llmProperties;
     private final UnsupportedIntentDetector unsupportedIntentDetector;
-    private final HardcodedDemoIntentParser demoIntentParser = new HardcodedDemoIntentParser();
+    private final DemoIntentParser demoIntentParser = new DemoIntentParser();
     
     public IntentParserServiceImpl(
         IntentParser intentParser,
