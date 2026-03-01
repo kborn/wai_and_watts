@@ -125,13 +125,13 @@ Type-safe client connecting to Wai & Watts backend:
 
 ## Environment Variables
 
-Create `.env` file in root:
+The frontend supports:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
-## Phase 13 Success Criteria
+## UI Phase (Phase 13) Success Criteria
 
 ✅ All Definition of Done criteria met:
 

@@ -52,14 +52,25 @@ Deterministic refusal for unsupported queries
 The LLM interprets language only, the backend validates requests and computes facts/metrics, and supported capabilities are registry-driven and discoverable via `GET /api/v1/capabilities`.
 For non-refusal responses, citations are required and must map to Fact Pack fact IDs generated for that request.
 
-Reviewer entry point:
-- `docs/07-reviewer-quickstart.md`
+## Reviewer Quickstart
+
+➡️ Start here: **docs/07-reviewer-quickstart.md**
+
+This walks through architecture, ingestion, explanation safety, and operability proof in under 10 minutes.
 
 ------------------------------------------------------------------------
 
 # Quick Start (Local Development)
 
 The entire stack (Postgres, backend, frontend) runs via Docker Compose.
+
+## Environment setup
+
+Copy the checked-in template before starting if you want live LLM calls in Docker Compose:
+
+```bash
+cp .env.example .env
+```
 
 ## Start the application
 
@@ -96,6 +107,8 @@ Expected outcomes:
 - command 1 starts `postgres`, `backend`, and `frontend` containers with no build/runtime errors.
 - command 2 returns a health payload (HTTP 200).
 - command 3 returns a JSON dataset list (HTTP 200), confirming API + DB connectivity.
+
+Optional: enable live LLM behavior by setting `LLM_PROVIDER`, `LLM_MODEL`, and `LLM_API_KEY` in `.env`. If left blank, deterministic stub/demo behavior is used. Database/container wiring is already provided by `docker-compose.yml`.
 
 ------------------------------------------------------------------------
 

@@ -4,16 +4,14 @@ This walkthrough shows a quick local demo using the existing API surface.
 
 ## 1) Start the stack
 
+Copy the environment template first if you want live LLM calls:
+
 ```bash
-docker compose up -d --build
+cp .env.example .env
 ```
 
-Optional: enable live LLM output (otherwise deterministic stub behavior is used).
-
 ```bash
-export LLM_PROVIDER="OPENAI"
-export LLM_MODEL="gpt-4o-mini"
-export LLM_API_KEY="your_api_key"
+docker compose up -d --build
 ```
 
 ## 2) Ingest one dataset (fast path)
