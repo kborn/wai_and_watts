@@ -191,6 +191,13 @@ public class CapabilityRegistry {
                 row.put("requiredFilters", requiredFilters);
                 row.put("optionalFilters", optionalFilters);
                 row.put("supportedFilters", toWireSet(capability.supportedFilters(), FilterKey::wireValue));
+                row.put("implicitFilters", capability.implicitBindings().entrySet().stream()
+                    .collect(Collectors.toMap(
+                        entry -> entry.getKey().wireValue(),
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                    )));
                 row.put("metricTypes", toWireSet(capability.metricTypes(), MetricType::wireValue));
                 row.put("defaultMetricType", capability.defaultMetricType().wireValue());
                 row.put("exampleTemplates", capability.exampleTemplates());
@@ -274,6 +281,7 @@ public class CapabilityRegistry {
             capability.datasetSources(),
             allowedBindings,
             capability.requiredFilters(),
+            capability.implicitBindings(),
             capability.metricTypes(),
             capability.defaultMetricType()
         ));
@@ -332,6 +340,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.RENEWABLE_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -350,6 +359,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR, FilterKey.FUEL_TYPE),
             List.of(FilterKey.FUEL_TYPE),
+            Map.of(),
             orderedSet(MetricType.GENERATION_GWH),
             MetricType.GENERATION_GWH,
             List.of(
@@ -368,6 +378,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR, FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
             List.of(FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
+            Map.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.GENERATION_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -386,6 +397,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.MBIE_GENERATION_ANNUAL, DatasetSource.MBIE_GENERATION_QUARTERLY),
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.GENERATION_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -405,6 +417,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -423,6 +436,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
             orderedSet(FilterKey.STATE_CATEGORY, FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(FilterKey.STATE_CATEGORY),
+            Map.of(),
             orderedSet(MetricType.SITE_COUNT),
             MetricType.SITE_COUNT,
             List.of(
@@ -441,6 +455,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -459,6 +474,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
             orderedSet(MetricType.SITE_PERCENTAGE, MetricType.AVERAGE_TREND_SCORE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -477,6 +493,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(FilterKey.TREND, "improving"),
             orderedSet(MetricType.SITE_COUNT),
             MetricType.SITE_COUNT,
             List.of(
@@ -494,6 +511,7 @@ public class CapabilityRegistry {
             orderedSet(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR),
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
+            Map.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -530,6 +548,7 @@ public class CapabilityRegistry {
         Set<DatasetSource> datasetSources,
         Set<FilterKey> supportedFilters,
         List<FilterKey> requiredFilters,
+        Map<FilterKey, Object> implicitBindings,
         Set<MetricType> metricTypes,
         MetricType defaultMetricType,
         List<String> exampleTemplates,
@@ -549,6 +568,7 @@ public class CapabilityRegistry {
         Set<DatasetSource> supportedDatasets,
         Set<FilterKey> allowedBindings,
         List<FilterKey> requiredBindings,
+        Map<FilterKey, Object> implicitBindings,
         Set<MetricType> metricTypes,
         MetricType defaultMetricType
     ) {}

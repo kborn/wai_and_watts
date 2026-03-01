@@ -27,11 +27,13 @@ public class ExplanationServiceImpl implements ExplanationService {
     private final List<FactPackBuilder> factPackBuilders;
     private final ExplanationGenerator explanationGenerator;
     private final RequestValidationService validationService;
+    private final ExplanationRequestNormalizer requestNormalizer;
 
     public ExplanationServiceImpl(
         List<FactPackBuilder> factPackBuilders,
         ExplanationGenerator explanationGenerator,
-        RequestValidationService validationService
+        RequestValidationService validationService,
+        ExplanationRequestNormalizer requestNormalizer
     ) {
         if (factPackBuilders == null) {
             throw new IllegalArgumentException("FactPack builders list cannot be null");
@@ -42,22 +44,27 @@ public class ExplanationServiceImpl implements ExplanationService {
         if (validationService == null) {
             throw new IllegalArgumentException("RequestValidationService cannot be null");
         }
+        if (requestNormalizer == null) {
+            throw new IllegalArgumentException("ExplanationRequestNormalizer cannot be null");
+        }
         validateUniqueBuilderSources(factPackBuilders);
         this.factPackBuilders = factPackBuilders;
         this.explanationGenerator = explanationGenerator;
         this.validationService = validationService;
+        this.requestNormalizer = requestNormalizer;
     }
 
     @Override
     public Explanation generateExplanation(ExplanationRequest request) {
+        ExplanationRequest normalizedRequest = requestNormalizer.normalize(request);
         // Validate request structure first
-        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(request);
+        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(normalizedRequest);
         if (!validationResult.isValid()) {
             return Explanation.refusal(validationResult.getRefusalMessage());
         }
 
         // Select appropriate Fact Pack Builder
-        Optional<FactPackBuilder> builderSelection = selectFactPackBuilder(request);
+        Optional<FactPackBuilder> builderSelection = selectFactPackBuilder(normalizedRequest);
         if (builderSelection.isEmpty()) {
             return Explanation.refusal("No data source available for this request");
         }
@@ -67,21 +74,21 @@ public class ExplanationServiceImpl implements ExplanationService {
         try {
             String ds = request.getDatasetSource();
             if (ds == null) {
-                ds = request.getFilters() != null
-                    ? (String) request.getFilters().get(FilterKey.DATASET_SOURCE.wireValue())
+                ds = normalizedRequest.getFilters() != null
+                    ? (String) normalizedRequest.getFilters().get(FilterKey.DATASET_SOURCE.wireValue())
                     : null;
             }
             log.info("FactPackBuilder selected: {} for questionType={} datasetSource={}",
-                    builder.getClass().getSimpleName(), request.getQuestionType(), ds);
+                    builder.getClass().getSimpleName(), normalizedRequest.getQuestionType(), ds);
         } catch (Exception ignore) {
             // do not fail due to logging
         }
         FactPack factPack;
         try {
-            factPack = builder.buildFactPack(request);
+            factPack = builder.buildFactPack(normalizedRequest);
         } catch (RuntimeException e) {
             log.error("FactPack builder failed for questionType={} datasetSource={}: {}",
-                    request.getQuestionType(), request.getDatasetSource(), e.getMessage(), e);
+                    normalizedRequest.getQuestionType(), normalizedRequest.getDatasetSource(), e.getMessage(), e);
             return Explanation.refusal("Unable to build FactPack for the requested question");
         }
 
@@ -115,12 +122,12 @@ public class ExplanationServiceImpl implements ExplanationService {
         Explanation explanation;
         try {
             long providerStart = System.nanoTime();
-            explanation = explanationGenerator.generateExplanation(request.getQuestionType(), factPack);
+            explanation = explanationGenerator.generateExplanation(normalizedRequest.getQuestionType(), factPack);
             long providerDurationMs = (System.nanoTime() - providerStart) / 1_000_000;
             recordExplanationStageMetrics("provider", providerDurationMs);
         } catch (RuntimeException e) {
             log.error("Explanation provider failed for questionType={} datasetSource={}: {}",
-                    request.getQuestionType(), request.getDatasetSource(), e.getMessage(), e);
+                    normalizedRequest.getQuestionType(), normalizedRequest.getDatasetSource(), e.getMessage(), e);
             return Explanation.refusal("Explanation provider failed to generate an explanation");
         }
 
@@ -137,7 +144,7 @@ public class ExplanationServiceImpl implements ExplanationService {
             recordExplanationStageMetrics("citation_validation", citationValidationDurationMs);
             if (!serviceCitationsOk) {
                 // Internal debug payload to assist development without leaking to clients
-                logCitationFailureDebug(request, explanation, factPack);
+                logCitationFailureDebug(normalizedRequest, explanation, factPack);
                 return Explanation.refusal("Generated explanation missing required citations");
             }
         }
@@ -175,39 +182,40 @@ public class ExplanationServiceImpl implements ExplanationService {
 
     @Override
     public Object buildFactPack(ExplanationRequest request) {
+        ExplanationRequest normalizedRequest = requestNormalizer.normalize(request);
         // Validate request structure first
-        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(request);
+        RequestValidationService.ValidationResult validationResult = validationService.validateRequest(normalizedRequest);
         if (!validationResult.isValid()) {
             return Map.of(
                 "error", validationResult.getRefusalMessage(),
-                "request", request
+                "request", normalizedRequest
             );
         }
 
         // Select appropriate Fact Pack Builder
-        Optional<FactPackBuilder> builderSelection = selectFactPackBuilder(request);
+        Optional<FactPackBuilder> builderSelection = selectFactPackBuilder(normalizedRequest);
         if (builderSelection.isEmpty()) {
             return Map.of(
                 "error", "No data source available for this request",
-                "request", request
+                "request", normalizedRequest
             );
         }
         FactPackBuilder builder = builderSelection.get();
 
         // Generate Fact Pack
         try {
-            FactPack factPack = builder.buildFactPack(request);
+            FactPack factPack = builder.buildFactPack(normalizedRequest);
             if (factPack == null) {
                 return Map.of(
                     "error", "FactPackBuilder returned null",
-                    "request", request
+                    "request", normalizedRequest
                 );
             }
             return factPack;
         } catch (Exception e) {
             return Map.of(
                 "error", "Exception building FactPack: " + e.getMessage(),
-                "request", request
+                "request", normalizedRequest
             );
         }
     }

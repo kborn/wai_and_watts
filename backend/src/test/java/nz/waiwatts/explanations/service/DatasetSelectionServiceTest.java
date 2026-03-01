@@ -33,7 +33,8 @@ class DatasetSelectionServiceTest {
             properties,
             new QuestionTypeCatalog(catalog),
             capabilityRegistry,
-            new ContractValidator(capabilityRegistry)
+            new ContractValidator(capabilityRegistry),
+            new ExplanationRequestNormalizer(capabilityRegistry)
         );
     }
 

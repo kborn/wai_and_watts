@@ -16,6 +16,11 @@ import static org.mockito.Mockito.*;
 
 class IntentParserServiceImplTest {
 
+    private final ExplanationRequestNormalizer requestNormalizer =
+        new ExplanationRequestNormalizer(new nz.waiwatts.explanations.capabilities.CapabilityRegistry(
+            new nz.waiwatts.explanations.dataset.DatasetCatalog()
+        ));
+
     @Test
     void noKeyModeUsesDemoParserForSampleQuestion() {
         LlmProperties props = new LlmProperties();
@@ -28,7 +33,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion(
@@ -51,7 +57,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion("Tell me something random");
@@ -74,7 +81,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion("Why did hydro generation fall?");
@@ -97,7 +105,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion("Which fuel has grown the most since 2005?");
@@ -122,7 +131,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion("Explain renewable generation trends");
@@ -158,7 +168,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion("How has geothermal generation changed since 2005?");
@@ -197,7 +208,8 @@ class IntentParserServiceImplTest {
         IntentParserServiceImpl service = new IntentParserServiceImpl(
             llmParser,
             props,
-            new UnsupportedIntentDetector()
+            new UnsupportedIntentDetector(),
+            requestNormalizer
         );
 
         IntentParseResponse response = service.parseQuestion("Is water quality improving?");

@@ -40,6 +40,7 @@ public class DatasetSelectionService {
     private final QuestionTypeCatalog questionTypeCatalog;
     private final CapabilityRegistry capabilityRegistry;
     private final ContractValidator contractValidator;
+    private final ExplanationRequestNormalizer requestNormalizer;
 
     public DatasetSelectionService(
         DatasetCatalog datasetCatalog,
@@ -48,7 +49,8 @@ public class DatasetSelectionService {
         LlmProperties llmProperties,
         QuestionTypeCatalog questionTypeCatalog,
         CapabilityRegistry capabilityRegistry,
-        ContractValidator contractValidator
+        ContractValidator contractValidator,
+        ExplanationRequestNormalizer requestNormalizer
     ) {
         this.datasetCatalog = datasetCatalog;
         this.client = client;
@@ -57,6 +59,7 @@ public class DatasetSelectionService {
         this.questionTypeCatalog = questionTypeCatalog;
         this.capabilityRegistry = capabilityRegistry;
         this.contractValidator = contractValidator;
+        this.requestNormalizer = requestNormalizer;
     }
 
     public DatasetSelectionResult selectDataset(String question, ExplanationRequest request) {
@@ -181,7 +184,8 @@ public class DatasetSelectionService {
     }
 
     private DatasetSelectionResult verifyCandidate(ExplanationRequest request, String datasetSource) {
-        ContractValidator.Result validation = contractValidator.validateForDatasetCandidate(request, datasetSource);
+        ExplanationRequest normalizedRequest = requestNormalizer.normalizeForDataset(request, datasetSource);
+        ContractValidator.Result validation = contractValidator.validateForDatasetCandidate(normalizedRequest, datasetSource);
         if (!validation.valid()) {
             return DatasetSelectionResult.refusal(
                 validation.refusalCategory(),

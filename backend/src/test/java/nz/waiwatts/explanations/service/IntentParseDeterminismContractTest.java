@@ -85,7 +85,12 @@ class IntentParseDeterminismContractTest {
         props.setApiKey("test-key");
         props.setBaseUrl("https://api.openai.com");
 
-        return new IntentParserServiceImpl(llmParser, props, new UnsupportedIntentDetector());
+        return new IntentParserServiceImpl(
+            llmParser,
+            props,
+            new UnsupportedIntentDetector(),
+            new ExplanationRequestNormalizer(new CapabilityRegistry(new DatasetCatalog()))
+        );
     }
 
     private ExplanationRequest deterministicParsedRequest(String question) {
