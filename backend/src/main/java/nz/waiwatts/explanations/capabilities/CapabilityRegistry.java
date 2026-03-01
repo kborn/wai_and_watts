@@ -278,6 +278,8 @@ public class CapabilityRegistry {
             allowedBindings,
             capability.requiredFilters(),
             capability.implicitBindings(),
+            capability.promotionRules(),
+            expectedDatasetKind(capability.datasetSources()),
             capability.metricTypes(),
             capability.defaultMetricType()
         ));
@@ -298,6 +300,7 @@ public class CapabilityRegistry {
                     source,
                     descriptor.domain(),
                     descriptor.grain(),
+                    datasetKind(source),
                     supportedQuestions,
                     supportedBindings
                 );
@@ -337,6 +340,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.RENEWABLE_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -356,6 +360,10 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR, FilterKey.FUEL_TYPE),
             List.of(FilterKey.FUEL_TYPE),
             Map.of(),
+            List.of(new QuestionPromotionRule(
+                orderedSet(FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
+                QuestionType.FUEL_TYPE_COMPARISON
+            )),
             orderedSet(MetricType.GENERATION_GWH),
             MetricType.GENERATION_GWH,
             List.of(
@@ -375,6 +383,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR, FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
             List.of(FilterKey.FUEL_TYPE, FilterKey.FUEL_TYPE_B),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.GENERATION_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -394,6 +403,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.GENERATION_GWH, MetricType.GENERATION_SHARE_PCT),
             MetricType.GENERATION_GWH,
             List.of(
@@ -414,6 +424,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -433,6 +444,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.STATE_CATEGORY, FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(FilterKey.STATE_CATEGORY),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_COUNT),
             MetricType.SITE_COUNT,
             List.of(
@@ -452,6 +464,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -471,6 +484,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE, MetricType.AVERAGE_TREND_SCORE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -490,6 +504,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(FilterKey.TREND, "improving"),
+            List.of(),
             orderedSet(MetricType.SITE_COUNT),
             MetricType.SITE_COUNT,
             List.of(
@@ -508,6 +523,7 @@ public class CapabilityRegistry {
             orderedSet(FilterKey.INDICATOR, FilterKey.REGION, FilterKey.TREND, FilterKey.START_YEAR, FilterKey.END_YEAR),
             List.of(),
             Map.of(),
+            List.of(),
             orderedSet(MetricType.SITE_PERCENTAGE),
             MetricType.SITE_PERCENTAGE,
             List.of(
@@ -537,6 +553,22 @@ public class CapabilityRegistry {
         return values.stream().map(mapper).toList();
     }
 
+    private DatasetKind expectedDatasetKind(Set<DatasetSource> datasetSources) {
+        LinkedHashSet<DatasetKind> kinds = datasetSources.stream()
+            .map(this::datasetKind)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        return kinds.size() == 1 ? kinds.getFirst() : DatasetKind.MIXED;
+    }
+
+    private DatasetKind datasetKind(DatasetSource datasetSource) {
+        return switch (datasetSource) {
+            case MBIE_GENERATION_ANNUAL -> DatasetKind.MBIE_ANNUAL;
+            case MBIE_GENERATION_QUARTERLY -> DatasetKind.MBIE_QUARTERLY;
+            case LAWA_WATER_QUALITY_STATE_MULTI_YEAR -> DatasetKind.LAWA_STATE_MULTI_YEAR;
+            case LAWA_WATER_QUALITY_TREND_MULTI_YEAR -> DatasetKind.LAWA_TREND_MULTI_YEAR;
+        };
+    }
+
     public record CapabilityDefinition(
         QuestionType questionType,
         String displayName,
@@ -545,6 +577,7 @@ public class CapabilityRegistry {
         Set<FilterKey> supportedFilters,
         List<FilterKey> requiredFilters,
         Map<FilterKey, Object> implicitBindings,
+        List<QuestionPromotionRule> promotionRules,
         Set<MetricType> metricTypes,
         MetricType defaultMetricType,
         List<String> exampleTemplates,
@@ -555,6 +588,7 @@ public class CapabilityRegistry {
         DatasetSource datasetSource,
         String domain,
         String grain,
+        DatasetKind datasetKind,
         Set<QuestionType> supportedQuestionTypes,
         Set<FilterKey> supportedBindings
     ) {}
@@ -565,8 +599,15 @@ public class CapabilityRegistry {
         Set<FilterKey> allowedBindings,
         List<FilterKey> requiredBindings,
         Map<FilterKey, Object> implicitBindings,
+        List<QuestionPromotionRule> promotionRules,
+        DatasetKind expectedDatasetKind,
         Set<MetricType> metricTypes,
         MetricType defaultMetricType
+    ) {}
+
+    public record QuestionPromotionRule(
+        Set<FilterKey> requiredBindings,
+        QuestionType targetQuestionType
     ) {}
 
     public record BindingDefinition(
@@ -578,5 +619,13 @@ public class CapabilityRegistry {
         STRING,
         INTEGER,
         METRIC_TYPE
+    }
+
+    public enum DatasetKind {
+        MBIE_ANNUAL,
+        MBIE_QUARTERLY,
+        LAWA_STATE_MULTI_YEAR,
+        LAWA_TREND_MULTI_YEAR,
+        MIXED
     }
 }

@@ -3,7 +3,6 @@ package nz.waiwatts.explanations.service;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
-import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.lawa.LawaBindingNormalization;
 import org.springframework.stereotype.Component;
@@ -47,9 +46,7 @@ public class ExplanationRequestNormalizer {
 
         removeNullishCategoricalFilters(filters);
 
-        if (hasDistinctFuelBindings(filters) && !QuestionType.FUEL_TYPE_COMPARISON.wireValue().equals(questionType)) {
-            questionType = QuestionType.FUEL_TYPE_COMPARISON.wireValue();
-        }
+        questionType = normalizeQuestionType(questionType, filters);
 
         datasetSource = normalizeDatasetForQuestionType(questionType, datasetSource);
         applyImplicitBindings(questionType, filters);
@@ -76,12 +73,16 @@ public class ExplanationRequestNormalizer {
         });
     }
 
-    private boolean hasDistinctFuelBindings(Map<String, Object> filters) {
-        Object fuelA = filters.get(FilterKey.FUEL_TYPE.wireValue());
-        Object fuelB = filters.get(FilterKey.FUEL_TYPE_B.wireValue());
-        boolean hasA = fuelA instanceof String s && !s.isBlank();
-        boolean hasB = fuelB instanceof String s && !s.isBlank();
-        return hasA && hasB;
+    private String normalizeQuestionType(String questionType, Map<String, Object> filters) {
+        CapabilityRegistry.QuestionContract questionContract = capabilityRegistry.questionContract(questionType).orElse(null);
+        if (questionContract == null) {
+            return questionType;
+        }
+        return questionContract.promotionRules().stream()
+            .filter(rule -> rule.requiredBindings().stream().allMatch(binding -> hasBindingValue(binding, filters)))
+            .map(rule -> rule.targetQuestionType().wireValue())
+            .findFirst()
+            .orElse(questionType);
     }
 
     private String normalizeDatasetForQuestionType(String questionType, String datasetSource) {
@@ -89,20 +90,25 @@ public class ExplanationRequestNormalizer {
             return datasetSource;
         }
 
-        boolean isLawaStateQuestion = questionType.equals(QuestionType.WATER_QUALITY_OVERVIEW.wireValue())
-            || questionType.equals(QuestionType.WATER_QUALITY_STATE_SITES_TREND.wireValue())
-            || questionType.equals(QuestionType.REGIONAL_WATER_QUALITY.wireValue());
-        boolean isLawaTrendQuestion = questionType.equals(QuestionType.WATER_QUALITY_TRENDS.wireValue())
-            || questionType.equals(QuestionType.IMPROVING_SITES_TREND.wireValue())
-            || questionType.equals(QuestionType.REGIONAL_TREND_COMPARISON.wireValue());
-
-        if (isLawaStateQuestion && datasetSource.equals(DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue())) {
-            return DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue();
+        CapabilityRegistry.QuestionContract questionContract = capabilityRegistry.questionContract(questionType).orElse(null);
+        CapabilityRegistry.DatasetContract datasetContract = capabilityRegistry.datasetContract(datasetSource).orElse(null);
+        if (questionContract == null || datasetContract == null) {
+            return datasetSource;
         }
-        if (isLawaTrendQuestion && datasetSource.equals(DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue())) {
-            return DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue();
+        if (questionContract.supportedDatasets().contains(datasetContract.datasetSource())) {
+            return datasetSource;
         }
-        return datasetSource;
+        CapabilityRegistry.DatasetKind expectedKind = questionContract.expectedDatasetKind();
+        if (expectedKind == null || expectedKind == CapabilityRegistry.DatasetKind.MIXED) {
+            return datasetSource;
+        }
+        return questionContract.supportedDatasets().stream()
+            .filter(source -> capabilityRegistry.datasetContract(source.wireValue())
+                .map(contract -> contract.datasetKind() == expectedKind)
+                .orElse(false))
+            .findFirst()
+            .map(DatasetSource::wireValue)
+            .orElse(datasetSource);
     }
 
     private void applyImplicitBindings(String questionType, Map<String, Object> filters) {
@@ -154,5 +160,13 @@ public class ExplanationRequestNormalizer {
         if (value instanceof String s && !s.isBlank()) {
             filters.put(filterKey.wireValue(), normalizer.apply(s));
         }
+    }
+
+    private boolean hasBindingValue(FilterKey filterKey, Map<String, Object> filters) {
+        Object value = filters.get(filterKey.wireValue());
+        if (value instanceof String s) {
+            return !s.isBlank();
+        }
+        return value != null;
     }
 }

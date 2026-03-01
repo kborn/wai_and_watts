@@ -178,7 +178,7 @@ public class ContractValidator {
         Set<String> questionDatasetKinds = supportedQuestionDatasetKinds(questionContract);
         if ("LAWA".equals(datasetContract.domain()) && questionDatasetKinds.size() == 1) {
             String expectedKind = questionDatasetKinds.iterator().next();
-            String actualKind = datasetKind(datasetContract.datasetSource().wireValue());
+            String actualKind = datasetKind(datasetContract.datasetKind());
             if ("state".equals(expectedKind) && "trend".equals(actualKind)) {
                 return "Parsed a LAWA state question, but selected a trend dataset.";
             }
@@ -202,23 +202,20 @@ public class ContractValidator {
     private Set<String> supportedQuestionDatasetKinds(CapabilityRegistry.QuestionContract questionContract) {
         LinkedHashSet<String> kinds = new LinkedHashSet<>();
         questionContract.supportedDatasets().forEach(datasetSource ->
-            kinds.add(datasetKind(datasetSource.wireValue()))
+            capabilityRegistry.datasetContract(datasetSource.wireValue())
+                .map(CapabilityRegistry.DatasetContract::datasetKind)
+                .map(this::datasetKind)
+                .ifPresent(kinds::add)
         );
-        kinds.remove("unknown");
         return kinds;
     }
 
-    private String datasetKind(String datasetSource) {
-        if (datasetSource == null || datasetSource.isBlank()) {
-            return "unknown";
-        }
-        if (datasetSource.contains(".state.")) {
-            return "state";
-        }
-        if (datasetSource.contains(".trend.")) {
-            return "trend";
-        }
-        return "unknown";
+    private String datasetKind(CapabilityRegistry.DatasetKind datasetKind) {
+        return switch (datasetKind) {
+            case LAWA_STATE_MULTI_YEAR -> "state";
+            case LAWA_TREND_MULTI_YEAR -> "trend";
+            default -> "other";
+        };
     }
 
     public record Result(boolean valid, String refusalCategory, String refusalMessage) {
