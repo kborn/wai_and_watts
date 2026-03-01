@@ -274,6 +274,9 @@ public class CapabilityRegistry {
 
     public Optional<QuestionContract> questionContract(String questionType) {
         CapabilityDefinition capability = get(questionType);
+        if (capability == null) {
+            return Optional.empty();
+        }
         LinkedHashSet<FilterKey> allowedBindings = new LinkedHashSet<>(capability.supportedFilters());
         allowedBindings.add(METRIC_TYPE_FILTER);
         return Optional.of(new QuestionContract(
