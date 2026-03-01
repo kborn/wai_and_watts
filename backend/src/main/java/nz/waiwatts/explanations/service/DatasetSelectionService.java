@@ -109,10 +109,10 @@ public class DatasetSelectionService {
 
         List<String> clamped = clampCandidates(candidates, allowedSources);
         if (allowedSources != null && clamped.isEmpty()) {
-            if (isCrossDomainMismatch(group, candidates)) {
+            if (hasMismatchCandidate(questionType, candidates)) {
                 return DatasetSelectionResult.refusal(
                     "DATASET_MISMATCH",
-                    mismatchMessage(group, candidates.isEmpty() ? null : candidates.getFirst()),
+                    contractValidator.mismatchMessage(questionType, candidates.getFirst()),
                     DatasetSelectionStrategy.LLM_CANDIDATES,
                     candidates
                 );
@@ -158,10 +158,13 @@ public class DatasetSelectionService {
         String datasetSource,
         QuestionTypeCatalog.QuestionTypeGroup group
     ) {
-        if (group != QuestionTypeCatalog.QuestionTypeGroup.UNKNOWN && !isAllowedForGroup(datasetSource, group)) {
+        String questionType = request != null ? request.getQuestionType() : null;
+        if (group != QuestionTypeCatalog.QuestionTypeGroup.UNKNOWN
+            && !isAllowedForGroup(datasetSource, group)
+            && contractValidator.isMismatch(questionType, datasetSource)) {
             return DatasetSelectionResult.refusal(
                 "DATASET_MISMATCH",
-                mismatchMessage(group, datasetSource),
+                contractValidator.mismatchMessage(questionType, datasetSource),
                 DatasetSelectionStrategy.EXPLICIT,
                 List.of(datasetSource)
             );
@@ -328,34 +331,11 @@ public class DatasetSelectionService {
         return allowed.stream().anyMatch(ds -> ds.equalsIgnoreCase(datasetSource));
     }
 
-    private boolean isCrossDomainMismatch(QuestionTypeCatalog.QuestionTypeGroup group, List<String> candidates) {
-        if (candidates == null || candidates.isEmpty()) {
+    private boolean hasMismatchCandidate(String questionType, List<String> candidates) {
+        if (questionType == null || questionType.isBlank() || candidates == null || candidates.isEmpty()) {
             return false;
         }
-        boolean hasMbie = candidates.stream().anyMatch(this::isMbieDataset);
-        boolean hasLawa = candidates.stream().anyMatch(this::isLawaDataset);
-        return (group == QuestionTypeCatalog.QuestionTypeGroup.MBIE && hasLawa)
-            || ((group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_STATE
-                    || group == QuestionTypeCatalog.QuestionTypeGroup.LAWA_TREND) && hasMbie);
-    }
-
-    private boolean isMbieDataset(String datasetSource) {
-        return DatasetSource.MBIE_GENERATION_ANNUAL.wireValue().equalsIgnoreCase(datasetSource)
-            || DatasetSource.MBIE_GENERATION_QUARTERLY.wireValue().equalsIgnoreCase(datasetSource);
-    }
-
-    private boolean isLawaDataset(String datasetSource) {
-        return DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR.wireValue().equalsIgnoreCase(datasetSource)
-            || DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR.wireValue().equalsIgnoreCase(datasetSource);
-    }
-
-    private String mismatchMessage(QuestionTypeCatalog.QuestionTypeGroup group, String datasetSource) {
-        return switch (group) {
-            case MBIE -> "Parsed an MBIE generation question, but selected a LAWA dataset.";
-            case LAWA_STATE -> "Parsed a LAWA state question, but selected a non-state dataset.";
-            case LAWA_TREND -> "Parsed a LAWA trend question, but selected a non-trend dataset.";
-            default -> "Parsed question is incompatible with dataset " + datasetSource + ".";
-        };
+        return candidates.stream().anyMatch(candidate -> contractValidator.isMismatch(questionType, candidate));
     }
 
     private DatasetSelectionResult selectDeterministicCandidate(

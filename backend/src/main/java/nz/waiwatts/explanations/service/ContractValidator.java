@@ -33,6 +33,25 @@ public class ContractValidator {
         return validate(request, datasetSource);
     }
 
+    public boolean isMismatch(String questionType, String datasetSource) {
+        CapabilityRegistry.QuestionContract questionContract = capabilityRegistry.questionContract(questionType).orElse(null);
+        CapabilityRegistry.DatasetContract datasetContract = capabilityRegistry.datasetContract(datasetSource).orElse(null);
+        if (questionContract == null || datasetContract == null) {
+            return false;
+        }
+        if (questionContract.supportedDatasets().contains(datasetContract.datasetSource())) {
+            return false;
+        }
+        return isCrossDomainMismatch(questionContract, datasetContract)
+            || isDatasetKindMismatch(questionContract, datasetContract);
+    }
+
+    public String mismatchMessage(String questionType, String datasetSource) {
+        CapabilityRegistry.QuestionContract questionContract = capabilityRegistry.questionContract(questionType).orElse(null);
+        CapabilityRegistry.DatasetContract datasetContract = capabilityRegistry.datasetContract(datasetSource).orElse(null);
+        return mismatchMessage(questionContract, datasetContract);
+    }
+
     private Result validate(ExplanationRequest request, String datasetSourceOverride) {
         if (request == null) {
             return Result.failure("VALIDATION_FAILED", "request cannot be null");
@@ -163,30 +182,38 @@ public class ContractValidator {
             return "Question type and dataset source are not a supported combination.";
         }
 
-        Set<String> questionDomains = supportedQuestionDomains(questionContract);
-        if (questionDomains.size() == 1
-                && !questionDomains.contains(datasetContract.domain())) {
-            String questionDomain = questionDomains.iterator().next();
-            if ("LAWA".equals(questionDomain) && "MBIE".equals(datasetContract.domain())) {
-                return "Parsed a LAWA water quality question, but selected an MBIE dataset.";
-            }
-            if ("MBIE".equals(questionDomain) && "LAWA".equals(datasetContract.domain())) {
-                return "Parsed an MBIE generation question, but selected a LAWA dataset.";
-            }
+        if (isCrossDomainMismatch(questionContract, datasetContract)) {
+            String questionDomain = questionDomainLabel(questionContract);
+            String datasetDomain = datasetDomainLabel(datasetContract);
+            return "Parsed " + indefiniteArticle(questionDomain) + " " + questionDomain + " question, but selected "
+                + indefiniteArticle(datasetDomain) + " " + datasetDomain + " dataset.";
         }
 
-        Set<String> questionDatasetKinds = supportedQuestionDatasetKinds(questionContract);
-        if ("LAWA".equals(datasetContract.domain()) && questionDatasetKinds.size() == 1) {
-            String expectedKind = questionDatasetKinds.iterator().next();
-            String actualKind = datasetKind(datasetContract.datasetKind());
-            if ("state".equals(expectedKind) && "trend".equals(actualKind)) {
-                return "Parsed a LAWA state question, but selected a trend dataset.";
-            }
-            if ("trend".equals(expectedKind) && "state".equals(actualKind)) {
-                return "Parsed a LAWA trend question, but selected a state dataset.";
-            }
+        if (isDatasetKindMismatch(questionContract, datasetContract)) {
+            String questionKind = questionDatasetKindLabel(questionContract);
+            String datasetKind = datasetKindLabel(datasetContract.datasetKind());
+            return "Parsed " + indefiniteArticle(questionKind) + " " + questionKind + " question, but selected "
+                + indefiniteArticle(datasetKind) + " " + datasetKind + " dataset.";
         }
         return "Question type and dataset source are not a supported combination.";
+    }
+
+    private boolean isCrossDomainMismatch(
+        CapabilityRegistry.QuestionContract questionContract,
+        CapabilityRegistry.DatasetContract datasetContract
+    ) {
+        Set<String> questionDomains = supportedQuestionDomains(questionContract);
+        return questionDomains.size() == 1 && !questionDomains.contains(datasetContract.domain());
+    }
+
+    private boolean isDatasetKindMismatch(
+        CapabilityRegistry.QuestionContract questionContract,
+        CapabilityRegistry.DatasetContract datasetContract
+    ) {
+        CapabilityRegistry.DatasetKind expectedKind = questionContract.expectedDatasetKind();
+        return expectedKind != null
+            && expectedKind != CapabilityRegistry.DatasetKind.MIXED
+            && datasetContract.datasetKind() != expectedKind;
     }
 
     private Set<String> supportedQuestionDomains(CapabilityRegistry.QuestionContract questionContract) {
@@ -199,22 +226,61 @@ public class ContractValidator {
         return domains;
     }
 
-    private Set<String> supportedQuestionDatasetKinds(CapabilityRegistry.QuestionContract questionContract) {
-        LinkedHashSet<String> kinds = new LinkedHashSet<>();
-        questionContract.supportedDatasets().forEach(datasetSource ->
-            capabilityRegistry.datasetContract(datasetSource.wireValue())
-                .map(CapabilityRegistry.DatasetContract::datasetKind)
-                .map(this::datasetKind)
-                .ifPresent(kinds::add)
-        );
-        return kinds;
+    private String questionDomainLabel(CapabilityRegistry.QuestionContract questionContract) {
+        Set<String> domains = supportedQuestionDomains(questionContract);
+        if (domains.size() != 1) {
+            return "supported";
+        }
+        return switch (domains.iterator().next()) {
+            case "MBIE" -> "MBIE generation";
+            case "LAWA" -> "LAWA water quality";
+            default -> "supported";
+        };
     }
 
-    private String datasetKind(CapabilityRegistry.DatasetKind datasetKind) {
+    private String datasetDomainLabel(CapabilityRegistry.DatasetContract datasetContract) {
+        return switch (datasetContract.domain()) {
+            case "MBIE" -> "MBIE";
+            case "LAWA" -> "LAWA";
+            default -> datasetContract.domain();
+        };
+    }
+
+    private String questionDatasetKindLabel(CapabilityRegistry.QuestionContract questionContract) {
+        CapabilityRegistry.DatasetKind expectedKind = questionContract.expectedDatasetKind();
+        if (expectedKind == null || expectedKind == CapabilityRegistry.DatasetKind.MIXED) {
+            return questionDomainLabel(questionContract);
+        }
+        return switch (expectedKind) {
+            case LAWA_STATE_MULTI_YEAR -> "LAWA state";
+            case LAWA_TREND_MULTI_YEAR -> "LAWA trend";
+            case MBIE_ANNUAL -> "MBIE annual";
+            case MBIE_QUARTERLY -> "MBIE quarterly";
+            default -> throw new IllegalStateException("Unexpected dataset kind: " + expectedKind);
+        };
+    }
+
+    private String datasetKindLabel(CapabilityRegistry.DatasetKind datasetKind) {
         return switch (datasetKind) {
             case LAWA_STATE_MULTI_YEAR -> "state";
             case LAWA_TREND_MULTI_YEAR -> "trend";
-            default -> "other";
+            case MBIE_ANNUAL -> "annual";
+            case MBIE_QUARTERLY -> "quarterly";
+            case MIXED -> "other";
+        };
+    }
+
+    private String indefiniteArticle(String noun) {
+        if (noun == null || noun.isBlank()) {
+            return "a";
+        }
+        if (noun.startsWith("MBIE")) {
+            return "an";
+        }
+        char first = Character.toLowerCase(noun.charAt(0));
+        return switch (first) {
+            case 'a', 'e', 'i', 'o', 'u' -> "an";
+            default -> "a";
         };
     }
 
