@@ -10,6 +10,18 @@ It also serves as a case study in disciplined AI-augmented engineering:\
 AI accelerated implementation, while architecture, invariants, and
 system boundaries remained explicitly human-governed.
 
+## Project Status
+
+Wai & Watts is complete as a portfolio project.
+
+The repository is intended to represent a finished, reviewable system rather than an open-ended roadmap. Phase 17 closes the implementation with contract-driven validation, deterministic natural-language handling, API contract hardening, observability/runbook coverage, and the final bounded capability expansion.
+
+Out of scope by design:
+- additional project phases
+- broader dataset expansion
+- forecasting or recommendation features
+- interactive clarification UX beyond deterministic refusals
+
 ------------------------------------------------------------------------
 
 # Why This Project Exists

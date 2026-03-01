@@ -38,7 +38,7 @@ Links (optional):
 
 ## Current Position
 - **Active Phase:** Phase 17 — Capability declaration and NL determinism
-- **Status:** In progress
+- **Status:** Complete; project complete
 
 ---
 
@@ -59,7 +59,7 @@ Work Items:
 - [x] Record initial decisions and workflow guardrails
 
 ---
-
+col 
 ### Phase 2 — Backend Scaffolding ✅
 Goal: Bootable backend with no domain logic.
 
@@ -889,7 +889,7 @@ Notes:
 
 ---
 
-## Phase 17 — Capability Declaration, NL Determinism, Quality and Governance (in progress)
+## Phase 17 — Capability Declaration, NL Determinism, Quality and Governance
 
 ### Phase goal
 Formalize supported capabilities as a declared, testable contract and eliminate NL parse drift that can produce inconsistent outcomes for the same prompt.
@@ -980,15 +980,16 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] dead code cleanup
     - [X] security improvements
     - [x] remove deprecates references
-    - [ ] miscellaneous
+    - [x] miscellaneous
   - [x] TODOs
 
 ### Non-goals (explicit)
-- [ ] No new datasets or explanation types in this phase.
-- [ ] No forecasting/derived-analytics expansion.
-- [ ] No replacement of capability registry authority with enum-only routing.
+- [x] No new datasets.
+- [x] No forecasting/derived-analytics expansion.
+- [x] No replacement of capability registry authority with enum-only routing.
 
 ### Notes
-Phase 17 improves determinism and declaration quality without expanding product scope.
+Phase 17 improves determinism and declaration quality while closing the project with one final bounded question-type addition.
 The capability registry remains the authoritative support matrix; internal structuring aids (like enums) must not create a competing source of truth.
+This project is intentionally complete after Phase 17; there is no planned Phase 18 roadmap.
 ---
