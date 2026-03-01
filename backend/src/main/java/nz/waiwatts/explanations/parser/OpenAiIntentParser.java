@@ -190,6 +190,10 @@ public class OpenAiIntentParser implements IntentParser {
             ));
         });
 
+        // This is intentionally "required but nullable" for every known binding key.
+        // It shapes the LLM to emit a stable object with explicit nulls, but it is not
+        // the business-required capability contract. Required bindings are enforced
+        // later by ContractValidator against the selected question contract.
         ArrayNode filterRequired = filters.putArray("required");
         capabilityRegistry.bindingDefinitions().keySet().forEach(filterKey -> filterRequired.add(filterKey.wireValue()));
 

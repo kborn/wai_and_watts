@@ -1,15 +1,16 @@
 package nz.waiwatts.explanations.service;
 
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
-import nz.waiwatts.explanations.capabilities.types.DatasetSource;
 import nz.waiwatts.explanations.capabilities.types.FilterKey;
 import nz.waiwatts.explanations.capabilities.types.QuestionType;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,7 @@ public class ContractValidator {
         }
 
         if (!questionContract.supportedDatasets().contains(datasetContract.datasetSource())) {
-            return Result.failure("DATASET_MISMATCH", mismatchMessage(questionContract.questionType(), datasetContract.datasetSource()));
+            return Result.failure("DATASET_MISMATCH", mismatchMessage(questionContract, datasetContract));
         }
 
         Map<String, Object> filters = request.getFilters();
@@ -154,45 +155,70 @@ public class ContractValidator {
         };
     }
 
-    private String mismatchMessage(QuestionType questionType, DatasetSource datasetSource) {
-        if (questionType == null || datasetSource == null) {
+    private String mismatchMessage(
+        CapabilityRegistry.QuestionContract questionContract,
+        CapabilityRegistry.DatasetContract datasetContract
+    ) {
+        if (questionContract == null || datasetContract == null) {
             return "Question type and dataset source are not a supported combination.";
         }
 
-        boolean mbieQuestion = questionType == QuestionType.RENEWABLE_GENERATION_TREND
-            || questionType == QuestionType.FUEL_GENERATION_TREND
-            || questionType == QuestionType.FUEL_TYPE_COMPARISON
-            || questionType == QuestionType.GENERATION_MIX_OVERVIEW;
-        boolean lawaQuestion = questionType == QuestionType.WATER_QUALITY_OVERVIEW
-            || questionType == QuestionType.WATER_QUALITY_STATE_SITES_TREND
-            || questionType == QuestionType.REGIONAL_WATER_QUALITY
-            || questionType == QuestionType.WATER_QUALITY_TRENDS
-            || questionType == QuestionType.IMPROVING_SITES_TREND
-            || questionType == QuestionType.REGIONAL_TREND_COMPARISON;
-        boolean mbieDataset = datasetSource == DatasetSource.MBIE_GENERATION_ANNUAL
-            || datasetSource == DatasetSource.MBIE_GENERATION_QUARTERLY;
-        boolean lawaDataset = datasetSource == DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR
-            || datasetSource == DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR;
+        Set<String> questionDomains = supportedQuestionDomains(questionContract);
+        if (questionDomains.size() == 1
+                && !questionDomains.contains(datasetContract.domain())) {
+            String questionDomain = questionDomains.iterator().next();
+            if ("LAWA".equals(questionDomain) && "MBIE".equals(datasetContract.domain())) {
+                return "Parsed a LAWA water quality question, but selected an MBIE dataset.";
+            }
+            if ("MBIE".equals(questionDomain) && "LAWA".equals(datasetContract.domain())) {
+                return "Parsed an MBIE generation question, but selected a LAWA dataset.";
+            }
+        }
 
-        if (lawaQuestion && mbieDataset) {
-            return "Parsed a LAWA water quality question, but selected an MBIE dataset.";
-        }
-        if (mbieQuestion && lawaDataset) {
-            return "Parsed an MBIE generation question, but selected a LAWA dataset.";
-        }
-        if ((questionType == QuestionType.WATER_QUALITY_OVERVIEW
-            || questionType == QuestionType.WATER_QUALITY_STATE_SITES_TREND
-            || questionType == QuestionType.REGIONAL_WATER_QUALITY)
-            && datasetSource == DatasetSource.LAWA_WATER_QUALITY_TREND_MULTI_YEAR) {
-            return "Parsed a LAWA state question, but selected a trend dataset.";
-        }
-        if ((questionType == QuestionType.WATER_QUALITY_TRENDS
-            || questionType == QuestionType.IMPROVING_SITES_TREND
-            || questionType == QuestionType.REGIONAL_TREND_COMPARISON)
-            && datasetSource == DatasetSource.LAWA_WATER_QUALITY_STATE_MULTI_YEAR) {
-            return "Parsed a LAWA trend question, but selected a state dataset.";
+        Set<String> questionDatasetKinds = supportedQuestionDatasetKinds(questionContract);
+        if ("LAWA".equals(datasetContract.domain()) && questionDatasetKinds.size() == 1) {
+            String expectedKind = questionDatasetKinds.iterator().next();
+            String actualKind = datasetKind(datasetContract.datasetSource().wireValue());
+            if ("state".equals(expectedKind) && "trend".equals(actualKind)) {
+                return "Parsed a LAWA state question, but selected a trend dataset.";
+            }
+            if ("trend".equals(expectedKind) && "state".equals(actualKind)) {
+                return "Parsed a LAWA trend question, but selected a state dataset.";
+            }
         }
         return "Question type and dataset source are not a supported combination.";
+    }
+
+    private Set<String> supportedQuestionDomains(CapabilityRegistry.QuestionContract questionContract) {
+        LinkedHashSet<String> domains = new LinkedHashSet<>();
+        questionContract.supportedDatasets().forEach(datasetSource ->
+            capabilityRegistry.datasetContract(datasetSource.wireValue())
+                .map(CapabilityRegistry.DatasetContract::domain)
+                .ifPresent(domains::add)
+        );
+        return domains;
+    }
+
+    private Set<String> supportedQuestionDatasetKinds(CapabilityRegistry.QuestionContract questionContract) {
+        LinkedHashSet<String> kinds = new LinkedHashSet<>();
+        questionContract.supportedDatasets().forEach(datasetSource ->
+            kinds.add(datasetKind(datasetSource.wireValue()))
+        );
+        kinds.remove("unknown");
+        return kinds;
+    }
+
+    private String datasetKind(String datasetSource) {
+        if (datasetSource == null || datasetSource.isBlank()) {
+            return "unknown";
+        }
+        if (datasetSource.contains(".state.")) {
+            return "state";
+        }
+        if (datasetSource.contains(".trend.")) {
+            return "trend";
+        }
+        return "unknown";
     }
 
     public record Result(boolean valid, String refusalCategory, String refusalMessage) {
