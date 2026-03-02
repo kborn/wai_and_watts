@@ -237,7 +237,7 @@ docker compose up -d --build
 
 curl http://localhost:8080/api/v1/health
 
-curl http://localhost:8080/api/v1/datasets
+curl http://localhost:8080/api/v1/datasets/sources
 ```
 
 ---
@@ -247,7 +247,7 @@ curl http://localhost:8080/api/v1/datasets
 List datasets:
 
 ```
-GET /api/v1/datasets
+GET /api/v1/datasets/sources
 ```
 
 Ask a natural language question:
