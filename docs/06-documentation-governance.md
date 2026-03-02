@@ -41,13 +41,7 @@ Canonical endpoints:
 - `GET /api/v1/capabilities`
 - `GET /api/v1/health`
 
-Legacy aliases retained for backward compatibility:
-- `GET /api/v1/explanations/capabilities` (successor: `/api/v1/capabilities`)
-- `GET /api/v1/explanations/health` (successor: `/api/v1/health`)
-
-Sunset behavior:
-1. Legacy aliases must return deprecation metadata headers (`Deprecation`, `Sunset`, `Link`, `Warning`).
-2. Canonical endpoints must not return deprecation headers.
+Canonical public endpoints should not emit deprecation metadata headers.
 3. For capability endpoints, canonical and legacy payloads must remain response-equivalent until alias removal.
 4. Alias removal requires:
    - docs update in this file and reviewer quickstart,

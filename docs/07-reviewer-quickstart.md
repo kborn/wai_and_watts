@@ -21,7 +21,6 @@ curl -s http://localhost:8080/api/v1/capabilities
 Expected:
 - health endpoint returns HTTP 200.
 - capabilities endpoint returns supported question types, datasets, and filter structures.
-- note: `/api/v1/explanations/health` and `/api/v1/explanations/capabilities` are legacy aliases and emit deprecation headers.
 
 ## 3) Verify a supported ask flow
 

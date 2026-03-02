@@ -4,11 +4,9 @@ import nz.waiwatts.explanations.dto.AskResult;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.service.AskService;
-import nz.waiwatts.explanations.service.CapabilitiesService;
 import nz.waiwatts.explanations.service.ExplanationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,20 +25,16 @@ import java.util.Map;
 public class ExplanationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ExplanationController.class);
-    private static final String LEGACY_API_SUNSET = "Wed, 31 Dec 2026 23:59:59 GMT";
     
     private final ExplanationService explanationService;
     private final AskService askService;
-    private final CapabilitiesService capabilitiesService;
 
     public ExplanationController(
         ExplanationService explanationService,
-        AskService askService,
-        CapabilitiesService capabilitiesService
+        AskService askService
     ) {
         this.explanationService = explanationService;
         this.askService = askService;
-        this.capabilitiesService = capabilitiesService;
     }
 
     /**
@@ -70,40 +64,6 @@ public class ExplanationController {
         logger.info("Received /ask request body: {}", body);
         AskService.AskResponse response = askService.ask(body != null ? body.get("question") : null);
         return ResponseEntity.status(response.httpStatus()).body(response.result());
-    }
-
-    /**
-     * Get supported question types and required filter structure.
-     * 
-     * @return supported and unsupported question classes with filter requirements
-     */
-    @GetMapping("/capabilities")
-    public ResponseEntity<Map<String, Object>> getSupportedQuestionTypes() {
-        return ResponseEntity.ok()
-            .header("Deprecation", "true")
-            .header("Sunset", LEGACY_API_SUNSET)
-            .header(HttpHeaders.LINK, "</api/v1/capabilities>; rel=\"successor-version\"")
-            .header(HttpHeaders.WARNING, "299 - \"Deprecated API; use /api/v1/capabilities\"")
-            .body(capabilitiesService.buildCapabilitiesResponse());
-    }
-
-    /**
-     * Health check for explanation service.
-     * 
-     * @return service status
-     */
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> healthCheck() {
-        return ResponseEntity.ok()
-            .header("Deprecation", "true")
-            .header("Sunset", LEGACY_API_SUNSET)
-            .header(HttpHeaders.LINK, "</api/v1/health>; rel=\"successor-version\"")
-            .header(HttpHeaders.WARNING, "299 - \"Deprecated API; use /api/v1/health\"")
-            .body(Map.of(
-                "status", "healthy",
-                "service", "explanation-api",
-                "phase", "11"
-            ));
     }
 
     /**

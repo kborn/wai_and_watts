@@ -121,25 +121,6 @@ class ExplanationControllerRefusalIntegrationTest {
     }
 
     @Test
-    void testSupportedQuestionTypesEndpoint() throws Exception {
-        mockMvc.perform(get("/api/v1/explanations/capabilities"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.supportedQuestionTypes").exists())
-                .andExpect(jsonPath("$.supportedQuestionTypes.renewable_generation_trend").exists())
-                .andExpect(jsonPath("$.supportedQuestionTypes.fuel_generation_trend").exists())
-                .andExpect(jsonPath("$.supportedQuestionTypes.fuel_type_comparison").exists())
-                .andExpect(jsonPath("$.supportedQuestionTypes.generation_mix_overview").exists())
-                .andExpect(jsonPath("$.unsupportedQuestionTypes").exists())
-                .andExpect(jsonPath("$.unsupportedQuestionTypes.forecasting").exists())
-                .andExpect(jsonPath("$.unsupportedQuestionTypes.causation").exists())
-                .andExpect(jsonPath("$.requiredFilters.datasetSource").exists())
-                .andExpect(jsonPath("$.filterStructure").exists())
-                .andExpect(jsonPath("$.suggestedValuesByToken.fuelType").isArray())
-                .andExpect(jsonPath("$.metricTypes").exists())
-                .andExpect(jsonPath("$.capabilities").isArray());
-    }
-
-    @Test
     void testCanonicalCapabilitiesEndpoint() throws Exception {
         mockMvc.perform(get("/api/v1/capabilities"))
             .andExpect(status().isOk())
@@ -182,35 +163,6 @@ class ExplanationControllerRefusalIntegrationTest {
                 "supportedFilters"
             ));
         }
-    }
-
-    @Test
-    void capabilitiesEndpointsRemainEquivalent() throws Exception {
-        MvcResult canonical = mockMvc.perform(get("/api/v1/capabilities"))
-            .andExpect(status().isOk())
-            .andReturn();
-        MvcResult legacy = mockMvc.perform(get("/api/v1/explanations/capabilities"))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        assertEquals(
-            objectMapper.readTree(canonical.getResponse().getContentAsString()),
-            objectMapper.readTree(legacy.getResponse().getContentAsString())
-        );
-    }
-
-    @Test
-    void legacyCapabilitiesEndpointDeclaresDeprecationAndSunsetHeaders() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/v1/explanations/capabilities"))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        assertEquals("true", result.getResponse().getHeader("Deprecation"));
-        assertNotNull(result.getResponse().getHeader("Sunset"));
-        String link = result.getResponse().getHeader("Link");
-        assertNotNull(link);
-        assertTrue(link.contains("/api/v1/capabilities"));
-        assertNotNull(result.getResponse().getHeader("Warning"));
     }
 
     @Test
@@ -298,29 +250,6 @@ class ExplanationControllerRefusalIntegrationTest {
             assertTrue(row.path("examples").isArray());
             assertFalse(row.path("examples").isEmpty(), "capability examples must not be empty");
         }
-    }
-
-    @Test
-    void testHealthCheck() throws Exception {
-        mockMvc.perform(get("/api/v1/explanations/health"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("healthy"))
-                .andExpect(jsonPath("$.service").value("explanation-api"))
-                .andExpect(jsonPath("$.phase").value("11"));
-    }
-
-    @Test
-    void legacyHealthEndpointDeclaresDeprecationAndSunsetHeaders() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/v1/explanations/health"))
-            .andExpect(status().isOk())
-            .andReturn();
-
-        assertEquals("true", result.getResponse().getHeader("Deprecation"));
-        assertNotNull(result.getResponse().getHeader("Sunset"));
-        String link = result.getResponse().getHeader("Link");
-        assertNotNull(link);
-        assertTrue(link.contains("/api/v1/health"));
-        assertNotNull(result.getResponse().getHeader("Warning"));
     }
 
     @Test
