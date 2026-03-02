@@ -7,6 +7,14 @@ It also serves as a case study in **disciplined AI-augmented engineering**: AI a
 
 ---
 
+## Additional Documentation
+
+• [Portfolio Summary](docs/11-portfolio-summary.md)  
+• [Architecture Overview](docs/01-architecture.md)  
+• [Operational Model](docs/04-operational-model.md)
+
+---
+
 # Why This Project Exists
 
 Modern engineering teams are rapidly integrating AI into development workflows.
@@ -83,6 +91,19 @@ flowchart TD
 
 ---
 
+# Screenshots
+
+Ask interface  
+<img src="docs/screenshots/ask-page.png" width="600">
+
+MBIE generation timeline  
+<img src="docs/screenshots/mbie-chart.png" width="600">
+
+LAWA water quality visualization  
+<img src="docs/screenshots/lawa-chart.png" width="600">
+
+---
+
 # Core Engineering Principles
 
 **Lineage-first**  
@@ -102,6 +123,21 @@ LLMs operate only on structured Fact Packs and never access the database directl
 
 **AI-governed, not AI-driven**  
 AI accelerates implementation, but architectural authority remains human-controlled.
+
+---
+
+# Dataset Lineage Model
+
+Each ingestion produces an immutable `dataset_release` record linked to a `dataset_source`.
+
+Domain records reference their originating dataset_release, ensuring:
+
+• reproducibility of all explanations  
+• safe re-ingestion without duplication  
+• traceability to the original publisher artifact  
+• deterministic reconstruction of system state
+
+Lineage is enforced at the database level via unique content hashes.
 
 ---
 
