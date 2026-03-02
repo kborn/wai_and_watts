@@ -1,245 +1,264 @@
 # Wai & Watts
+**Lineage-first environmental data platform with grounded LLM explanations**
 
-**AI-Governed Environmental Data Platform**
+Wai & Watts is a full-stack data platform that ingests real environmental and energy datasets, preserves dataset lineage, and generates grounded natural-language explanations using a fact-pack architecture that prevents hallucination.
 
-Wai & Watts is a contract-first ingestion and normalization platform for
-real New Zealand environmental datasets (MBIE electricity generation and
-LAWA water quality).
+It also serves as a case study in **disciplined AI-augmented engineering**: AI accelerated implementation, while architecture, invariants, and system boundaries remained explicitly human-governed.
 
-It also serves as a case study in disciplined AI-augmented engineering:\
-AI accelerated implementation, while architecture, invariants, and
-system boundaries remained explicitly human-governed.
-
-## Project Status
-
-Wai & Watts is complete as a portfolio project.
-
-The repository is intended to represent a finished, reviewable system rather than an open-ended roadmap. Phase 17 closes the implementation with contract-driven validation, deterministic natural-language handling, API contract hardening, observability/runbook coverage, and the final bounded capability expansion.
-
-Out of scope by design:
-- additional project phases
-- broader dataset expansion
-- forecasting or recommendation features
-- interactive clarification UX beyond deterministic refusals
-
-------------------------------------------------------------------------
+---
 
 # Why This Project Exists
 
-Modern engineering teams are rapidly integrating AI into development
-workflows.
+Modern engineering teams are rapidly integrating AI into development workflows.
 
-Wai & Watts explores a more important question:
+The harder and more important question is:
 
-> How do you design architectural guardrails that allow AI to accelerate
-> delivery without compromising correctness, provenance, or system
-> integrity?
+> **How do you design architectural guardrails that allow AI to accelerate delivery without compromising correctness, provenance, or system integrity?**
 
-This repository demonstrates that control model.
+Wai & Watts demonstrates one answer.
 
-------------------------------------------------------------------------
+The system enforces deterministic ingestion, explicit dataset lineage, and a strict fact boundary between persisted data and any LLM interaction.
 
-# System Overview
+The result is a platform where AI can safely explain facts—but cannot invent them.
 
-Wai & Watts is deliberately:
+---
 
--   **Lineage-first** (dataset releases are explicit and immutable)
--   **Contract-first** (ingestion consumes normalized CSV contracts
-    only)
--   **Idempotent by design** (DB-level uniqueness guarantees
-    correctness)
--   **LLM-safe** (Fact Packs are the exclusive explanation boundary)
+# Architecture Overview
 
-## Core Components
+<img src="docs/10-architecture.png" width="350">
 
-**Backend** - Spring Boot (Java) - Postgres - Flyway migrations -
-Deterministic ingestion lifecycle
+<details>
+<summary>Mermaid version</summary>
 
-**Frontend** - React + TypeScript - Thin UI over stable APIs -
-Visualization only --- no domain logic
+```mermaid
+flowchart TD
 
-**LLM Layer** - Fact Pack boundary - Intent parsing (routing-only) -
-Deterministic refusal for unsupported queries
+  subgraph Publisher
+    A[Publisher Dataset<br/>MBIE / LAWA XLSX]
+  end
 
-The LLM interprets language only, the backend validates requests and computes facts/metrics, and supported capabilities are registry-driven and discoverable via `GET /api/v1/capabilities`.
-For non-refusal responses, citations are required and must map to Fact Pack fact IDs generated for that request.
+  subgraph Transform Layer
+    B[scripts/download/*.sh]
+    C[scripts/transform.sh]
+    D[Contract CSV<br/>transforms/&lt;dataset_source.code&gt;/]
+  end
 
-## Reviewer Quickstart
+  subgraph Ingestion Layer
+    E[scripts/ingest-all.sh]
+    F[Spring Boot Ingestion Service]
+  end
 
-➡️ Start here: **docs/07-reviewer-quickstart.md**
+  subgraph Database
+    G[(dataset_source)]
+    H[(dataset_release<br/>content_hash, published_date)]
+    I[(Domain Tables<br/>MBIE, LAWA records)]
+  end
 
-This walks through architecture, ingestion, explanation safety, and operability proof in under 10 minutes.
+  subgraph Explanation Layer
+    J[Fact Pack Builder<br/>deterministic DB queries]
+    K[Explanation Service<br/>LLM-safe boundary]
+  end
 
-------------------------------------------------------------------------
+  subgraph Frontend
+    L[React Frontend]
+  end
 
-# Quick Start (Local Development)
 
-The entire stack (Postgres, backend, frontend) runs via Docker Compose.
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> F
 
-## Environment setup
+  F --> G
+  F --> H
+  H --> I
 
-Copy the checked-in template before starting if you want live LLM calls in Docker Compose:
+  I --> J
+  J --> K
+  K --> L
+```
+</details>
 
-```bash
+
+---
+
+# Core Engineering Principles
+
+**Lineage-first**  
+Dataset releases are explicit, immutable, and traceable.
+
+**Contract-first**  
+Ingestion consumes normalized CSV contracts, not raw publisher files.
+
+**Idempotent by design**  
+Database-level uniqueness guarantees ingestion correctness.
+
+**Deterministic and reproducible**  
+Every ingestion and explanation can be reproduced exactly.
+
+**LLM-safe by architecture**  
+LLMs operate only on structured Fact Packs and never access the database directly.
+
+**AI-governed, not AI-driven**  
+AI accelerates implementation, but architectural authority remains human-controlled.
+
+---
+
+# System Components
+
+## Backend
+- Java / Spring Boot
+- Postgres
+- Flyway migrations
+- Deterministic ingestion lifecycle
+- Dataset lineage model
+
+## Frontend
+- React
+- TypeScript
+- Vite
+- Tailwind
+- TanStack Query
+
+## LLM Layer
+- Fact Pack boundary
+- Deterministic intent parsing
+- Refusal model for unsupported queries
+
+---
+
+# Project Status
+
+Wai & Watts is complete as a portfolio project.
+
+Phase 17 finalized:
+
+- Contract-driven ingestion validation
+- Deterministic natural language handling
+- Capability registry
+- Observability and runbook coverage
+- Stable API contracts
+
+---
+
+# Quick Start
+
+## Optional: Configure LLM Provider
+
+The repository includes a checked-in environment template:
+
+```
+.env.example
+```
+
+Copy it to create your local configuration:
+
+```
 cp .env.example .env
 ```
 
-## Start the application
+This file controls LLM provider integration and runtime configuration.
 
-``` bash
+If no LLM provider is configured, Wai & Watts runs in **deterministic stub mode**, allowing the entire ingestion and explanation pipeline to function without external dependencies.
+
+This ensures:
+
+- reproducible local development
+- no external API requirement
+- deterministic explanation behavior for testing and review
+
+To enable live LLM explanations, set:
+
+```
+LLM_PROVIDER=<provider>
+LLM_MODEL=<model>
+LLM_API_KEY=<key>
+```
+
+LLM access remains strictly bounded to Fact Packs regardless of provider configuration.
+
+---
+
+Start everything:
+
+```
 docker compose up --build
 ```
 
-This starts:
+Frontend:  
+http://localhost:5173
 
--   Postgres database\
--   Spring Boot backend (http://localhost:8080)\
--   React frontend (http://localhost:5173)
+Backend:  
+http://localhost:8080
 
-Stop the stack with:
+---
 
-``` bash
-docker compose down
+# Operability Proof
+
 ```
-
-## Operability Proof (3 Commands)
-
-```bash
-# 1) Start infrastructure + app
 docker compose up -d --build
 
-# 2) Verify backend health
-curl -s http://localhost:8080/api/v1/health
+curl http://localhost:8080/api/v1/health
 
-# 3) Verify dataset catalog endpoint
-curl -s http://localhost:8080/api/v1/datasets
+curl http://localhost:8080/api/v1/datasets
 ```
 
-Expected outcomes:
-- command 1 starts `postgres`, `backend`, and `frontend` containers with no build/runtime errors.
-- command 2 returns a health payload (HTTP 200).
-- command 3 returns a JSON dataset list (HTTP 200), confirming API + DB connectivity.
+---
 
-Optional: enable live LLM behavior by setting `LLM_PROVIDER`, `LLM_MODEL`, and `LLM_API_KEY` in `.env`. If left blank, deterministic stub/demo behavior is used. Database/container wiring is already provided by `docker-compose.yml`.
-
-------------------------------------------------------------------------
-
-# Ingesting Data
-
-Ingestion is deterministic and contract-driven.
-
-Canonical flow:
-
-download → transform → ingest (CLI inside backend container)
-
-### Data Population
-
-Data files are bundled in the container at `/app/downloads/`.
-To run ingestion per dataset (transform + ingest), use the pipeline entrypoint:
-
-```bash
-# MBIE annual generation
-docker compose run --rm ingest \
-  mbie.generation.annual --bundle-date 2026-02-06 \
-  --published-date 2025-11-01 --release-label "MBIE Q3 2025"
-
-# MBIE quarterly generation
-docker compose run --rm ingest \
-  mbie.generation.quarterly --bundle-date 2026-02-06 \
-  --published-date 2025-11-01 --release-label "MBIE Q3 2025"
-
-# LAWA state (multi-year)
-docker compose run --rm ingest \
-  lawa.water_quality.state.multi_year --bundle-date 2026-02-06 \
-  --published-date 2025-10-15 --release-label "LAWA Oct 2025"
-
-# LAWA trend (multi-year)
-docker compose run --rm ingest \
-  lawa.water_quality.trend.multi_year --bundle-date 2026-02-06 \
-  --published-date 2025-10-15 --release-label "LAWA Oct 2025"
-```
-
-The pipeline will:
-1. Transform XLSX files to CSV
-2. Ingest into the database
-3. Handle idempotency (skip if already ingested)
-
-Notes:
-- `--bundle-date YYYY-MM-DD` derives the workbook path from `downloads/<provider>/<date>/...`.
-- `--input /path/to/workbook.xlsx` overrides the derived path.
-- `--published-date` and `--release-label` are optional flags.
-- If `downloads/manifest/<bundle-date>.json` exists, `--published-date` and `--release-label` can be omitted.
-
-Example (manifest-driven):
-
-```bash
-docker compose run --rm ingest-all --bundle-date 2026-02-06
-```
-
-Idempotency is enforced via database uniqueness on:
-
-(dataset_source_id, content_hash)
-
-Duplicate ingestions are treated as successful no-ops.
-
-------------------------------------------------------------------------
-
-# Example API Calls
+# Example API Usage
 
 List datasets:
 
-GET http://localhost:8080/api/v1/datasets
+```
+GET /api/v1/datasets
+```
 
-Retrieve releases:
+Ask a natural language question:
 
-GET http://localhost:8080/api/v1/datasets/{code}/releases
+```
+POST /api/v1/explanations/ask
+```
 
-Generate explanation:
-
-POST http://localhost:8080/api/v1/explanations/ask
-
-LLMs operate only on structured Fact Packs. They never query the
-database directly.
-
-------------------------------------------------------------------------
+---
 
 # Repository Structure
 
-/docs → Curated architectural narrative\
-/engineering → Governance artifacts and execution history\
-/archive → Historical phase artifacts and legacy documentation\
-/backend\
-/frontend
+```
+backend/
+frontend/
+docs/
+engineering/
+scripts/
+archive/
+```
 
-------------------------------------------------------------------------
+---
 
-# Architectural Narrative
+# What This Demonstrates
 
-See:
+This project demonstrates the ability to design and implement:
 
--   docs/00-executive-overview.md
--   docs/01-architecture.md
--   docs/02-ai-governance-case-study.md
--   docs/03-design-invariants.md
--   docs/04-operational-model.md
--   docs/05-llm-safety-model.md
--   docs/06-documentation-governance.md
--   docs/07-reviewer-quickstart.md
--   docs/08-change-risk-checklist.md
+- Production-style ingestion pipelines
+- Deterministic data lineage systems
+- Contract-driven architecture
+- Safe LLM integration patterns
+- Full-stack platform engineering
+- Operationally reproducible systems
+- AI-assisted development with architectural governance
 
-------------------------------------------------------------------------
+---
 
-# AI Governance Summary
+# Future Production Extensions (Deliberately Deferred)
 
-AI was used extensively for implementation.
+- Scheduled ingestion orchestration
+- Hosted deployment infrastructure
+- Dataset release comparison tooling
+- Observability dashboards
+- Authentication and multi-tenant access
 
-However:
+---
 
--   Architecture, invariants, and sequencing were human-owned.
--   Role boundaries were explicit.
--   Escalation was required for new architectural surface area.
--   LLM access is constrained to deterministic Fact Packs.
--   No autonomous AI commits were permitted.
+# License
 
-This project demonstrates disciplined AI acceleration --- not
-uncontrolled generation.
+This project is licensed under the MIT License — see the LICENSE file for details.
