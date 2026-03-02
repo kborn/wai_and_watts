@@ -44,7 +44,6 @@ Context:
 Explanations:
 - `POST /api/v1/explanations` (structured request)
 - `POST /api/v1/explanations/ask` (natural-language request)
-- `GET /api/v1/explanations/health`
 - `POST /api/v1/explanations/fact-pack` (debug/development helper)
 
 Capabilities:

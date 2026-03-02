@@ -920,8 +920,8 @@ Formalize supported capabilities as a declared, testable contract and eliminate 
     - [x] Add parser-service test coverage for unknown-metric normalization behavior.
     - [x] Extend normalization rules for all nullable categorical filters to prevent similar flake classes.
 - [x] Formal API deprecation policy
-    - [x] Document canonical endpoints and legacy aliases explicitly.
-    - [x] Add parity tests for aliases and define sunset behavior.
+    - [x] Document canonical endpoints explicitly.
+    - [x] Add and verify deprecation policy where alias retention is still intentional.
 - [x] Add architecture fitness tests
     - [x] Enforce controller→service boundaries (no controllers calling repositories).
     - [x] Enforce “no entity responses” (DTO-only at API boundary).
