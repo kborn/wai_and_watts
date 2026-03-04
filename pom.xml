@@ -23,7 +23,7 @@
         <!-- Security override: pin logback while staying on the current Boot line -->
         <logback.version>1.5.32</logback.version>
         <!-- Security overrides for IDE-reported CVEs -->
-        <snakeyaml.version>2.5</snakeyaml.version>
+        <snakeyaml.version>2.6</snakeyaml.version>
 
         <!-- Optional: consistent encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
