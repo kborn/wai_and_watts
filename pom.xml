@@ -19,7 +19,7 @@
         <!-- Keep these centralized so all modules inherit them -->
         <java.version>21</java.version>
         <spring-boot.version>4.0.3</spring-boot.version>
-        <testcontainers.version>1.20.6</testcontainers.version>
+        <testcontainers.version>2.0.3</testcontainers.version>
         <!-- Security override: pin logback while staying on the current Boot line -->
         <logback.version>1.5.32</logback.version>
         <!-- Security overrides for IDE-reported CVEs -->
