@@ -6,7 +6,8 @@ WORKDIR /app
 
 # Copy and install parent POM first
 COPY pom.xml .
-RUN mvn install -N
+COPY .github/maven-settings.xml /root/.m2/settings.xml
+RUN mvn -s /root/.m2/settings.xml install -N
 
 # Copy backend POM and source
 COPY backend/pom.xml ./backend/
@@ -14,7 +15,7 @@ COPY backend/src ./backend/src
 
 # Build backend with Spring Boot repackage
 WORKDIR /app/backend
-RUN mvn clean package spring-boot:repackage -DskipTests
+RUN mvn -s /root/.m2/settings.xml clean package spring-boot:repackage -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jre
