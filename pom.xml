@@ -20,6 +20,9 @@
         <java.version>21</java.version>
         <spring-boot.version>4.0.3</spring-boot.version>
         <testcontainers.version>2.0.3</testcontainers.version>
+        <jackson2.version>2.21.1</jackson2.version>
+        <jackson2.annotations.version>2.21</jackson2.annotations.version>
+        <jackson3.version>3.1.0</jackson3.version>
         <!-- Security override: pin logback while staying on the current Boot line -->
         <logback.version>1.5.32</logback.version>
         <!-- Security overrides for IDE-reported CVEs -->
@@ -46,6 +49,32 @@
                 <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- Security overrides for jackson-core advisories across Jackson 2.x and 3.x lines -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson2.annotations.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson3.version}</version>
             </dependency>
             <!-- Security override until managed Spring Boot line picks up patched Logback -->
             <dependency>
