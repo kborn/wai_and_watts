@@ -14,13 +14,18 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-## 2) Ingest one dataset (fast path)
+## 2) Load the bundled demo dataset
 
 ```bash
-docker compose run --rm ingest \
-  mbie.generation.annual --bundle-date 2026-02-06 \
-  --published-date 2025-11-01 --release-label "MBIE Q3 2025"
+docker compose run --rm ingest-all --bundle-date 2026-02-06
 ```
+
+This transforms and ingests the checked-in demo bundle for all supported sources:
+
+- `mbie.generation.annual`
+- `mbie.generation.quarterly`
+- `lawa.water_quality.state.multi_year`
+- `lawa.water_quality.trend.multi_year`
 
 ## 3) Run curl API checks
 
@@ -40,6 +45,12 @@ curl "http://localhost:8080/api/v1/mbie/generation/annual?fromYear=2020&toYear=2
 
 ```bash
 curl "http://localhost:8080/api/v1/datasets/sources"
+```
+
+### LAWA water quality rows
+
+```bash
+curl "http://localhost:8080/api/v1/lawa/water-quality/state/multiyear?region=canterbury"
 ```
 
 ## 4) Grounded explanation example (natural language)

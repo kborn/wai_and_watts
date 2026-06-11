@@ -1,4 +1,5 @@
 # Wai & Watts — Portfolio Summary
+New Zealand environmental data platform demonstrating Java/Spring Boot backend engineering, deterministic ingestion, dataset lineage, and grounded LLM explanation workflows.
 
 ## Overview
 

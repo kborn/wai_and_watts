@@ -9,6 +9,7 @@ It also serves as a case study in **disciplined AI-augmented engineering**: AI a
 
 ## Additional Documentation
 
+• [Local Demo Walkthrough](DEMO.md)  
 • [Portfolio Summary](docs/11-portfolio-summary.md)  
 • [Architecture Overview](docs/01-architecture.md)  
 • [Operational Model](docs/04-operational-model.md)
@@ -92,6 +93,8 @@ flowchart TD
 ---
 
 # Screenshots
+Home  
+<img src="docs/screenshots/home.png" width="600">
 
 Ask interface  
 <img src="docs/screenshots/ask-page.png" width="600">
@@ -219,7 +222,7 @@ LLM access remains strictly bounded to Fact Packs regardless of provider configu
 Start everything:
 
 ```
-docker compose up --build
+docker compose up -d --build
 ```
 
 Frontend:  
@@ -227,6 +230,31 @@ http://localhost:5173
 
 Backend:  
 http://localhost:8080
+
+## Load the Demo Data
+
+A fresh database starts with dataset metadata only. To populate the portfolio demo dataset, run the bundled ingest:
+
+```
+docker compose run --rm ingest-all --bundle-date 2026-02-06
+```
+
+This uses the checked-in workbook bundle and manifest under `backend/src/main/resources/downloads/`, transforms the workbooks into contract CSVs, and ingests all supported datasets:
+
+- `mbie.generation.annual`
+- `mbie.generation.quarterly`
+- `lawa.water_quality.state.multi_year`
+- `lawa.water_quality.trend.multi_year`
+
+After the command completes, open the frontend or verify the data through the API:
+
+```
+curl http://localhost:8080/api/v1/datasets/sources
+curl "http://localhost:8080/api/v1/mbie/generation/annual?fromYear=2020&toYear=2024"
+curl "http://localhost:8080/api/v1/lawa/water-quality/state/multiyear?region=canterbury"
+```
+
+For the short portfolio walkthrough, see [DEMO.md](DEMO.md).
 
 ---
 
