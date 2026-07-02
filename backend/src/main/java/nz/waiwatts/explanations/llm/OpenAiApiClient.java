@@ -1,8 +1,9 @@
 package nz.waiwatts.explanations.llm;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import nz.waiwatts.explanations.config.LlmProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class OpenAiApiClient {
         return send(payload);
     }
 
-    private String extractOutputText(String responseBody) throws IOException {
+    private String extractOutputText(String responseBody) {
         JsonNode root = objectMapper.readTree(responseBody);
 
         if (root.hasNonNull("output_text")) {
@@ -132,6 +133,9 @@ public class OpenAiApiClient {
             return null;
         } catch (IOException e) {
             log.warn("OpenAI response call failed: {}", e.getMessage());
+            return null;
+        } catch (JacksonException e) {
+            log.warn("OpenAI response body could not be parsed: {}", e.getMessage());
             return null;
         }
     }

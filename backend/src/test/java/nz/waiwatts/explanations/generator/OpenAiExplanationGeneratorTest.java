@@ -1,6 +1,6 @@
 package nz.waiwatts.explanations.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.llm.OpenAiApiClient;

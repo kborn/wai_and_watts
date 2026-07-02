@@ -1,6 +1,6 @@
 package nz.waiwatts.explanations.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.config.LlmProperties;
 import nz.waiwatts.explanations.config.LlmProvider;

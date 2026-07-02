@@ -1,7 +1,7 @@
 package nz.waiwatts.explanations.generator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.FactPack;
 import nz.waiwatts.explanations.llm.OpenAiApiClient;
@@ -37,7 +37,7 @@ public class OpenAiExplanationGenerator implements ExplanationGenerator {
         String factPackJson;
         try {
             factPackJson = objectMapper.writeValueAsString(factPack);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Unable to serialize FactPack: {}", e.getMessage());
             return Explanation.refusal("Unable to serialize FactPack for LLM");
         }
