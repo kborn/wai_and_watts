@@ -1,6 +1,6 @@
 package nz.waiwatts.explanations.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import nz.waiwatts.config.RequestCorrelationFilter;

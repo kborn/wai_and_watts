@@ -1,6 +1,7 @@
 package nz.waiwatts.explanations.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import nz.waiwatts.explanations.capabilities.CapabilityRegistry;
 import nz.waiwatts.explanations.generator.ExplanationGenerator;
 import nz.waiwatts.explanations.generator.OpenAiExplanationGenerator;
@@ -28,7 +29,9 @@ public class LlmProviderConfig {
     @Bean
     @ConditionalOnMissingBean(ObjectMapper.class)
     public ObjectMapper objectMapper() {
-        return new ObjectMapper().findAndRegisterModules();
+        return JsonMapper.builder()
+                .findAndAddModules()
+                .build();
     }
 
     @Bean

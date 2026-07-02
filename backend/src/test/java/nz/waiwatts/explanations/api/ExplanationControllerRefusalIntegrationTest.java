@@ -1,7 +1,8 @@
 package nz.waiwatts.explanations.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import java.util.stream.Collectors;
 import nz.waiwatts.explanations.dto.Explanation;
 import nz.waiwatts.explanations.dto.ExplanationRequest;
 import nz.waiwatts.explanations.dataset.DatasetCatalog;
@@ -20,7 +21,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -278,8 +278,10 @@ class ExplanationControllerRefusalIntegrationTest {
     }
 
     private static void assertObjectFieldSet(JsonNode node, Set<String> expectedFields) {
-        Set<String> actualFields = new HashSet<>();
-        node.fieldNames().forEachRemaining(actualFields::add);
+        Set<String> actualFields = node.properties().stream()
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+
         assertEquals(expectedFields, actualFields);
     }
 }

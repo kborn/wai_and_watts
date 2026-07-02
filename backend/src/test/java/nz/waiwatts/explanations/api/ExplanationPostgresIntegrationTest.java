@@ -1,6 +1,6 @@
 package nz.waiwatts.explanations.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import nz.waiwatts.domain.datasets.DatasetRelease;
 import nz.waiwatts.domain.datasets.DatasetSource;
 import nz.waiwatts.domain.datasets.ExpectedFormat;
