@@ -24,7 +24,7 @@
         <jackson2.annotations.version>2.22</jackson2.annotations.version>
         <jackson3.version>3.2.0</jackson3.version>
         <!-- Security override: pin logback while staying on the current Boot line -->
-        <logback.version>1.5.37</logback.version>
+        <logback.version>1.6.1</logback.version>
         <!-- Security overrides for IDE-reported CVEs -->
         <snakeyaml.version>2.6</snakeyaml.version>
 
